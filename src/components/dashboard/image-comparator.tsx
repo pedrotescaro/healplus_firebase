@@ -1,0 +1,146 @@
+"use client";
+
+import { useState } from "react";
+import Image from "next/image";
+import { compareWoundImages, CompareWoundImagesOutput } from "@/ai/flows/compare-wound-images";
+import { useToast } from "@/hooks/use-toast";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { fileToDataUri } from "@/lib/file-to-data-uri";
+import { UploadCloud, Loader2, GitCompareArrows } from "lucide-react";
+import { Separator } from "@/components/ui/separator";
+
+export function ImageComparator() {
+  const [image1, setImage1] = useState<File | null>(null);
+  const [image1Preview, setImage1Preview] = useState<string | null>(null);
+  const [image2, setImage2] = useState<File | null>(null);
+  const [image2Preview, setImage2Preview] = useState<string | null>(null);
+  const [additionalNotes, setAdditionalNotes] = useState("");
+  const [comparison, setComparison] = useState<CompareWoundImagesOutput | null>(null);
+  const [loading, setLoading] = useState(false);
+  const { toast } = useToast();
+
+  const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>, imageNumber: 1 | 2) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      const setFile = imageNumber === 1 ? setImage1 : setImage2;
+      const setPreview = imageNumber === 1 ? setImage1Preview : setImage2Preview;
+      setFile(file);
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setPreview(reader.result as string);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!image1 || !image2) {
+      toast({
+        title: "Missing Images",
+        description: "Please upload both wound images for comparison.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setLoading(true);
+    setComparison(null);
+    try {
+      const [image1DataUri, image2DataUri] = await Promise.all([
+        fileToDataUri(image1),
+        fileToDataUri(image2),
+      ]);
+      const result = await compareWoundImages({ image1DataUri, image2DataUri, additionalNotes });
+      setComparison(result);
+    } catch (error) {
+      console.error("Error comparing images:", error);
+      toast({
+        title: "Error",
+        description: "Failed to compare images. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const ImageUploader = ({ id, onChange, previewSrc, label }: { id: string, onChange: (e: React.ChangeEvent<HTMLInputElement>) => void, previewSrc: string | null, label: string }) => (
+    <div className="space-y-2">
+        <Label htmlFor={id}>{label}</Label>
+        <div className="flex items-center justify-center w-full">
+            <label htmlFor={id} className="flex flex-col items-center justify-center w-full h-64 border-2 border-dashed rounded-lg cursor-pointer bg-card hover:bg-muted transition-colors">
+                <div className="flex flex-col items-center justify-center pt-5 pb-6">
+                    {previewSrc ? (
+                        <Image src={previewSrc} alt="Wound preview" width={200} height={200} className="object-contain h-48 w-full" data-ai-hint="wound" />
+                    ) : (
+                        <>
+                            <UploadCloud className="w-8 h-8 mb-4 text-gray-500" />
+                            <p className="mb-2 text-sm text-gray-500"><span className="font-semibold">Click to upload</span></p>
+                            <p className="text-xs text-gray-500">PNG, JPG, or WEBP</p>
+                        </>
+                    )}
+                </div>
+                <Input id={id} type="file" className="hidden" accept="image/*" onChange={onChange} />
+            </label>
+        </div>
+    </div>
+  );
+
+  return (
+    <div className="space-y-8">
+      <form onSubmit={handleSubmit} className="space-y-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <ImageUploader id="image-1" onChange={(e) => handleImageChange(e, 1)} previewSrc={image1Preview} label="Image 1 (e.g., older)" />
+          <ImageUploader id="image-2" onChange={(e) => handleImageChange(e, 2)} previewSrc={image2Preview} label="Image 2 (e.g., newer)" />
+        </div>
+        <div className="space-y-2">
+            <Label htmlFor="additional-notes">Additional Notes (Optional)</Label>
+            <Textarea
+              id="additional-notes"
+              placeholder="Provide any context, like treatment changes between photos..."
+              value={additionalNotes}
+              onChange={(e) => setAdditionalNotes(e.target.value)}
+            />
+          </div>
+        <Button type="submit" disabled={loading} className="w-full md:w-auto">
+          {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+          Compare Images
+        </Button>
+      </form>
+
+      {loading && (
+        <div className="flex items-center justify-center flex-col text-center p-8">
+          <Loader2 className="h-8 w-8 animate-spin text-primary" />
+          <p className="mt-4 text-muted-foreground">Comparing images... The AI is analyzing the changes.</p>
+        </div>
+      )}
+
+      {comparison && (
+        <Card className="shadow-lg">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <GitCompareArrows className="h-5 w-5 text-primary" />
+              Comparison Result
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div>
+              <h3 className="font-semibold text-lg mb-2">Comparison Summary</h3>
+              <p className="prose prose-sm max-w-none dark:prose-invert whitespace-pre-wrap">{comparison.comparisonSummary}</p>
+            </div>
+            <Separator />
+            <div>
+              <h3 className="font-semibold text-lg mb-2">Suggested Actions</h3>
+              <p className="prose prose-sm max-w-none dark:prose-invert whitespace-pre-wrap">{comparison.suggestedActions}</p>
+            </div>
+          </CardContent>
+        </Card>
+      )}
+    </div>
+  );
+}

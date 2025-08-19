@@ -1,0 +1,79 @@
+"use client";
+
+import Link from "next/link";
+import { usePathname, useRouter } from "next/navigation";
+import {
+  LayoutDashboard,
+  FileText,
+  GitCompareArrows,
+  User,
+  LogOut,
+} from "lucide-react";
+import { useAuth } from "@/hooks/use-auth";
+import { Button } from "@/components/ui/button";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
+import { Logo } from "../logo";
+import { cn } from "@/lib/utils";
+
+const navItems = [
+  { href: "/dashboard", icon: LayoutDashboard, label: "Dashboard" },
+  { href: "/dashboard/report", icon: FileText, label: "New Report" },
+  { href: "/dashboard/compare", icon: GitCompareArrows, label: "Compare Images" },
+  { href: "/dashboard/profile", icon: User, label: "Profile" },
+];
+
+export default function AppSidebar() {
+  const pathname = usePathname();
+  const router = useRouter();
+  const { user, logout } = useAuth();
+
+  const handleLogout = () => {
+    logout();
+    router.push("/login");
+  };
+
+  return (
+    <aside className="hidden w-64 flex-col border-r bg-card p-4 sm:flex">
+      <div className="mb-8">
+        <Logo />
+      </div>
+      <nav className="flex-1 space-y-2">
+        <TooltipProvider>
+          {navItems.map((item) => (
+            <Tooltip key={item.href} delayDuration={0}>
+              <TooltipTrigger asChild>
+                <Link href={item.href}>
+                  <Button
+                    variant={pathname === item.href ? "secondary" : "ghost"}
+                    className="w-full justify-start"
+                  >
+                    <item.icon className="mr-2 h-4 w-4" />
+                    {item.label}
+                  </Button>
+                </Link>
+              </TooltipTrigger>
+              <TooltipContent side="right">
+                <p>{item.label}</p>
+              </TooltipContent>
+            </Tooltip>
+          ))}
+        </TooltipProvider>
+      </nav>
+      <div className="mt-auto">
+        <div className="mb-4 border-t pt-4">
+            <p className="text-sm font-semibold truncate">{user?.name}</p>
+            <p className="text-xs text-muted-foreground truncate">{user?.email}</p>
+        </div>
+        <Button variant="outline" className="w-full" onClick={handleLogout}>
+          <LogOut className="mr-2 h-4 w-4" />
+          Logout
+        </Button>
+      </div>
+    </aside>
+  );
+}
