@@ -27,6 +27,7 @@ import {
 import { Separator } from "@/components/ui/separator";
 import { WoundBedProgress } from "./wound-bed-progress";
 import { User, Stethoscope, HeartPulse, Pill, Microscope, FilePlus, Info } from "lucide-react";
+import { Slider } from "@/components/ui/slider";
 
 
 export function AnamnesisForm() {
@@ -65,6 +66,7 @@ export function AnamnesisForm() {
       percentual_epitelizacao_leito: 0,
       percentual_esfacelo_leito: 0,
       percentual_necrose_seca_leito: 0,
+      dor_escala: 0,
     },
   });
 
@@ -318,7 +320,25 @@ export function AnamnesisForm() {
                  <Separator />
                 <div className="space-y-4">
                   <h4 className="font-semibold text-md">S - Social/Satisfação do Paciente</h4>
-                  <FormField control={form.control} name="dor_escala" render={({ field }) => ( <FormItem><FormLabel>Intensidade da Dor (0-10)</FormLabel><FormControl><Input type="number" min="0" max="10" {...field} /></FormControl><FormMessage /></FormItem> )} />
+                    <FormField
+                      control={form.control}
+                      name="dor_escala"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Intensidade da Dor (0-10): {field.value ?? 0}</FormLabel>
+                          <FormControl>
+                            <Slider
+                              min={0}
+                              max={10}
+                              step={1}
+                              value={[field.value ?? 0]}
+                              onValueChange={(value) => field.onChange(value[0])}
+                            />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
                   <FormField control={form.control} name="dor_fatores" render={({ field }) => ( <FormItem><FormLabel>Fatores que Aliviam/Pioram a Dor</FormLabel><FormControl><Textarea {...field} /></FormControl><FormMessage /></FormItem> )} />
                 </div>
 
@@ -372,5 +392,3 @@ export function AnamnesisForm() {
     </Form>
   );
 }
-
-    
