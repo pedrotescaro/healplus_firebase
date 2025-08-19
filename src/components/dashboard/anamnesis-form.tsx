@@ -33,9 +33,17 @@ import {
 } from "@/components/ui/select";
 import { Separator } from "@/components/ui/separator";
 import { WoundBedProgress } from "./wound-bed-progress";
-import { User, Stethoscope, HeartPulse, Pill, Microscope, FilePlus, Info } from "lucide-react";
+import { User, Stethoscope, HeartPulse, Pill, Microscope, FilePlus, Info, MapPin } from "lucide-react";
 import { Slider } from "@/components/ui/slider";
 import { cn } from "@/lib/utils";
+import { BodyMapSelector } from "./body-map-selector";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
 
 
 export function AnamnesisForm() {
@@ -75,6 +83,7 @@ export function AnamnesisForm() {
       percentual_esfacelo_leito: 0,
       percentual_necrose_seca_leito: 0,
       dor_escala: 0,
+      localizacao_ferida: "",
     },
   });
 
@@ -540,10 +549,68 @@ export function AnamnesisForm() {
                <div>
                   <h4 className="font-semibold mb-2">Localização e Evolução</h4>
                   <div className="grid md:grid-cols-2 gap-4">
-                      <FormField control={form.control} name="localizacao_ferida" render={({ field }) => ( <FormItem><FormLabel>Localização</FormLabel><FormControl><Input {...field} /></FormControl><FormMessage /></FormItem> )} />
+                      <FormField
+                          control={form.control}
+                          name="localizacao_ferida"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>Localização</FormLabel>
+                               <div className="flex items-center gap-2">
+                                <FormControl>
+                                  <Input {...field} readOnly placeholder="Selecione no mapa corporal" />
+                                </FormControl>
+                                <Dialog>
+                                  <DialogTrigger asChild>
+                                    <Button type="button" variant="outline" size="icon">
+                                      <MapPin />
+                                    </Button>
+                                  </DialogTrigger>
+                                  <DialogContent className="max-w-4xl">
+                                    <DialogHeader>
+                                      <DialogTitle>Selecione a Localização da Ferida</DialogTitle>
+                                    </DialogHeader>
+                                    <BodyMapSelector
+                                      onLocationSelect={(location) => {
+                                        field.onChange(location);
+                                      }}
+                                      currentLocation={field.value}
+                                    />
+                                  </DialogContent>
+                                </Dialog>
+                              </div>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
                       <FormField control={form.control} name="tempo_evolucao" render={({ field }) => ( <FormItem><FormLabel>Tempo de Evolução</FormLabel><FormControl><Input {...field} /></FormControl><FormMessage /></FormItem> )} />
-                      <FormField control={form.control} name="etiologia_ferida" render={({ field }) => ( <FormItem><FormLabel>Etiologia</FormLabel><FormControl><Input placeholder="Ex: Pressão, Vascular" {...field} /></FormControl><FormMessage /></FormItem> )} />
-                      <FormField control={form.control} name="etiologia_outra" render={({ field }) => ( <FormItem><FormLabel>Outra Etiologia</FormLabel><FormControl><Input {...field} /></FormControl><FormMessage /></FormItem> )} />
+                      <FormField
+                        control={form.control}
+                        name="etiologia_ferida"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Etiologia</FormLabel>
+                            <Select onValueChange={field.onChange} defaultValue={field.value}>
+                              <FormControl>
+                                <SelectTrigger><SelectValue placeholder="Selecione a causa..." /></SelectTrigger>
+                              </FormControl>
+                              <SelectContent>
+                                <SelectItem value="Lesão por Pressão">Lesão por Pressão</SelectItem>
+                                <SelectItem value="Úlcera Venosa">Úlcera Venosa</SelectItem>
+                                <SelectItem value="Úlcera Arterial">Úlcera Arterial</SelectItem>
+                                <SelectItem value="Pé Diabético">Pé Diabético (Neuropática)</SelectItem>
+                                <SelectItem value="Ferida Cirúrgica">Ferida Cirúrgica</SelectItem>
+                                <SelectItem value="Ferida Traumática">Ferida Traumática</SelectItem>
+                                <SelectItem value="Queimadura">Queimadura</SelectItem>
+                                <SelectItem value="Outra">Outra</SelectItem>
+                              </SelectContent>
+                            </Select>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                      {watch.etiologia_ferida === 'Outra' && (
+                        <FormField control={form.control} name="etiologia_outra" render={({ field }) => ( <FormItem><FormLabel>Especifique a Etiologia</FormLabel><FormControl><Input {...field} /></FormControl><FormMessage /></FormItem> )} />
+                      )}
                   </div>
               </div>
             </AccordionContent>

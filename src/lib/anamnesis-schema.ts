@@ -95,7 +95,7 @@ export const anamnesisFormSchema = z.object({
 
   // Avaliação da Ferida (TIMERS) - Parte 1
   localizacao_ferida: z.string().min(1, "Localização é obrigatória"),
-  etiologia_ferida: z.string().min(1, "Etiologia é obrigatória"),
+  etiologia_ferida: z.string().optional(),
   etiologia_outra: z.string().optional(),
   tempo_evolucao: z.string().min(1, "Tempo de evolução é obrigatório"),
   dor_escala: z.coerce.number().min(0).max(10).optional(),
@@ -125,18 +125,18 @@ export const anamnesisFormSchema = z.object({
   resultado_cultura: z.string().optional(),
   
   // Avaliação da Ferida (TIMERS) - Exsudato e Pele Perilesional
-  quantidade_exsudato: z.string().min(1, "Quantidade de exsudato é obrigatória"),
-  tipo_exsudato: z.string().min(1, "Tipo de exsudato é obrigatório"),
-  consistencia_exsudato: z.string().min(1, "Consistência do exsudato é obrigatória"),
-  pele_perilesional_umidade: z.string().min(1, "Umidade da pele perilesional é obrigatória"),
+  quantidade_exsudato: z.string().optional(),
+  tipo_exsudato: z.string().optional(),
+  consistencia_exsudato: z.string().optional(),
+  pele_perilesional_umidade: z.string().optional(),
   pele_perilesional_extensao: z.string().optional(),
   
   // Avaliação da Ferida (TIMERS) - Bordas e Cicatrização
-  bordas_caracteristicas: z.string().min(1, "Características das bordas são obrigatórias"),
-  fixacao_bordas: z.string().min(1, "Fixação das bordas é obrigatória"),
+  bordas_caracteristicas: z.string().optional(),
+  fixacao_bordas: z.string().optional(),
   tunel_cavidade: z.boolean().default(false),
   localizacao_tunel_cavidade: z.string().optional(),
-  velocidade_cicatrizacao: z.string().min(1, "Velocidade de cicatrização é obrigatória"),
+  velocidade_cicatrizacao: z.string().optional(),
   
   pele_perilesional_integra: z.boolean().default(false),
   pele_perilesional_eritematosa: z.boolean().default(false),
