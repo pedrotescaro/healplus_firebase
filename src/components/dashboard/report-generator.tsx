@@ -1,7 +1,7 @@
 
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import Image from "next/image";
 import { generateWoundReport, GenerateWoundReportOutput } from "@/ai/flows/generate-wound-report";
 import { useToast } from "@/hooks/use-toast";
@@ -10,7 +10,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { fileToDataUri } from "@/lib/file-to-data-uri";
-import { UploadCloud, Loader2, FileText } from "lucide-react";
+import { UploadCloud, Loader2, FileText, Download } from "lucide-react";
 import { AnamnesisFormValues } from "@/lib/anamnesis-schema";
 import {
   Select,
@@ -19,6 +19,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select"
+import jsPDF from "jspdf";
+import html2canvas from "html2canvas";
 
 type StoredAnamnesis = AnamnesisFormValues & { id: string };
 
@@ -29,7 +31,9 @@ export function ReportGenerator() {
   const [anamnesisRecords, setAnamnesisRecords] = useState<StoredAnamnesis[]>([]);
   const [report, setReport] = useState<GenerateWoundReportOutput | null>(null);
   const [loading, setLoading] = useState(false);
+  const [pdfLoading, setPdfLoading] = useState(false);
   const { toast } = useToast();
+  const reportRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     try {
@@ -100,6 +104,47 @@ export function ReportGenerator() {
     }
   };
 
+  const handleSavePdf = async () => {
+    if (!reportRef.current) return;
+    setPdfLoading(true);
+
+    try {
+        const canvas = await html2canvas(reportRef.current, {
+            scale: 2,
+            useCORS: true,
+            backgroundColor: null,
+        });
+
+        const imgData = canvas.toDataURL('image/png');
+        const pdf = new jsPDF('p', 'mm', 'a4');
+        const pdfWidth = pdf.internal.pageSize.getWidth();
+        const pdfHeight = pdf.internal.pageSize.getHeight();
+        const imgWidth = canvas.width;
+        const imgHeight = canvas.height;
+        const ratio = imgWidth / imgHeight;
+        const width = pdfWidth - 20; // with margin
+        const height = width / ratio;
+
+        let position = 10; // top margin
+        pdf.addImage(imgData, 'PNG', 10, position, width, height);
+        
+        const selectedRecord = anamnesisRecords.find(record => record.id === selectedAnamnesisId);
+        const fileName = `Relatorio_${selectedRecord?.nome_cliente?.replace(/\s/g, '_') || 'Paciente'}_${new Date().toLocaleDateString('pt-BR').replace(/\//g, '-')}.pdf`;
+        pdf.save(fileName);
+
+    } catch (error) {
+        console.error("Error generating PDF:", error);
+        toast({
+            title: "Erro ao Gerar PDF",
+            description: "Não foi possível salvar o relatório em PDF. Tente novamente.",
+            variant: "destructive",
+        });
+    } finally {
+        setPdfLoading(false);
+    }
+  };
+
+
   return (
     <div className="space-y-8">
       <form onSubmit={handleSubmit} className="space-y-6">
@@ -163,13 +208,23 @@ export function ReportGenerator() {
 
       {report && (
         <Card className="shadow-lg">
-          <CardHeader>
+          <CardHeader className="flex flex-row items-center justify-between">
             <CardTitle className="flex items-center gap-2">
               <FileText className="h-5 w-5 text-primary" />
               Relatório da Ferida Gerado
             </CardTitle>
+             <Button onClick={handleSavePdf} disabled={pdfLoading} variant="outline" size="sm">
+              {pdfLoading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Download className="mr-2 h-4 w-4" />}
+              Salvar em PDF
+            </Button>
           </CardHeader>
-          <CardContent>
+          <CardContent ref={reportRef}>
+             {imagePreview && (
+                <div className="mb-4">
+                    <h3 className="font-bold text-lg mb-2">Imagem da Ferida Analisada</h3>
+                    <Image src={imagePreview} alt="Wound analysed" width={300} height={300} className="rounded-md object-contain mx-auto" data-ai-hint="wound" />
+                </div>
+            )}
             <div className="prose prose-sm max-w-none dark:prose-invert whitespace-pre-wrap">
               {report.report}
             </div>

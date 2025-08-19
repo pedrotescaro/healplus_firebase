@@ -36,12 +36,12 @@ const generateWoundReportPrompt = ai.definePrompt({
   name: 'generateWoundReportPrompt',
   input: {schema: GenerateWoundReportInputSchema},
   output: {schema: GenerateWoundReportOutputSchema},
-  prompt: `You are a medical expert specializing in wound care. Analyze the wound image and the provided anamnesis data to generate a comprehensive wound report.
+  prompt: `Você é um médico especialista em tratamento de feridas. Analise a imagem da ferida e os dados de anamnese fornecidos para gerar um relatório abrangente em **português**.
 
-Wound Image: {{media url=woundImage}}
-Anamnesis Data: {{{anamnesisData}}}
+Imagem da Ferida: {{media url=woundImage}}
+Dados de Anamnese: {{{anamnesisData}}}
 
-Generate a detailed report including wound type, healing stage, potential complications, and recommended care steps. Provide a summary and recommendations based on your analysis.`,
+Gere um relatório detalhado incluindo tipo de ferida, estágio de cicatrização, possíveis complicações e passos recomendados para o tratamento. Forneça um resumo e recomendações com base na sua análise. O relatório deve ser formatado de forma clara e profissional.`,
 });
 
 const generateWoundReportFlow = ai.defineFlow(
