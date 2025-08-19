@@ -80,10 +80,10 @@ export function AnamnesisForm() {
     { name: "percentual_necrose_seca_leito" as const, value: watch.percentual_necrose_seca_leito || 0 },
   ];
 
-  const getPainColorClass = (value: number) => {
-    if (value <= 3) return "bg-green-500";
-    if (value <= 6) return "bg-yellow-500";
-    return "bg-red-500";
+  const getPainColorClasses = (value: number) => {
+    if (value <= 3) return { range: "bg-green-500", thumb: "border-green-500" };
+    if (value <= 6) return { range: "bg-yellow-500", thumb: "border-yellow-500" };
+    return { range: "bg-red-500", thumb: "border-red-500" };
   };
 
   function onSubmit(data: AnamnesisFormValues) {
@@ -330,22 +330,27 @@ export function AnamnesisForm() {
                     <FormField
                       control={form.control}
                       name="dor_escala"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Intensidade da Dor (0-10): {field.value ?? 0}</FormLabel>
-                          <FormControl>
-                          <Slider
-                              min={0}
-                              max={10}
-                              step={1}
-                              value={[field.value ?? 0]}
-                              onValueChange={(value) => field.onChange(value[0])}
-                              className={cn(getPainColorClass(field.value ?? 0))}
-                            />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
+                      render={({ field }) => {
+                        const painValue = field.value ?? 0;
+                        const colors = getPainColorClasses(painValue);
+                        return (
+                          <FormItem>
+                            <FormLabel>Intensidade da Dor (0-10): {painValue}</FormLabel>
+                            <FormControl>
+                            <Slider
+                                min={0}
+                                max={10}
+                                step={1}
+                                value={[painValue]}
+                                onValueChange={(value) => field.onChange(value[0])}
+                                rangeClassName={colors.range}
+                                thumbClassName={colors.thumb}
+                              />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )
+                      }}
                     />
                   <FormField control={form.control} name="dor_fatores" render={({ field }) => ( <FormItem><FormLabel>Fatores que Aliviam/Pioram a Dor</FormLabel><FormControl><Textarea {...field} /></FormControl><FormMessage /></FormItem> )} />
                 </div>
