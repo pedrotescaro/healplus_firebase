@@ -10,8 +10,8 @@ export default function SignupPage() {
           <CardHeader className="flex flex-col items-center justify-center gap-4">
             <Logo />
              <div className="text-center">
-                <h1 className="text-2xl font-semibold tracking-tight">Create an Account</h1>
-                <p className="text-sm text-muted-foreground">Enter your details to get started with WoundWise</p>
+                <h1 className="text-2xl font-semibold tracking-tight">Crie sua Conta</h1>
+                <p className="text-sm text-muted-foreground">Insira seus dados para começar a usar o Heal+</p>
             </div>
           </CardHeader>
           <CardContent>

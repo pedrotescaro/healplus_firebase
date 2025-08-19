@@ -8,8 +8,8 @@ import { cn } from "@/lib/utils";
 const inter = Inter({ subsets: ['latin'], variable: '--font-body' })
 
 export const metadata: Metadata = {
-  title: "WoundWise",
-  description: "AI-Powered Wound Analysis and Reporting",
+  title: "Heal+",
+  description: "Cuidado aprimorado para feridas crônicas por telessaúde.",
 };
 
 export default function RootLayout({

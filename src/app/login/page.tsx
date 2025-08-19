@@ -10,8 +10,8 @@ export default function LoginPage() {
           <CardHeader className="flex flex-col items-center justify-center gap-4">
             <Logo />
             <div className="text-center">
-                <h1 className="text-2xl font-semibold tracking-tight">Welcome Back</h1>
-                <p className="text-sm text-muted-foreground">Enter your credentials to access your account</p>
+                <h1 className="text-2xl font-semibold tracking-tight">Bem-vindo(a) de volta</h1>
+                <p className="text-sm text-muted-foreground">Insira suas credenciais para acessar sua conta</p>
             </div>
           </CardHeader>
           <CardContent>
