@@ -3,9 +3,10 @@
 
 import { useAuth } from "@/hooks/use-auth";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { FileText, GitCompareArrows, ClipboardList, PlusCircle, Users, MoreHorizontal } from "lucide-react";
+import { FileText, GitCompareArrows, ClipboardList, PlusCircle, Users, MoreHorizontal, Trash2, Eye, Edit } from "lucide-react";
 import { useEffect, useState } from "react";
 import type { AnamnesisFormValues } from "@/lib/anamnesis-schema";
 import { Badge } from "@/components/ui/badge";
@@ -15,28 +16,87 @@ import {
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuLabel,
+  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+  DialogClose,
+} from "@/components/ui/dialog";
+import { ScrollArea } from "@/components/ui/scroll-area";
+import { useToast } from "@/hooks/use-toast";
 
 type StoredAnamnesis = AnamnesisFormValues & { id: string };
 
 export default function DashboardPage() {
   const { user } = useAuth();
-  const [recentAnamneses, setRecentAnamneses] = useState<StoredAnamnesis[]>([]);
+  const router = useRouter();
+  const { toast } = useToast();
+  const [anamneses, setAnamneses] = useState<StoredAnamnesis[]>([]);
+  const [recordToDelete, setRecordToDelete] = useState<string | null>(null);
+  const [recordToView, setRecordToView] = useState<StoredAnamnesis | null>(null);
 
-  useEffect(() => {
+  const loadAnamneses = () => {
     try {
       const storedData = localStorage.getItem("heal-plus-anamneses");
       if (storedData) {
         const allRecords: StoredAnamnesis[] = JSON.parse(storedData);
-        // Get the 5 most recent records
-        const recent = allRecords.slice(-5).reverse();
-        setRecentAnamneses(recent);
+        // Sort by date descending
+        allRecords.sort((a, b) => new Date(b.data_consulta).getTime() - new Date(a.data_consulta).getTime());
+        setAnamneses(allRecords);
+      } else {
+        setAnamneses([]);
       }
     } catch (error) {
       console.error("Failed to load anamnesis records from localStorage", error);
     }
+  };
+
+  useEffect(() => {
+    loadAnamneses();
   }, []);
+
+  const handleDelete = () => {
+    if (!recordToDelete) return;
+    try {
+      const updatedAnamneses = anamneses.filter(record => record.id !== recordToDelete);
+      localStorage.setItem("heal-plus-anamneses", JSON.stringify(updatedAnamneses));
+      setAnamneses(updatedAnamneses);
+      toast({
+        title: "Registro Excluído",
+        description: "A ficha de anamnese foi excluída com sucesso.",
+      });
+    } catch (error) {
+      toast({
+        title: "Erro",
+        description: "Não foi possível excluir a ficha de anamnese.",
+        variant: "destructive",
+      });
+      console.error("Failed to delete anamnesis record", error);
+    } finally {
+      setRecordToDelete(null);
+    }
+  };
+  
+  const handleEdit = (id: string) => {
+    router.push(`/dashboard/anamnesis?edit=${id}`);
+  };
+
+  const recentAnamneses = anamneses.slice(0, 5);
 
   return (
     <div className="space-y-6">
@@ -116,9 +176,7 @@ export default function DashboardPage() {
                   <TableHead>Paciente</TableHead>
                   <TableHead>Localização da Ferida</TableHead>
                   <TableHead>Data da Consulta</TableHead>
-                  <TableHead>
-                    <span className="sr-only">Ações</span>
-                  </TableHead>
+                  <TableHead className="text-right">Ações</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -131,7 +189,7 @@ export default function DashboardPage() {
                     <TableCell>
                        {new Date(record.data_consulta).toLocaleDateString('pt-BR', { timeZone: 'UTC' })}
                     </TableCell>
-                    <TableCell>
+                    <TableCell className="text-right">
                        <DropdownMenu>
                         <DropdownMenuTrigger asChild>
                           <Button aria-haspopup="true" size="icon" variant="ghost">
@@ -141,9 +199,16 @@ export default function DashboardPage() {
                         </DropdownMenuTrigger>
                         <DropdownMenuContent align="end">
                           <DropdownMenuLabel>Ações</DropdownMenuLabel>
-                          <DropdownMenuItem>Ver Detalhes</DropdownMenuItem>
-                          <DropdownMenuItem>Editar</DropdownMenuItem>
-                          <DropdownMenuItem className="text-destructive focus:text-destructive">Excluir</DropdownMenuItem>
+                          <DropdownMenuSeparator />
+                          <DropdownMenuItem onSelect={() => setRecordToView(record)}>
+                            <Eye className="mr-2 h-4 w-4" /> Ver Detalhes
+                          </DropdownMenuItem>
+                          <DropdownMenuItem onSelect={() => handleEdit(record.id)}>
+                            <Edit className="mr-2 h-4 w-4" /> Editar
+                          </DropdownMenuItem>
+                          <DropdownMenuItem onSelect={() => setRecordToDelete(record.id)} className="text-destructive focus:text-destructive">
+                            <Trash2 className="mr-2 h-4 w-4" /> Excluir
+                          </DropdownMenuItem>
                         </DropdownMenuContent>
                       </DropdownMenu>
                     </TableCell>
@@ -165,13 +230,64 @@ export default function DashboardPage() {
         </CardContent>
         { recentAnamneses.length > 0 && (
           <CardFooter>
-            <Link href="/dashboard/anamnesis" className="w-full">
+            <Link href="/dashboard/anamnesis-records" className="w-full">
               <Button variant="secondary" className="w-full">Ver todas as fichas</Button>
             </Link>
           </CardFooter>
         )}
       </Card>
 
+      {/* Alert Dialog for Deletion */}
+      <AlertDialog open={!!recordToDelete} onOpenChange={(open) => !open && setRecordToDelete(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Você tem certeza?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Esta ação não pode ser desfeita. Isso excluirá permanentemente a ficha de anamnese do paciente.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancelar</AlertDialogCancel>
+            <AlertDialogAction onClick={handleDelete}>Excluir</AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+      
+      {/* Dialog for Viewing Details */}
+      <Dialog open={!!recordToView} onOpenChange={(open) => !open && setRecordToView(null)}>
+        <DialogContent className="max-w-2xl">
+          <DialogHeader>
+            <DialogTitle>Detalhes da Anamnese</DialogTitle>
+            <DialogDescription>
+              Paciente: {recordToView?.nome_cliente} | Data: {recordToView && new Date(recordToView.data_consulta).toLocaleDateString('pt-BR', { timeZone: 'UTC' })}
+            </DialogDescription>
+          </DialogHeader>
+          <ScrollArea className="max-h-[60vh] p-4 border rounded-md">
+            {recordToView && (
+              <div className="space-y-4 text-sm">
+                {Object.entries(recordToView).map(([key, value]) => {
+                  if (typeof value === 'boolean' || (value && typeof value !== 'object')) {
+                    const formattedKey = key.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
+                    const formattedValue = typeof value === 'boolean' ? (value ? 'Sim' : 'Não') : String(value);
+                    return (
+                      <div key={key} className="grid grid-cols-2 gap-2">
+                        <strong className="text-muted-foreground">{formattedKey}:</strong>
+                        <span>{formattedValue}</span>
+                      </div>
+                    );
+                  }
+                  return null;
+                })}
+              </div>
+            )}
+          </ScrollArea>
+           <DialogClose asChild>
+              <Button type="button" variant="secondary">
+                Fechar
+              </Button>
+            </DialogClose>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

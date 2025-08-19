@@ -33,7 +33,7 @@ import {
 } from "@/components/ui/select";
 import { Separator } from "@/components/ui/separator";
 import { WoundBedProgress } from "./wound-bed-progress";
-import { User, Stethoscope, HeartPulse, Pill, Microscope, FilePlus, Info, MapPin } from "lucide-react";
+import { User, Stethoscope, HeartPulse, Pill, Microscope, FilePlus, Info, MapPin, RefreshCw } from "lucide-react";
 import { Slider } from "@/components/ui/slider";
 import { cn } from "@/lib/utils";
 import { BodyMapSelector } from "./body-map-selector";
@@ -44,13 +44,18 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
+import { useRouter, useSearchParams } from "next/navigation";
+import { useEffect, useState } from "react";
 
 
 export function AnamnesisForm() {
   const { toast } = useToast();
-  const form = useForm<AnamnesisFormValues>({
-    resolver: zodResolver(anamnesisFormSchema),
-    defaultValues: {
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  const [isEditMode, setIsEditMode] = useState(false);
+  const [recordId, setRecordId] = useState<string | null>(null);
+
+  const defaultValues: Partial<AnamnesisFormValues> = {
       // Initialize boolean fields to false
       usa_medicacao: false, possui_doenca: false, possui_alergia: false,
       pratica_atividade_fisica: false, ingestao_alcool: false, tem_filhos: false,
@@ -84,8 +89,36 @@ export function AnamnesisForm() {
       percentual_necrose_seca_leito: 0,
       dor_escala: 0,
       localizacao_ferida: "",
-    },
+  }
+
+  const form = useForm<AnamnesisFormValues>({
+    resolver: zodResolver(anamnesisFormSchema),
+    defaultValues,
   });
+
+  useEffect(() => {
+    const editId = searchParams.get('edit');
+    if (editId) {
+      try {
+        const storedData = localStorage.getItem("heal-plus-anamneses");
+        if (storedData) {
+          const allRecords = JSON.parse(storedData);
+          const recordToEdit = allRecords.find((r: { id: string }) => r.id === editId);
+          if (recordToEdit) {
+            form.reset(recordToEdit);
+            setIsEditMode(true);
+            setRecordId(editId);
+          } else {
+            router.push('/dashboard/anamnesis'); // Record not found
+          }
+        }
+      } catch (error) {
+        console.error("Failed to load anamnesis for editing", error);
+        router.push('/dashboard/anamnesis');
+      }
+    }
+  }, [searchParams, form, router]);
+
 
   const watch = form.watch();
 
@@ -144,18 +177,32 @@ export function AnamnesisForm() {
 
     try {
       const existingAnamneses = JSON.parse(localStorage.getItem("heal-plus-anamneses") || "[]");
-      const newAnamnesis = {
-        id: `${data.nome_cliente}-${data.data_consulta}-${Date.now()}`,
-        ...data,
-      };
-      existingAnamneses.push(newAnamnesis);
-      localStorage.setItem("heal-plus-anamneses", JSON.stringify(existingAnamneses));
-
-      toast({
-        title: "Formulário Salvo",
-        description: "A ficha de anamnese foi salva com sucesso.",
-      });
-      form.reset();
+      if (isEditMode && recordId) {
+        // Update existing record
+        const recordIndex = existingAnamneses.findIndex((r: { id: string }) => r.id === recordId);
+        if (recordIndex > -1) {
+          existingAnamneses[recordIndex] = { ...data, id: recordId };
+        }
+         localStorage.setItem("heal-plus-anamneses", JSON.stringify(existingAnamneses));
+        toast({
+          title: "Formulário Atualizado",
+          description: "A ficha de anamnese foi atualizada com sucesso.",
+        });
+        router.push("/dashboard");
+      } else {
+        // Create new record
+        const newAnamnesis = {
+          id: `${data.nome_cliente}-${data.data_consulta}-${Date.now()}`,
+          ...data,
+        };
+        existingAnamneses.push(newAnamnesis);
+        localStorage.setItem("heal-plus-anamneses", JSON.stringify(existingAnamneses));
+        toast({
+          title: "Formulário Salvo",
+          description: "A ficha de anamnese foi salva com sucesso.",
+        });
+        form.reset(defaultValues);
+      }
     } catch (error) {
        toast({
         title: "Erro ao Salvar",
@@ -165,6 +212,17 @@ export function AnamnesisForm() {
       console.error("Failed to save anamnesis to localStorage", error);
     }
   }
+
+  const handleReset = () => {
+    form.reset(defaultValues);
+    setIsEditMode(false);
+    setRecordId(null);
+    router.push('/dashboard/anamnesis');
+    toast({
+      title: "Formulário Limpo",
+      description: "Você está preenchendo uma nova ficha de anamnese.",
+    });
+  };
 
   return (
     <Form {...form}>
@@ -632,8 +690,18 @@ export function AnamnesisForm() {
           </AccordionItem>
 
         </Accordion>
-
-        <Button type="submit" className="w-full md:w-auto">Salvar Anamnese</Button>
+        
+        <div className="flex flex-wrap gap-4">
+            <Button type="submit" className="w-full sm:w-auto">
+              {isEditMode ? "Atualizar Anamnese" : "Salvar Anamnese"}
+            </Button>
+            {isEditMode && (
+              <Button type="button" variant="outline" onClick={handleReset} className="w-full sm:w-auto">
+                <RefreshCw className="mr-2 h-4 w-4" />
+                Criar Nova Ficha
+              </Button>
+            )}
+        </div>
       </form>
     </Form>
   );
