@@ -24,6 +24,13 @@ import {
   AccordionItem,
   AccordionTrigger,
 } from "@/components/ui/accordion";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { Separator } from "@/components/ui/separator";
 import { WoundBedProgress } from "./wound-bed-progress";
 import { User, Stethoscope, HeartPulse, Pill, Microscope, FilePlus, Info } from "lucide-react";
@@ -303,18 +310,139 @@ export function AnamnesisForm() {
                <div className="space-y-4">
                   <h4 className="font-semibold text-md">M - Umidade (Exsudato)</h4>
                   <div className="grid md:grid-cols-3 gap-4">
-                      <FormField control={form.control} name="quantidade_exsudato" render={({ field }) => ( <FormItem><FormLabel>Quantidade</FormLabel><FormControl><Input placeholder="Ausente, Escasso..." {...field} /></FormControl><FormMessage /></FormItem> )} />
-                      <FormField control={form.control} name="tipo_exsudato" render={({ field }) => ( <FormItem><FormLabel>Tipo</FormLabel><FormControl><Input placeholder="Seroso, Purulento..." {...field} /></FormControl><FormMessage /></FormItem> )} />
-                      <FormField control={form.control} name="consistencia_exsudato" render={({ field }) => ( <FormItem><FormLabel>Consistência</FormLabel><FormControl><Input placeholder="Fina, Viscosa..." {...field} /></FormControl><FormMessage /></FormItem> )} />
+                    <FormField
+                      control={form.control}
+                      name="quantidade_exsudato"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Quantidade</FormLabel>
+                          <Select onValueChange={field.onChange} defaultValue={field.value}>
+                            <FormControl>
+                              <SelectTrigger><SelectValue placeholder="Selecione..." /></SelectTrigger>
+                            </FormControl>
+                            <SelectContent>
+                              <SelectItem value="Ausente">Ausente</SelectItem>
+                              <SelectItem value="Escasso">Escasso</SelectItem>
+                              <SelectItem value="Pequeno">Pequeno</SelectItem>
+                              <SelectItem value="Moderado">Moderado</SelectItem>
+                              <SelectItem value="Abundante">Abundante</SelectItem>
+                            </SelectContent>
+                          </Select>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    <FormField
+                      control={form.control}
+                      name="tipo_exsudato"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Tipo</FormLabel>
+                          <Select onValueChange={field.onChange} defaultValue={field.value}>
+                            <FormControl>
+                              <SelectTrigger><SelectValue placeholder="Selecione..." /></SelectTrigger>
+                            </FormControl>
+                            <SelectContent>
+                              <SelectItem value="Seroso">Seroso</SelectItem>
+                              <SelectItem value="Sanguinolento">Sanguinolento</SelectItem>
+                              <SelectItem value="Serossanguinolento">Serossanguinolento</SelectItem>
+                              <SelectItem value="Purulento">Purulento</SelectItem>
+                              <SelectItem value="Seropurulento">Seropurulento</SelectItem>
+                            </SelectContent>
+                          </Select>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                     <FormField
+                      control={form.control}
+                      name="consistencia_exsudato"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Consistência</FormLabel>
+                          <Select onValueChange={field.onChange} defaultValue={field.value}>
+                            <FormControl>
+                              <SelectTrigger><SelectValue placeholder="Selecione..." /></SelectTrigger>
+                            </FormControl>
+                            <SelectContent>
+                              <SelectItem value="Fina">Fina</SelectItem>
+                              <SelectItem value="Viscosa">Viscosa</SelectItem>
+                              <SelectItem value="Espessa">Espessa</SelectItem>
+                            </SelectContent>
+                          </Select>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
                   </div>
               </div>
                <Separator />
                <div className="space-y-4">
                   <h4 className="font-semibold text-md">E - Bordas da Ferida</h4>
                    <div className="grid md:grid-cols-2 gap-4">
-                      <FormField control={form.control} name="bordas_caracteristicas" render={({ field }) => ( <FormItem><FormLabel>Características das Bordas</FormLabel><FormControl><Input placeholder="Regulares, Aderidas..." {...field} /></FormControl><FormMessage /></FormItem> )} />
-                      <FormField control={form.control} name="fixacao_bordas" render={({ field }) => ( <FormItem><FormLabel>Fixação das Bordas</FormLabel><FormControl><Input placeholder="Aderidas, Não Aderidas..." {...field} /></FormControl><FormMessage /></FormItem> )} />
-                      <FormField control={form.control} name="velocidade_cicatrizacao" render={({ field }) => ( <FormItem><FormLabel>Velocidade de Cicatrização</FormLabel><FormControl><Input placeholder="Rápida, Lenta..." {...field} /></FormControl><FormMessage /></FormItem> )} />
+                      <FormField
+                        control={form.control}
+                        name="bordas_caracteristicas"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Características das Bordas</FormLabel>
+                             <Select onValueChange={field.onChange} defaultValue={field.value}>
+                              <FormControl>
+                                <SelectTrigger><SelectValue placeholder="Selecione..." /></SelectTrigger>
+                              </FormControl>
+                              <SelectContent>
+                                <SelectItem value="Regulares">Regulares</SelectItem>
+                                <SelectItem value="Irregulares">Irregulares</SelectItem>
+                                <SelectItem value="Elevadas">Elevadas</SelectItem>
+                                <SelectItem value="Maceradas">Maceradas</SelectItem>
+                                <SelectItem value="Epitelizadas">Epitelizadas</SelectItem>
+                              </SelectContent>
+                            </Select>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                      <FormField
+                        control={form.control}
+                        name="fixacao_bordas"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Fixação das Bordas</FormLabel>
+                             <Select onValueChange={field.onChange} defaultValue={field.value}>
+                              <FormControl>
+                                <SelectTrigger><SelectValue placeholder="Selecione..." /></SelectTrigger>
+                              </FormControl>
+                              <SelectContent>
+                                <SelectItem value="Aderidas">Aderidas</SelectItem>
+                                <SelectItem value="Não Aderidas">Não Aderidas</SelectItem>
+                                <SelectItem value="Descoladas">Descoladas</SelectItem>
+                              </SelectContent>
+                            </Select>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                      <FormField
+                        control={form.control}
+                        name="velocidade_cicatrizacao"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Velocidade de Cicatrização</FormLabel>
+                             <Select onValueChange={field.onChange} defaultValue={field.value}>
+                              <FormControl>
+                                <SelectTrigger><SelectValue placeholder="Selecione..." /></SelectTrigger>
+                              </FormControl>
+                              <SelectContent>
+                                <SelectItem value="Rápida">Rápida</SelectItem>
+                                <SelectItem value="Moderada">Moderada</SelectItem>
+                                <SelectItem value="Lenta">Lenta</SelectItem>
+                                <SelectItem value="Estagnada">Estagnada</SelectItem>
+                              </SelectContent>
+                            </Select>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
                    </div>
                    <div className="grid md:grid-cols-2 gap-4 pt-2">
                      <FormField control={form.control} name="tunel_cavidade" render={({ field }) => ( <FormItem className="flex flex-row items-center space-x-3 space-y-0"><FormControl><Checkbox checked={field.value} onCheckedChange={field.onChange} /></FormControl><FormLabel>Presença de Túneis ou Cavidade?</FormLabel></FormItem> )} />
@@ -325,7 +453,27 @@ export function AnamnesisForm() {
                <div className="space-y-4">
                   <h4 className="font-semibold text-md">R - Pele Perilesional</h4>
                   <div className="grid md:grid-cols-2 gap-4">
-                     <FormField control={form.control} name="pele_perilesional_umidade" render={({ field }) => ( <FormItem><FormLabel>Umidade da Pele</FormLabel><FormControl><Input placeholder="Seca, Hidratada..." {...field} /></FormControl><FormMessage /></FormItem> )} />
+                     <FormField
+                        control={form.control}
+                        name="pele_perilesional_umidade"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Umidade da Pele</FormLabel>
+                            <Select onValueChange={field.onChange} defaultValue={field.value}>
+                              <FormControl>
+                                <SelectTrigger><SelectValue placeholder="Selecione..." /></SelectTrigger>
+                              </FormControl>
+                              <SelectContent>
+                                <SelectItem value="Seca">Seca</SelectItem>
+                                <SelectItem value="Hidratada">Hidratada</SelectItem>
+                                <SelectItem value="Macerada">Macerada</SelectItem>
+                                <SelectItem value="Edemaciada">Edemaciada</SelectItem>
+                              </SelectContent>
+                            </Select>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
                      <FormField control={form.control} name="pele_perilesional_extensao" render={({ field }) => ( <FormItem><FormLabel>Extensão da Alteração</FormLabel><FormControl><Input {...field} /></FormControl><FormMessage /></FormItem> )} />
                   </div>
                   <h5 className="font-medium mb-2 pt-2">Condição da Pele</h5>
