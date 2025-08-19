@@ -28,6 +28,7 @@ import { Separator } from "@/components/ui/separator";
 import { WoundBedProgress } from "./wound-bed-progress";
 import { User, Stethoscope, HeartPulse, Pill, Microscope, FilePlus, Info } from "lucide-react";
 import { Slider } from "@/components/ui/slider";
+import { cn } from "@/lib/utils";
 
 
 export function AnamnesisForm() {
@@ -78,6 +79,12 @@ export function AnamnesisForm() {
     { name: "percentual_esfacelo_leito" as const, value: watch.percentual_esfacelo_leito || 0 },
     { name: "percentual_necrose_seca_leito" as const, value: watch.percentual_necrose_seca_leito || 0 },
   ];
+
+  const getPainColorClass = (value: number) => {
+    if (value <= 3) return "bg-green-500";
+    if (value <= 6) return "bg-yellow-500";
+    return "bg-red-500";
+  };
 
   function onSubmit(data: AnamnesisFormValues) {
     const totalPercentage = (data.percentual_granulacao_leito || 0) + (data.percentual_epitelizacao_leito || 0) + (data.percentual_esfacelo_leito || 0) + (data.percentual_necrose_seca_leito || 0);
@@ -327,12 +334,13 @@ export function AnamnesisForm() {
                         <FormItem>
                           <FormLabel>Intensidade da Dor (0-10): {field.value ?? 0}</FormLabel>
                           <FormControl>
-                            <Slider
+                          <Slider
                               min={0}
                               max={10}
                               step={1}
                               value={[field.value ?? 0]}
                               onValueChange={(value) => field.onChange(value[0])}
+                              className={cn(getPainColorClass(field.value ?? 0))}
                             />
                           </FormControl>
                           <FormMessage />
