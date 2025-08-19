@@ -3,7 +3,6 @@
 
 import { createContext, useState, useEffect, ReactNode } from "react";
 import { 
-  getAuth, 
   onAuthStateChanged, 
   User as FirebaseUser,
   createUserWithEmailAndPassword,
@@ -14,7 +13,7 @@ import {
   GoogleAuthProvider,
   signInWithPopup
 } from "firebase/auth";
-import { app } from "@/firebase/client-app";
+import { auth } from "@/firebase/client-app";
 
 interface User {
   uid: string;
@@ -33,9 +32,6 @@ interface AuthContextType {
 }
 
 export const AuthContext = createContext<AuthContextType | undefined>(undefined);
-
-const auth = getAuth(app);
-const googleProvider = new GoogleAuthProvider();
 
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
@@ -68,12 +64,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       const userCredential = await createUserWithEmailAndPassword(auth, email, password);
       await updateProfile(userCredential.user, { displayName: name });
       await sendEmailVerification(userCredential.user);
-      // Keep user logged in after sign up
+      // No signOut here, user remains logged in
       return userCredential;
   };
 
   const loginWithGoogle = async (): Promise<any> => {
-    const userCredential = await signInWithPopup(auth, googleProvider);
+    const provider = new GoogleAuthProvider();
+    const userCredential = await signInWithPopup(auth, provider);
     return userCredential;
   };
 
