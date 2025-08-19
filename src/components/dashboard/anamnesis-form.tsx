@@ -138,7 +138,7 @@ export function AnamnesisForm() {
                 <FormField control={form.control} name="telefone" render={({ field }) => ( <FormItem><FormLabel>Telefone</FormLabel><FormControl><Input type="tel" {...field} /></FormControl><FormMessage /></FormItem> )} />
                 <FormField control={form.control} name="email" render={({ field }) => ( <FormItem><FormLabel>Email</FormLabel><FormControl><Input type="email" {...field} /></FormControl><FormMessage /></FormItem> )} />
                 <FormField control={form.control} name="profissao" render={({ field }) => ( <FormItem><FormLabel>Profissão</FormLabel><FormControl><Input {...field} /></FormControl><FormMessage /></FormItem> )} />
-                <FormField control={form.control} name="estado_civil" render={({ field }) => ( <FormItem><FormLabel>Estado Civil</FormLabel><FormControl><Input {...field} /></FormControl><FormMessage /></FormMessage /></FormItem> )} />
+                <FormField control={form.control} name="estado_civil" render={({ field }) => ( <FormItem><FormLabel>Estado Civil</FormLabel><FormControl><Input {...field} /></FormControl><FormMessage /></FormItem> )} />
                 <FormField control={form.control} name="nivel_atividade" render={({ field }) => ( <FormItem><FormLabel>Nível de Atividade</FormLabel><FormControl><Input placeholder="Ex: Acamado, Ativo" {...field} /></FormControl><FormMessage /></FormItem> )} />
                 <FormField control={form.control} name="compreensao_adesao" render={({ field }) => ( <FormItem><FormLabel>Compreensão e Adesão</FormLabel><FormControl><Input placeholder="Ex: Boa, Regular, Baixa" {...field} /></FormControl><FormMessage /></FormItem> )} />
               </div>
@@ -152,7 +152,7 @@ export function AnamnesisForm() {
             <AccordionContent className="space-y-4 p-2 border-l-2 border-primary/20">
               <FormField control={form.control} name="objetivo_tratamento" render={({ field }) => ( <FormItem><FormLabel>Objetivo do Tratamento</FormLabel><FormControl><Textarea {...field} /></FormControl><FormMessage /></FormItem> )} />
               <FormField control={form.control} name="historico_cicatrizacao" render={({ field }) => ( <FormItem><FormLabel>Histórico de Cicatrização</FormLabel><FormControl><Textarea {...field} /></FormControl><FormMessage /></FormItem> )} />
-              <FormField control={form.control} name="estado_nutricional" render={({ field }) => ( <FormItem><FormLabel>Estado Nutricional</FormLabel><FormControl><Textarea placeholder="Alimentação, peso, etc." {...field} /></FormControl><FormMessage /></FormMessage /></FormItem> )} />
+              <FormField control={form.control} name="estado_nutricional" render={({ field }) => ( <FormItem><FormLabel>Estado Nutricional</FormLabel><FormControl><Textarea placeholder="Alimentação, peso, etc." {...field} /></FormControl><FormMessage /></FormItem> )} />
               <FormField control={form.control} name="ingestao_agua_dia" render={({ field }) => ( <FormItem><FormLabel>Ingestão de Água por Dia</FormLabel><FormControl><Input {...field} /></FormControl><FormMessage /></FormItem> )} />
               
               <div className="grid md:grid-cols-2 gap-x-8 gap-y-4">
