@@ -32,6 +32,8 @@ const GoogleIcon = () => (
     </svg>
 );
 
+const DISCLAIMER_AGREED_KEY = 'heal-plus-disclaimer-agreed';
+
 export function LoginForm() {
   const router = useRouter();
   const { login, loginWithGoogle } = useAuth();
@@ -43,7 +45,6 @@ export function LoginForm() {
   const [loginValues, setLoginValues] = useState<z.infer<typeof loginSchema> | null>(null);
   const [loginMethod, setLoginMethod] = useState<'email' | 'google' | null>(null);
 
-
   const form = useForm<z.infer<typeof loginSchema>>({
     resolver: zodResolver(loginSchema),
     defaultValues: {
@@ -52,19 +53,42 @@ export function LoginForm() {
     },
   });
 
+  const hasAgreedToDisclaimer = () => {
+    try {
+      return localStorage.getItem(DISCLAIMER_AGREED_KEY) === 'true';
+    } catch (error) {
+      console.error("Could not access localStorage", error);
+      return false;
+    }
+  };
+
   function onSubmit(values: z.infer<typeof loginSchema>) {
-    setLoginValues(values);
-    setLoginMethod('email');
-    setShowDisclaimer(true);
+    if (hasAgreedToDisclaimer()) {
+      handleEmailLogin(values);
+    } else {
+      setLoginValues(values);
+      setLoginMethod('email');
+      setShowDisclaimer(true);
+    }
   }
 
   function handleGoogleClick() {
-    setLoginMethod('google');
-    setShowDisclaimer(true);
+    if (hasAgreedToDisclaimer()) {
+      handleGoogleLogin();
+    } else {
+      setLoginMethod('google');
+      setShowDisclaimer(true);
+    }
   }
 
   async function handleDisclaimerAgree() {
     setShowDisclaimer(false);
+    try {
+      localStorage.setItem(DISCLAIMER_AGREED_KEY, 'true');
+    } catch (error) {
+      console.error("Could not set item in localStorage", error);
+    }
+
     if (loginMethod === 'email' && loginValues) {
         await handleEmailLogin(loginValues);
     } else if (loginMethod === 'google') {
