@@ -1,7 +1,7 @@
 
 "use client";
 
-import { useState } from "react";
+import { useState, useRef, ChangeEvent } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
@@ -18,35 +18,83 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { profileSchema } from "@/lib/schemas";
-import { Loader2 } from "lucide-react";
+import { Loader2, Camera } from "lucide-react";
 import { getAuth, updateProfile } from "firebase/auth";
+import { getStorage, ref as storageRef, uploadBytes, getDownloadURL } from "firebase/storage";
+import { Avatar, AvatarImage, AvatarFallback } from "../ui/avatar";
+
+
+const getInitials = (name: string | null | undefined): string => {
+  if (!name) return "U";
+  const names = name.split(' ');
+  const firstInitial = names[0]?.[0] || "";
+  const lastInitial = names.length > 1 ? names[names.length - 1]?.[0] || "" : "";
+  return `${firstInitial}${lastInitial}`.toUpperCase();
+}
 
 export function ProfileForm() {
-  const { user } = useAuth();
+  const { user, refreshUser } = useAuth();
   const { toast } = useToast();
   const [loading, setLoading] = useState(false);
+  const [photoUploading, setPhotoUploading] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
   const auth = getAuth();
+  const storage = getStorage();
 
   const form = useForm<z.infer<typeof profileSchema>>({
     resolver: zodResolver(profileSchema),
-    defaultValues: {
+    values: {
       name: user?.name || "",
-      specialty: "Especialista em Feridas", // Mock data - or load from a user profile service
-      crm_coren: "123456-SP", // Mock data - or load from a user profile service
+      specialty: "Especialista em Feridas", // Mock data
+      crm_coren: "123456-SP", // Mock data
     },
   });
+
+  const handleAvatarClick = () => {
+    fileInputRef.current?.click();
+  };
+
+  const handleFileChange = async (event: ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file || !auth.currentUser) return;
+
+    setPhotoUploading(true);
+    try {
+      const filePath = `profile-pictures/${auth.currentUser.uid}/${file.name}`;
+      const fileRef = storageRef(storage, filePath);
+      
+      const snapshot = await uploadBytes(fileRef, file);
+      const photoURL = await getDownloadURL(snapshot.ref);
+
+      await updateProfile(auth.currentUser, { photoURL });
+      await refreshUser(); // Refresh user state in context
+
+      toast({
+        title: "Foto de Perfil Atualizada",
+        description: "Sua nova foto de perfil foi salva.",
+      });
+    } catch (error: any) {
+      toast({
+        title: "Erro no Upload",
+        description: error.message || "Não foi possível carregar a nova foto.",
+        variant: "destructive",
+      });
+    } finally {
+      setPhotoUploading(false);
+    }
+  };
 
   async function onSubmit(values: z.infer<typeof profileSchema>) {
     setLoading(true);
     if (auth.currentUser) {
       try {
         await updateProfile(auth.currentUser, { displayName: values.name });
-        // In a real app, you would also save specialty and crm_coren to your database (e.g., Firestore)
+        await refreshUser(); // Refresh user state
+        
         toast({
           title: "Perfil Atualizado",
           description: "Suas informações foram salvas com sucesso.",
         });
-        // You might want to refresh the user state in your context here
       } catch (error: any) {
         toast({
           title: "Erro ao Atualizar",
@@ -69,6 +117,33 @@ export function ProfileForm() {
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+        <div className="flex justify-center mb-6">
+          <div className="relative">
+            <Avatar className="h-32 w-32 border-4 border-primary/20">
+              <AvatarImage src={user?.photoURL ?? undefined} alt={user?.name ?? "User Avatar"} />
+              <AvatarFallback className="text-4xl">{getInitials(user?.name)}</AvatarFallback>
+            </Avatar>
+            <Button
+              type="button"
+              variant="outline"
+              size="icon"
+              className="absolute bottom-1 right-1 rounded-full h-10 w-10"
+              onClick={handleAvatarClick}
+              disabled={photoUploading}
+            >
+              {photoUploading ? <Loader2 className="animate-spin" /> : <Camera />}
+              <span className="sr-only">Mudar foto de perfil</span>
+            </Button>
+            <Input
+              type="file"
+              ref={fileInputRef}
+              className="hidden"
+              accept="image/png, image/jpeg, image/webp"
+              onChange={handleFileChange}
+            />
+          </div>
+        </div>
+
         <FormField
           control={form.control}
           name="name"

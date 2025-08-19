@@ -20,6 +20,7 @@ interface User {
   name: string | null;
   email: string | null;
   emailVerified: boolean;
+  photoURL: string | null;
 }
 
 interface AuthContextType {
@@ -29,9 +30,23 @@ interface AuthContextType {
   signup: (name: string, email: string, pass: string) => Promise<any>;
   logout: () => Promise<void>;
   loginWithGoogle: () => Promise<any>;
+  refreshUser: () => Promise<void>;
 }
 
 export const AuthContext = createContext<AuthContextType | undefined>(undefined);
+
+const mapFirebaseUserToUser = (firebaseUser: FirebaseUser | null): User | null => {
+  if (!firebaseUser) {
+    return null;
+  }
+  return {
+    uid: firebaseUser.uid,
+    name: firebaseUser.displayName,
+    email: firebaseUser.email,
+    emailVerified: firebaseUser.emailVerified,
+    photoURL: firebaseUser.photoURL
+  };
+};
 
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
@@ -39,48 +54,40 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (firebaseUser: FirebaseUser | null) => {
-      if (firebaseUser) {
-        setUser({
-          uid: firebaseUser.uid,
-          name: firebaseUser.displayName,
-          email: firebaseUser.email,
-          emailVerified: firebaseUser.emailVerified
-        });
-      } else {
-        setUser(null);
-      }
+      setUser(mapFirebaseUserToUser(firebaseUser));
       setLoading(false);
     });
 
     return () => unsubscribe();
   }, []);
 
+  const refreshUser = async () => {
+    await auth.currentUser?.reload();
+    setUser(mapFirebaseUserToUser(auth.currentUser));
+  };
+  
   const login = async (email: string, password: string): Promise<any> => {
-    const userCredential = await signInWithEmailAndPassword(auth, email, password);
-    return userCredential;
+    return signInWithEmailAndPassword(auth, email, password);
   };
   
   const signup = async (name: string, email: string, password: string): Promise<any> => {
       const userCredential = await createUserWithEmailAndPassword(auth, email, password);
       await updateProfile(userCredential.user, { displayName: name });
       await sendEmailVerification(userCredential.user);
-      // No signOut here, user remains logged in
       return userCredential;
   };
 
   const loginWithGoogle = async (): Promise<any> => {
     const provider = new GoogleAuthProvider();
-    const userCredential = await signInWithPopup(auth, provider);
-    return userCredential;
+    return signInWithPopup(auth, provider);
   };
 
   const logout = async () => {
     await signOut(auth);
-    setUser(null);
   };
 
   return (
-    <AuthContext.Provider value={{ user, loading, login, signup, logout, loginWithGoogle }}>
+    <AuthContext.Provider value={{ user, loading, login, signup, logout, loginWithGoogle, refreshUser }}>
       {children}
     </AuthContext.Provider>
   );

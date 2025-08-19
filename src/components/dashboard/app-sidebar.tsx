@@ -21,6 +21,16 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import { Logo } from "../logo";
+import { Avatar, AvatarFallback, AvatarImage } from "../ui/avatar";
+
+const getInitials = (name: string | null | undefined): string => {
+  if (!name) return "U";
+  const names = name.split(' ');
+  const firstInitial = names[0]?.[0] || "";
+  const lastInitial = names.length > 1 ? names[names.length - 1]?.[0] || "" : "";
+  return `${firstInitial}${lastInitial}`.toUpperCase();
+}
+
 
 const navItems = [
   { href: "/dashboard", icon: LayoutDashboard, label: "Dashboard" },
@@ -69,9 +79,15 @@ export default function AppSidebar() {
         </TooltipProvider>
       </nav>
       <div className="mt-auto">
-        <div className="mb-4 border-t pt-4">
-            <p className="text-sm font-semibold truncate">{user?.name}</p>
-            <p className="text-xs text-muted-foreground truncate">{user?.email}</p>
+        <div className="mb-4 border-t pt-4 flex items-center gap-3">
+            <Avatar className="h-10 w-10">
+                <AvatarImage src={user?.photoURL ?? undefined} alt={user?.name ?? "User Avatar"} />
+                <AvatarFallback>{getInitials(user?.name)}</AvatarFallback>
+            </Avatar>
+            <div>
+              <p className="text-sm font-semibold truncate">{user?.name}</p>
+              <p className="text-xs text-muted-foreground truncate">{user?.email}</p>
+            </div>
         </div>
         <Button variant="outline" className="w-full" onClick={handleLogout}>
           <LogOut className="mr-2 h-4 w-4" />
