@@ -10,7 +10,9 @@ import {
   signInWithEmailAndPassword,
   signOut,
   sendEmailVerification,
-  updateProfile
+  updateProfile,
+  GoogleAuthProvider,
+  signInWithPopup
 } from "firebase/auth";
 import { app } from "@/firebase/client-app";
 
@@ -27,11 +29,13 @@ interface AuthContextType {
   login: (email: string, pass: string) => Promise<any>;
   signup: (name: string, email: string, pass: string) => Promise<any>;
   logout: () => Promise<void>;
+  loginWithGoogle: () => Promise<any>;
 }
 
 export const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 const auth = getAuth(app);
+const googleProvider = new GoogleAuthProvider();
 
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
@@ -57,6 +61,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const login = async (email: string, password: string): Promise<any> => {
     const userCredential = await signInWithEmailAndPassword(auth, email, password);
+    if (!userCredential.user.emailVerified) {
+      await signOut(auth);
+      throw new Error("Por favor, verifique seu e-mail antes de fazer login.");
+    }
     return userCredential;
   };
   
@@ -64,8 +72,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       const userCredential = await createUserWithEmailAndPassword(auth, email, password);
       await updateProfile(userCredential.user, { displayName: name });
       await sendEmailVerification(userCredential.user);
-      // O usuário agora ficará logado após o cadastro.
+      await signOut(auth); 
       return userCredential;
+  };
+
+  const loginWithGoogle = async (): Promise<any> => {
+    const userCredential = await signInWithPopup(auth, googleProvider);
+    return userCredential;
   };
 
   const logout = async () => {
@@ -74,7 +87,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   return (
-    <AuthContext.Provider value={{ user, loading, login, signup, logout }}>
+    <AuthContext.Provider value={{ user, loading, login, signup, logout, loginWithGoogle }}>
       {children}
     </AuthContext.Provider>
   );
