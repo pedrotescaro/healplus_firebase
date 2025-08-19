@@ -10,6 +10,7 @@ import {
   User,
   LogOut,
   ClipboardList,
+  Archive,
 } from "lucide-react";
 import { useAuth } from "@/hooks/use-auth";
 import { Button } from "@/components/ui/button";
@@ -24,6 +25,7 @@ import { Logo } from "../logo";
 const navItems = [
   { href: "/dashboard", icon: LayoutDashboard, label: "Dashboard" },
   { href: "/dashboard/anamnesis", icon: ClipboardList, label: "Nova Anamnese" },
+  { href: "/dashboard/anamnesis-records", icon: Archive, label: "Minhas Fichas" },
   { href: "/dashboard/report", icon: FileText, label: "Gerar Relatório" },
   { href: "/dashboard/compare", icon: GitCompareArrows, label: "Comparar Imagens" },
   { href: "/dashboard/profile", icon: User, label: "Perfil" },
@@ -51,7 +53,7 @@ export default function AppSidebar() {
               <TooltipTrigger asChild>
                 <Link href={item.href}>
                   <Button
-                    variant={pathname === item.href ? "secondary" : "ghost"}
+                    variant={pathname.startsWith(item.href) && (item.href !== "/dashboard" || pathname === "/dashboard") ? "secondary" : "ghost"}
                     className="w-full justify-start"
                   >
                     <item.icon className="mr-2 h-4 w-4" />
