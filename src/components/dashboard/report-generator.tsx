@@ -21,6 +21,7 @@ import {
 } from "@/components/ui/select"
 import jsPDF from "jspdf";
 import autoTable from 'jspdf-autotable';
+import { useAuth } from "@/hooks/use-auth";
 
 type StoredAnamnesis = AnamnesisFormValues & { id: string };
 
@@ -34,10 +35,13 @@ export function ReportGenerator() {
   const [pdfLoading, setPdfLoading] = useState(false);
   const { toast } = useToast();
   const reportRef = useRef<HTMLDivElement>(null);
+  const { user } = useAuth();
 
   useEffect(() => {
+    if (!user) return;
     try {
-      const storedData = localStorage.getItem("heal-plus-anamneses");
+      const key = `heal-plus-anamneses-${user.uid}`;
+      const storedData = localStorage.getItem(key);
       if (storedData) {
         setAnamnesisRecords(JSON.parse(storedData));
       }
@@ -49,7 +53,7 @@ export function ReportGenerator() {
         variant: "destructive",
       });
     }
-  }, []);
+  }, [user]);
 
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -115,8 +119,7 @@ export function ReportGenerator() {
 
         const margin = 15;
         const pageWidth = doc.internal.pageSize.getWidth();
-        const textWidth = pageWidth - margin * 2;
-
+        
         const addFooter = () => {
             const pageCount = (doc as any).internal.getNumberOfPages();
             for (let i = 1; i <= pageCount; i++) {

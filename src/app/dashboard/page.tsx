@@ -51,8 +51,10 @@ export default function DashboardPage() {
   const [recordToView, setRecordToView] = useState<StoredAnamnesis | null>(null);
 
   const loadAnamneses = () => {
+    if (!user) return;
     try {
-      const storedData = localStorage.getItem("heal-plus-anamneses");
+      const key = `heal-plus-anamneses-${user.uid}`;
+      const storedData = localStorage.getItem(key);
       if (storedData) {
         const allRecords: StoredAnamnesis[] = JSON.parse(storedData);
         // Sort by date descending
@@ -68,13 +70,14 @@ export default function DashboardPage() {
 
   useEffect(() => {
     loadAnamneses();
-  }, []);
+  }, [user]);
 
   const handleDelete = () => {
-    if (!recordToDelete) return;
+    if (!recordToDelete || !user) return;
     try {
       const updatedAnamneses = anamneses.filter(record => record.id !== recordToDelete);
-      localStorage.setItem("heal-plus-anamneses", JSON.stringify(updatedAnamneses));
+      const key = `heal-plus-anamneses-${user.uid}`;
+      localStorage.setItem(key, JSON.stringify(updatedAnamneses));
       setAnamneses(updatedAnamneses);
       toast({
         title: "Registro Excluído",

@@ -46,12 +46,14 @@ import {
 } from "@/components/ui/dialog";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useState } from "react";
+import { useAuth } from "@/hooks/use-auth";
 
 
 export function AnamnesisForm() {
   const { toast } = useToast();
   const router = useRouter();
   const searchParams = useSearchParams();
+  const { user } = useAuth();
   const [isEditMode, setIsEditMode] = useState(false);
   const [recordId, setRecordId] = useState<string | null>(null);
 
@@ -97,10 +99,12 @@ export function AnamnesisForm() {
   });
 
   useEffect(() => {
+    if (!user) return;
     const editId = searchParams.get('edit');
     if (editId) {
       try {
-        const storedData = localStorage.getItem("heal-plus-anamneses");
+        const key = `heal-plus-anamneses-${user.uid}`;
+        const storedData = localStorage.getItem(key);
         if (storedData) {
           const allRecords = JSON.parse(storedData);
           const recordToEdit = allRecords.find((r: { id: string }) => r.id === editId);
@@ -117,7 +121,7 @@ export function AnamnesisForm() {
         router.push('/dashboard/anamnesis');
       }
     }
-  }, [searchParams, form, router]);
+  }, [searchParams, form, router, user]);
 
 
   const watch = form.watch();
@@ -165,6 +169,15 @@ export function AnamnesisForm() {
   };
 
   function onSubmit(data: AnamnesisFormValues) {
+    if (!user) {
+      toast({
+        title: "Erro de Autenticação",
+        description: "Você precisa estar logado para salvar uma anamnese.",
+        variant: "destructive",
+      });
+      return;
+    }
+
     const totalPercentage = (data.percentual_granulacao_leito || 0) + (data.percentual_epitelizacao_leito || 0) + (data.percentual_esfacelo_leito || 0) + (data.percentual_necrose_seca_leito || 0);
     if (totalPercentage > 100) {
       toast({
@@ -176,14 +189,15 @@ export function AnamnesisForm() {
     }
 
     try {
-      const existingAnamneses = JSON.parse(localStorage.getItem("heal-plus-anamneses") || "[]");
+      const key = `heal-plus-anamneses-${user.uid}`;
+      const existingAnamneses = JSON.parse(localStorage.getItem(key) || "[]");
       if (isEditMode && recordId) {
         // Update existing record
         const recordIndex = existingAnamneses.findIndex((r: { id: string }) => r.id === recordId);
         if (recordIndex > -1) {
           existingAnamneses[recordIndex] = { ...data, id: recordId };
         }
-         localStorage.setItem("heal-plus-anamneses", JSON.stringify(existingAnamneses));
+         localStorage.setItem(key, JSON.stringify(existingAnamneses));
         toast({
           title: "Formulário Atualizado",
           description: "A ficha de anamnese foi atualizada com sucesso.",
@@ -196,7 +210,7 @@ export function AnamnesisForm() {
           ...data,
         };
         existingAnamneses.push(newAnamnesis);
-        localStorage.setItem("heal-plus-anamneses", JSON.stringify(existingAnamneses));
+        localStorage.setItem(key, JSON.stringify(existingAnamneses));
         toast({
           title: "Formulário Salvo",
           description: "A ficha de anamnese foi salva com sucesso.",

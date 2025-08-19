@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useState } from "react";
@@ -18,35 +19,51 @@ import {
 } from "@/components/ui/form";
 import { profileSchema } from "@/lib/schemas";
 import { Loader2 } from "lucide-react";
+import { getAuth, updateProfile } from "firebase/auth";
 
 export function ProfileForm() {
-  const { user, login } = useAuth();
+  const { user } = useAuth();
   const { toast } = useToast();
   const [loading, setLoading] = useState(false);
+  const auth = getAuth();
 
   const form = useForm<z.infer<typeof profileSchema>>({
     resolver: zodResolver(profileSchema),
     defaultValues: {
       name: user?.name || "",
-      specialty: "Especialista em Feridas", // Mock data
-      crm_coren: "123456-SP", // Mock data
+      specialty: "Especialista em Feridas", // Mock data - or load from a user profile service
+      crm_coren: "123456-SP", // Mock data - or load from a user profile service
     },
   });
 
-  function onSubmit(values: z.infer<typeof profileSchema>) {
+  async function onSubmit(values: z.infer<typeof profileSchema>) {
     setLoading(true);
-    // Mock profile update
-    setTimeout(() => {
-      if (user) {
-        const updatedUser = { ...user, name: values.name };
-        login(updatedUser);
+    if (auth.currentUser) {
+      try {
+        await updateProfile(auth.currentUser, { displayName: values.name });
+        // In a real app, you would also save specialty and crm_coren to your database (e.g., Firestore)
+        toast({
+          title: "Perfil Atualizado",
+          description: "Suas informações foram salvas com sucesso.",
+        });
+        // You might want to refresh the user state in your context here
+      } catch (error: any) {
+        toast({
+          title: "Erro ao Atualizar",
+          description: error.message || "Não foi possível salvar as alterações.",
+          variant: "destructive",
+        });
+      } finally {
+        setLoading(false);
       }
-      toast({
-        title: "Perfil Atualizado",
-        description: "Suas informações foram salvas com sucesso.",
-      });
-      setLoading(false);
-    }, 1000);
+    } else {
+       toast({
+          title: "Erro",
+          description: "Nenhum usuário autenticado encontrado.",
+          variant: "destructive",
+        });
+       setLoading(false);
+    }
   }
 
   return (

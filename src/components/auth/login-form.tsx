@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useState } from "react";
@@ -20,10 +21,12 @@ import { loginSchema } from "@/lib/schemas";
 import Link from "next/link";
 import { Loader2, Eye, EyeOff } from "lucide-react";
 import { DisclaimerDialog } from "./disclaimer-dialog";
+import { useToast } from "@/hooks/use-toast";
 
 export function LoginForm() {
   const router = useRouter();
   const { login } = useAuth();
+  const { toast } = useToast();
   const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [showDisclaimer, setShowDisclaimer] = useState(false);
@@ -42,16 +45,23 @@ export function LoginForm() {
     setShowDisclaimer(true);
   }
 
-  function handleDisclaimerAgree() {
+  async function handleDisclaimerAgree() {
     setShowDisclaimer(false);
     if (!loginValues) return;
     
     setLoading(true);
-    // Mock login
-    setTimeout(() => {
-      login({ name: "Dr. Jane Doe", email: loginValues.email });
+    try {
+      await login(loginValues.email, loginValues.password);
       router.push("/dashboard");
-    }, 1000);
+    } catch (error: any) {
+       toast({
+        title: "Erro no Login",
+        description: error.message || "Credenciais inválidas ou e-mail não verificado.",
+        variant: "destructive",
+      });
+    } finally {
+        setLoading(false);
+    }
   }
 
   return (

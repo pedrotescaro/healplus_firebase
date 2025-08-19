@@ -1,7 +1,7 @@
+
 "use client";
 
 import { useState } from "react";
-import { useRouter } from "next/navigation";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
@@ -19,12 +19,16 @@ import {
 import { signupSchema } from "@/lib/schemas";
 import Link from "next/link";
 import { Loader2, Eye, EyeOff } from "lucide-react";
+import { useToast } from "@/hooks/use-toast";
+import { Alert, AlertDescription, AlertTitle } from "../ui/alert";
+import { CheckCircle } from "lucide-react";
 
 export function SignupForm() {
-  const router = useRouter();
-  const { login } = useAuth();
+  const { signup } = useAuth();
+  const { toast } = useToast();
   const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
+  const [signupSuccess, setSignupSuccess] = useState(false);
 
   const form = useForm<z.infer<typeof signupSchema>>({
     resolver: zodResolver(signupSchema),
@@ -35,13 +39,37 @@ export function SignupForm() {
     },
   });
 
-  function onSubmit(values: z.infer<typeof signupSchema>) {
+  async function onSubmit(values: z.infer<typeof signupSchema>) {
     setLoading(true);
-    // Mock signup and login
-    setTimeout(() => {
-      login({ name: values.name, email: values.email });
-      router.push("/dashboard");
-    }, 1000);
+    try {
+      await signup(values.name, values.email, values.password);
+      setSignupSuccess(true);
+    } catch (error: any) {
+      toast({
+        title: "Erro no Cadastro",
+        description: error.message || "Não foi possível criar a conta.",
+        variant: "destructive",
+      });
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  if (signupSuccess) {
+    return (
+      <Alert variant="default" className="border-green-500">
+        <CheckCircle className="h-4 w-4 text-green-500" />
+        <AlertTitle className="text-green-500">Cadastro Realizado com Sucesso!</AlertTitle>
+        <AlertDescription>
+          Enviamos um link de verificação para o seu e-mail. Por favor, confirme seu e-mail antes de fazer o login.
+        </AlertDescription>
+        <div className="mt-4">
+           <Link href="/login" passHref>
+             <Button className="w-full">Ir para Login</Button>
+           </Link>
+        </div>
+      </Alert>
+    );
   }
 
   return (

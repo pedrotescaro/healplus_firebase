@@ -1,51 +1,84 @@
+
 "use client";
 
 import { createContext, useState, useEffect, ReactNode } from "react";
+import { 
+  getAuth, 
+  onAuthStateChanged, 
+  User as FirebaseUser,
+  createUserWithEmailAndPassword,
+  signInWithEmailAndPassword,
+  signOut,
+  sendEmailVerification,
+  updateProfile
+} from "firebase/auth";
+import { app } from "@/firebase/client-app";
 
 interface User {
-  name: string;
-  email: string;
+  uid: string;
+  name: string | null;
+  email: string | null;
+  emailVerified: boolean;
 }
 
 interface AuthContextType {
   user: User | null;
   loading: boolean;
-  login: (user: User) => void;
-  logout: () => void;
+  login: (email: string, pass: string) => Promise<any>;
+  signup: (name: string, email: string, pass: string) => Promise<any>;
+  logout: () => Promise<void>;
 }
 
 export const AuthContext = createContext<AuthContextType | undefined>(undefined);
+
+const auth = getAuth(app);
 
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    try {
-      const storedUser = localStorage.getItem("woundwise-user");
-      if (storedUser) {
-        setUser(JSON.parse(storedUser));
+    const unsubscribe = onAuthStateChanged(auth, (firebaseUser: FirebaseUser | null) => {
+      if (firebaseUser) {
+        setUser({
+          uid: firebaseUser.uid,
+          name: firebaseUser.displayName,
+          email: firebaseUser.email,
+          emailVerified: firebaseUser.emailVerified
+        });
+      } else {
+        setUser(null);
       }
-    } catch (error) {
-      console.error("Failed to parse user from localStorage", error);
-      localStorage.removeItem("woundwise-user");
-    } finally {
       setLoading(false);
-    }
+    });
+
+    return () => unsubscribe();
   }, []);
 
-  const login = (userData: User) => {
-    localStorage.setItem("woundwise-user", JSON.stringify(userData));
-    setUser(userData);
+  const login = async (email: string, password: string): Promise<any> => {
+    const userCredential = await signInWithEmailAndPassword(auth, email, password);
+    if (!userCredential.user.emailVerified) {
+      await signOut(auth);
+      throw new Error("Por favor, verifique seu e-mail antes de fazer login.");
+    }
+    return userCredential;
+  };
+  
+  const signup = async (name: string, email: string, password: string): Promise<any> => {
+      const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+      await updateProfile(userCredential.user, { displayName: name });
+      await sendEmailVerification(userCredential.user);
+      await signOut(auth); // Force user to verify email before logging in
+      return userCredential;
   };
 
-  const logout = () => {
-    localStorage.removeItem("woundwise-user");
+  const logout = async () => {
+    await signOut(auth);
     setUser(null);
   };
 
   return (
-    <AuthContext.Provider value={{ user, loading, login, logout }}>
+    <AuthContext.Provider value={{ user, loading, login, signup, logout }}>
       {children}
     </AuthContext.Provider>
   );
