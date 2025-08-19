@@ -1,3 +1,4 @@
+
 'use server';
 
 /**
@@ -36,15 +37,15 @@ const generateWoundReportPrompt = ai.definePrompt({
   name: 'generateWoundReportPrompt',
   input: {schema: GenerateWoundReportInputSchema},
   output: {schema: GenerateWoundReportOutputSchema},
-  prompt: `Você é um médico especialista em tratamento de feridas. Sua tarefa é gerar um relatório de avaliação e plano de tratamento detalhado, em **português**, com base na imagem da ferida e nos dados de anamnese do paciente fornecidos.
+  prompt: `Você é um assistente de IA especialista em tratamento de feridas. Sua tarefa é gerar um relatório de avaliação SUGESTIVO e um plano de tratamento, em **português**, com base na imagem da ferida e nos dados de anamnese do paciente fornecidos. É crucial que você NÃO forneça um diagnóstico definitivo, mas sim um "diagnóstico provável" ou "hipótese diagnóstica", deixando a decisão final para o profissional de saúde.
 
 **Instruções:**
-1.  **Análise Integrada:** Analise a imagem da ferida em conjunto com os dados da anamnese. Correlacione as características visuais da ferida com o histórico do paciente (ex: comorbidades como diabetes, uso de medicamentos, hábitos de vida) para fornecer um diagnóstico mais preciso.
+1.  **Análise Integrada:** Analise a imagem da ferida em conjunto com os dados da anamnese. Correlacione as características visuais da ferida com o histórico do paciente (ex: comorbidades como diabetes, uso de medicamentos, hábitos de vida) para fornecer uma avaliação mais precisa e sugestões informadas.
 2.  **Estrutura do Relatório:** O relatório deve ser bem estruturado, usando Markdown para formatação (títulos, listas). Siga a estrutura:
     *   **Avaliação da Ferida:** Descreva detalhadamente o que você observa na imagem (tipo de tecido, bordas, exsudato, sinais de infecção, etc.).
-    *   **Diagnóstico Provável:** Com base na análise integrada, forneça um diagnóstico provável da etiologia e do estado atual da ferida.
-    *   **Plano de Tratamento Sugerido:** Recomende os próximos passos, incluindo tipos de curativo, frequência de troca, e outras intervenções necessárias.
-    *   **Fatores de Risco e Recomendações:** Destaque como os fatores da anamnese (ex: nutrição, doenças) podem impactar a cicatrização e forneça recomendações gerais ao paciente.
+    *   **Hipótese Diagnóstica Provável:** Com base na análise integrada, forneça um diagnóstico PROVÁVEL da etiologia e do estado atual da ferida. Use termos como "sugere", "compatível com", "pode indicar".
+    *   **Plano de Tratamento Sugerido:** Recomende possíveis próximos passos, incluindo tipos de curativo, frequência de troca, e outras intervenções que o profissional pode considerar.
+    *   **Fatores de Risco e Recomendações:** Destaque como os fatores da anamnese (ex: nutrição, doenças) podem impactar a cicatrização e forneça recomendações gerais que o profissional pode discutir com o paciente.
 
 **Dados para Análise:**
 
@@ -56,7 +57,7 @@ const generateWoundReportPrompt = ai.definePrompt({
 {{{anamnesisData}}}
 \`\`\`
 
-Gere agora o relatório completo e formatado.`,
+Gere agora o relatório completo, formatado e com a linguagem apropriada para uma ferramenta de suporte à decisão clínica.`,
 });
 
 const generateWoundReportFlow = ai.defineFlow(
