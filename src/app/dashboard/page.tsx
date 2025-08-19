@@ -5,10 +5,18 @@ import { useAuth } from "@/hooks/use-auth";
 import Link from "next/link";
 import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { FileText, GitCompareArrows, User, ClipboardList, PlusCircle, Users } from "lucide-react";
+import { FileText, GitCompareArrows, ClipboardList, PlusCircle, Users, MoreHorizontal } from "lucide-react";
 import { useEffect, useState } from "react";
 import type { AnamnesisFormValues } from "@/lib/anamnesis-schema";
 import { Badge } from "@/components/ui/badge";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 
 type StoredAnamnesis = AnamnesisFormValues & { id: string };
 
@@ -102,19 +110,47 @@ export default function DashboardPage() {
         </CardHeader>
         <CardContent>
           {recentAnamneses.length > 0 ? (
-            <div className="space-y-4">
-              {recentAnamneses.map((record) => (
-                <div key={record.id} className="flex items-center justify-between p-3 rounded-lg bg-muted/50">
-                  <div className="space-y-1">
-                    <p className="font-semibold">{record.nome_cliente}</p>
-                    <p className="text-sm text-muted-foreground">
-                      Consulta em: {new Date(record.data_consulta).toLocaleDateString('pt-BR', { timeZone: 'UTC' })}
-                    </p>
-                  </div>
-                  <Badge variant="outline">{record.localizacao_ferida}</Badge>
-                </div>
-              ))}
-            </div>
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Paciente</TableHead>
+                  <TableHead>Localização da Ferida</TableHead>
+                  <TableHead>Data da Consulta</TableHead>
+                  <TableHead>
+                    <span className="sr-only">Ações</span>
+                  </TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {recentAnamneses.map((record) => (
+                  <TableRow key={record.id}>
+                    <TableCell className="font-medium">{record.nome_cliente}</TableCell>
+                    <TableCell>
+                      <Badge variant="outline">{record.localizacao_ferida}</Badge>
+                    </TableCell>
+                    <TableCell>
+                       {new Date(record.data_consulta).toLocaleDateString('pt-BR', { timeZone: 'UTC' })}
+                    </TableCell>
+                    <TableCell>
+                       <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                          <Button aria-haspopup="true" size="icon" variant="ghost">
+                            <MoreHorizontal className="h-4 w-4" />
+                            <span className="sr-only">Toggle menu</span>
+                          </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end">
+                          <DropdownMenuLabel>Ações</DropdownMenuLabel>
+                          <DropdownMenuItem>Ver Detalhes</DropdownMenuItem>
+                          <DropdownMenuItem>Editar</DropdownMenuItem>
+                          <DropdownMenuItem className="text-destructive focus:text-destructive">Excluir</DropdownMenuItem>
+                        </DropdownMenuContent>
+                      </DropdownMenu>
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
           ) : (
             <div className="text-center py-8">
               <p className="text-muted-foreground mb-4">Nenhuma ficha de anamnese encontrada.</p>
