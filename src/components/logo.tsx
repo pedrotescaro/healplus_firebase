@@ -11,7 +11,7 @@ export function Logo({ className }: { className?: string }) {
         height={60}
         className="h-16 w-16"
       />
-      <span className="text-5xl font-bold tracking-tight text-foreground -ml-2">
+      <span className="text-5xl font-bold tracking-tight text-foreground -ml-1">
         Heal+
       </span>
     </div>
