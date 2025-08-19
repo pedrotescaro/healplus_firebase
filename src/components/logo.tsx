@@ -3,15 +3,15 @@ import Image from "next/image";
 
 export function Logo({ className }: { className?: string }) {
   return (
-    <div className={cn("flex items-center gap-2", className)}>
+    <div className={cn("flex items-center gap-3", className)}>
       <Image
         src="https://i.imgur.com/HJ8HDJs.png"
         alt="Heal+ Logo"
-        width={40}
-        height={40}
-        className="h-10 w-10"
+        width={48}
+        height={48}
+        className="h-12 w-12"
       />
-      <span className="text-2xl font-bold tracking-tight text-foreground">
+      <span className="text-3xl font-bold tracking-tight text-foreground">
         Heal+
       </span>
     </div>
