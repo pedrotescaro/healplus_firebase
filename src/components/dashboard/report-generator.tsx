@@ -1,25 +1,51 @@
+
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Image from "next/image";
 import { generateWoundReport, GenerateWoundReportOutput } from "@/ai/flows/generate-wound-report";
 import { useToast } from "@/hooks/use-toast";
 import { Button } from "@/components/ui/button";
-import { Textarea } from "@/components/ui/textarea";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { fileToDataUri } from "@/lib/file-to-data-uri";
 import { UploadCloud, Loader2, FileText } from "lucide-react";
-import Link from "next/link";
+import { AnamnesisFormValues } from "@/lib/anamnesis-schema";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select"
+
+type StoredAnamnesis = AnamnesisFormValues & { id: string };
 
 export function ReportGenerator() {
   const [woundImage, setWoundImage] = useState<File | null>(null);
   const [imagePreview, setImagePreview] = useState<string | null>(null);
-  const [anamnesisData, setAnamnesisData] = useState("");
+  const [selectedAnamnesisId, setSelectedAnamnesisId] = useState<string>("");
+  const [anamnesisRecords, setAnamnesisRecords] = useState<StoredAnamnesis[]>([]);
   const [report, setReport] = useState<GenerateWoundReportOutput | null>(null);
   const [loading, setLoading] = useState(false);
   const { toast } = useToast();
+
+  useEffect(() => {
+    try {
+      const storedData = localStorage.getItem("heal-plus-anamneses");
+      if (storedData) {
+        setAnamnesisRecords(JSON.parse(storedData));
+      }
+    } catch (error) {
+      console.error("Failed to load anamnesis records from localStorage", error);
+      toast({
+        title: "Erro ao Carregar",
+        description: "Não foi possível carregar as fichas de anamnese salvas.",
+        variant: "destructive",
+      });
+    }
+  }, []);
 
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -35,10 +61,20 @@ export function ReportGenerator() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!woundImage || !anamnesisData) {
+    if (!woundImage || !selectedAnamnesisId) {
       toast({
         title: "Informações Faltando",
-        description: "Por favor, carregue uma imagem da ferida e forneça os dados da anamnese.",
+        description: "Por favor, selecione uma anamnese e carregue uma imagem da ferida.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    const selectedRecord = anamnesisRecords.find(record => record.id === selectedAnamnesisId);
+    if (!selectedRecord) {
+       toast({
+        title: "Erro",
+        description: "Não foi possível encontrar a ficha de anamnese selecionada.",
         variant: "destructive",
       });
       return;
@@ -48,7 +84,9 @@ export function ReportGenerator() {
     setReport(null);
     try {
       const woundImageUri = await fileToDataUri(woundImage);
-      const result = await generateWoundReport({ woundImage: woundImageUri, anamnesisData });
+      // Convert the anamnesis data to a string for the AI prompt
+      const anamnesisDataString = JSON.stringify(selectedRecord, null, 2);
+      const result = await generateWoundReport({ woundImage: woundImageUri, anamnesisData: anamnesisDataString });
       setReport(result);
     } catch (error) {
       console.error("Error generating report:", error);
@@ -64,16 +102,6 @@ export function ReportGenerator() {
 
   return (
     <div className="space-y-8">
-      <div className="prose prose-sm max-w-none dark:prose-invert">
-          <p>
-              Para gerar um relatório preciso, primeiro preencha a ficha de anamnese completa. Depois, cole os dados da anamnese no campo abaixo e adicione uma imagem da ferida.
-          </p>
-          <Button asChild variant="link" className="p-0 h-auto">
-              <Link href="/dashboard/anamnesis">
-                  Ir para o formulário de Anamnese
-              </Link>
-          </Button>
-      </div>
       <form onSubmit={handleSubmit} className="space-y-6">
         <div className="grid gap-6 md:grid-cols-2">
           <div className="space-y-2">
@@ -96,15 +124,28 @@ export function ReportGenerator() {
             </div>
           </div>
           <div className="space-y-2 flex flex-col">
-            <Label htmlFor="anamnesis-data">Dados da Anamnese</Label>
-            <Textarea
-              id="anamnesis-data"
-              placeholder="Copie e cole os dados da ficha de anamnese aqui..."
-              value={anamnesisData}
-              onChange={(e) => setAnamnesisData(e.target.value)}
-              className="flex-grow min-h-[256px]"
-              required
-            />
+            <Label htmlFor="anamnesis-data">Selecionar Anamnese Salva</Label>
+            <Select onValueChange={setSelectedAnamnesisId} value={selectedAnamnesisId}>
+              <SelectTrigger>
+                <SelectValue placeholder="Selecione uma ficha de anamnese..." />
+              </SelectTrigger>
+              <SelectContent>
+                {anamnesisRecords.length > 0 ? (
+                  anamnesisRecords.map((record) => (
+                    <SelectItem key={record.id} value={record.id}>
+                      {record.nome_cliente} - {new Date(record.data_consulta).toLocaleDateString()}
+                    </SelectItem>
+                  ))
+                ) : (
+                  <SelectItem value="no-records" disabled>
+                    Nenhuma ficha de anamnese encontrada.
+                  </SelectItem>
+                )}
+              </SelectContent>
+            </Select>
+            <p className="text-sm text-muted-foreground pt-2">
+                As fichas de anamnese são salvas localmente no seu navegador. Crie uma nova na página "Nova Anamnese".
+            </p>
           </div>
         </div>
         <Button type="submit" disabled={loading} className="w-full md:w-auto">

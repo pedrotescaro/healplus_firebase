@@ -86,23 +86,6 @@ export function AnamnesisForm() {
     return { range: "bg-red-500", thumb: "border-red-500" };
   };
 
-  function onSubmit(data: AnamnesisFormValues) {
-    const totalPercentage = (data.percentual_granulacao_leito || 0) + (data.percentual_epitelizacao_leito || 0) + (data.percentual_esfacelo_leito || 0) + (data.percentual_necrose_seca_leito || 0);
-    if (totalPercentage > 100) {
-      toast({
-        title: "Percentual Inválido",
-        description: `A soma dos percentuais do leito da ferida não pode exceder 100%. Total atual: ${totalPercentage}%.`,
-        variant: "destructive",
-      });
-      return;
-    }
-    console.log(JSON.stringify(data, null, 2));
-    toast({
-      title: "Formulário Enviado",
-      description: "A ficha de anamnese foi salva com sucesso.",
-    });
-  }
-
   const renderMedicationFields = (name: "anti_hipertensivo" | "corticoides" | "hipoglicemiantes_orais" | "aines" | "insulina" | "drogas_vasoativa" | "suplemento" | "anticoagulante" | "vitaminico" | "antirretroviral") => {
     return watch[name] && (
       <>
@@ -131,6 +114,41 @@ export function AnamnesisForm() {
       </>
     )
   };
+
+  function onSubmit(data: AnamnesisFormValues) {
+    const totalPercentage = (data.percentual_granulacao_leito || 0) + (data.percentual_epitelizacao_leito || 0) + (data.percentual_esfacelo_leito || 0) + (data.percentual_necrose_seca_leito || 0);
+    if (totalPercentage > 100) {
+      toast({
+        title: "Percentual Inválido",
+        description: `A soma dos percentuais do leito da ferida não pode exceder 100%. Total atual: ${totalPercentage}%.`,
+        variant: "destructive",
+      });
+      return;
+    }
+
+    try {
+      const existingAnamneses = JSON.parse(localStorage.getItem("heal-plus-anamneses") || "[]");
+      const newAnamnesis = {
+        id: `${data.nome_cliente}-${data.data_consulta}-${Date.now()}`,
+        ...data,
+      };
+      existingAnamneses.push(newAnamnesis);
+      localStorage.setItem("heal-plus-anamneses", JSON.stringify(existingAnamneses));
+
+      toast({
+        title: "Formulário Salvo",
+        description: "A ficha de anamnese foi salva com sucesso.",
+      });
+      form.reset();
+    } catch (error) {
+       toast({
+        title: "Erro ao Salvar",
+        description: "Não foi possível salvar a ficha de anamnese. Tente novamente.",
+        variant: "destructive",
+      });
+      console.error("Failed to save anamnesis to localStorage", error);
+    }
+  }
 
   return (
     <Form {...form}>
