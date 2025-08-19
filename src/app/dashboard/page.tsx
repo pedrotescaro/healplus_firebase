@@ -4,7 +4,7 @@ import { useAuth } from "@/hooks/use-auth";
 import Link from "next/link";
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { FileText, GitCompareArrows, User } from "lucide-react";
+import { FileText, GitCompareArrows, User, ClipboardList } from "lucide-react";
 
 export default function DashboardPage() {
   const { user } = useAuth();
@@ -12,24 +12,41 @@ export default function DashboardPage() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-3xl font-bold tracking-tight">Welcome, {user?.name}</h1>
-        <p className="text-muted-foreground">Here&apos;s a quick overview of what you can do.</p>
+        <h1 className="text-3xl font-bold tracking-tight">Bem-vindo(a), {user?.name}</h1>
+        <p className="text-muted-foreground">Aqui está um resumo rápido do que você pode fazer.</p>
       </div>
       
       <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
         <Card className="flex flex-col">
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
-              <FileText className="h-5 w-5 text-primary" />
-              Generate Wound Report
+              <ClipboardList className="h-5 w-5 text-primary" />
+              Nova Ficha de Anamnese
             </CardTitle>
             <CardDescription>
-              Upload a wound image and input anamnesis data to generate a comprehensive AI-powered report.
+              Crie uma nova ficha de anamnese detalhada para avaliar o paciente e a ferida.
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="mt-auto">
+            <Link href="/dashboard/anamnesis" passHref>
+              <Button className="w-full">Criar Ficha</Button>
+            </Link>
+          </CardContent>
+        </Card>
+
+        <Card className="flex flex-col">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <FileText className="h-5 w-5 text-primary" />
+              Gerar Relatório da Ferida
+            </CardTitle>
+            <CardDescription>
+              Carregue uma imagem da ferida e insira os dados da anamnese para gerar um relatório abrangente com IA.
             </CardDescription>
           </CardHeader>
           <CardContent className="mt-auto">
             <Link href="/dashboard/report" passHref>
-              <Button className="w-full">Create Report</Button>
+              <Button className="w-full">Criar Relatório</Button>
             </Link>
           </CardContent>
         </Card>
@@ -38,15 +55,15 @@ export default function DashboardPage() {
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <GitCompareArrows className="h-5 w-5 text-primary" />
-              Compare Wound Images
+              Comparar Imagens da Ferida
             </CardTitle>
             <CardDescription>
-              Analyze healing progress by comparing two wound images side-by-side with AI-driven insights.
+              Analise o progresso da cicatrização comparando duas imagens da ferida com insights da IA.
             </CardDescription>
           </CardHeader>
           <CardContent className="mt-auto">
             <Link href="/dashboard/compare" passHref>
-              <Button className="w-full">Compare Images</Button>
+              <Button className="w-full">Comparar Imagens</Button>
             </Link>
           </CardContent>
         </Card>
@@ -55,15 +72,15 @@ export default function DashboardPage() {
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <User className="h-5 w-5 text-primary" />
-              Manage Your Profile
+              Gerenciar seu Perfil
             </CardTitle>
             <CardDescription>
-              Keep your professional information and credentials up to date for secure and personalized access.
+              Mantenha suas informações profissionais e credenciais atualizadas para um acesso seguro.
             </CardDescription>
           </CardHeader>
           <CardContent className="mt-auto">
             <Link href="/dashboard/profile" passHref>
-              <Button className="w-full">View Profile</Button>
+              <Button className="w-full">Ver Perfil</Button>
             </Link>
           </CardContent>
         </Card>

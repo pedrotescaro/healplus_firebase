@@ -8,6 +8,7 @@ import {
   GitCompareArrows,
   User,
   LogOut,
+  ClipboardList,
 } from "lucide-react";
 import { useAuth } from "@/hooks/use-auth";
 import { Button } from "@/components/ui/button";
@@ -22,9 +23,10 @@ import { cn } from "@/lib/utils";
 
 const navItems = [
   { href: "/dashboard", icon: LayoutDashboard, label: "Dashboard" },
-  { href: "/dashboard/report", icon: FileText, label: "New Report" },
-  { href: "/dashboard/compare", icon: GitCompareArrows, label: "Compare Images" },
-  { href: "/dashboard/profile", icon: User, label: "Profile" },
+  { href: "/dashboard/anamnesis", icon: ClipboardList, label: "Nova Anamnese" },
+  { href: "/dashboard/report", icon: FileText, label: "Gerar Relatório" },
+  { href: "/dashboard/compare", icon: GitCompareArrows, label: "Comparar Imagens" },
+  { href: "/dashboard/profile", icon: User, label: "Perfil" },
 ];
 
 export default function AppSidebar() {

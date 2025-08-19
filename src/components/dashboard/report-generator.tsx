@@ -11,6 +11,7 @@ import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { fileToDataUri } from "@/lib/file-to-data-uri";
 import { UploadCloud, Loader2, FileText } from "lucide-react";
+import Link from "next/link";
 
 export function ReportGenerator() {
   const [woundImage, setWoundImage] = useState<File | null>(null);
@@ -36,8 +37,8 @@ export function ReportGenerator() {
     e.preventDefault();
     if (!woundImage || !anamnesisData) {
       toast({
-        title: "Missing Information",
-        description: "Please upload a wound image and provide anamnesis data.",
+        title: "Informações Faltando",
+        description: "Por favor, carregue uma imagem da ferida e forneça os dados da anamnese.",
         variant: "destructive",
       });
       return;
@@ -52,8 +53,8 @@ export function ReportGenerator() {
     } catch (error) {
       console.error("Error generating report:", error);
       toast({
-        title: "Error",
-        description: "Failed to generate the report. Please try again.",
+        title: "Erro",
+        description: "Falha ao gerar o relatório. Por favor, tente novamente.",
         variant: "destructive",
       });
     } finally {
@@ -63,10 +64,20 @@ export function ReportGenerator() {
 
   return (
     <div className="space-y-8">
+      <div className="prose prose-sm max-w-none dark:prose-invert">
+          <p>
+              Para gerar um relatório preciso, primeiro preencha a ficha de anamnese completa. Depois, cole os dados da anamnese no campo abaixo e adicione uma imagem da ferida.
+          </p>
+          <Button asChild variant="link" className="p-0 h-auto">
+              <Link href="/dashboard/anamnesis">
+                  Ir para o formulário de Anamnese
+              </Link>
+          </Button>
+      </div>
       <form onSubmit={handleSubmit} className="space-y-6">
         <div className="grid gap-6 md:grid-cols-2">
           <div className="space-y-2">
-            <Label htmlFor="wound-image">Wound Image</Label>
+            <Label htmlFor="wound-image">Imagem da Ferida</Label>
             <div className="flex items-center justify-center w-full">
                 <label htmlFor="wound-image" className="flex flex-col items-center justify-center w-full h-64 border-2 border-dashed rounded-lg cursor-pointer bg-card hover:bg-muted transition-colors">
                     <div className="flex flex-col items-center justify-center pt-5 pb-6">
@@ -75,8 +86,8 @@ export function ReportGenerator() {
                         ) : (
                             <>
                                 <UploadCloud className="w-8 h-8 mb-4 text-gray-500" />
-                                <p className="mb-2 text-sm text-gray-500"><span className="font-semibold">Click to upload</span> or drag and drop</p>
-                                <p className="text-xs text-gray-500">PNG, JPG, or WEBP</p>
+                                <p className="mb-2 text-sm text-gray-500"><span className="font-semibold">Clique para enviar</span> ou arraste e solte</p>
+                                <p className="text-xs text-gray-500">PNG, JPG, ou WEBP</p>
                             </>
                         )}
                     </div>
@@ -85,10 +96,10 @@ export function ReportGenerator() {
             </div>
           </div>
           <div className="space-y-2 flex flex-col">
-            <Label htmlFor="anamnesis-data">Anamnesis Data</Label>
+            <Label htmlFor="anamnesis-data">Dados da Anamnese</Label>
             <Textarea
               id="anamnesis-data"
-              placeholder="e.g., Patient history, wound location, dimensions, symptoms..."
+              placeholder="Copie e cole os dados da ficha de anamnese aqui..."
               value={anamnesisData}
               onChange={(e) => setAnamnesisData(e.target.value)}
               className="flex-grow min-h-[256px]"
@@ -98,14 +109,14 @@ export function ReportGenerator() {
         </div>
         <Button type="submit" disabled={loading} className="w-full md:w-auto">
           {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-          Generate Report
+          Gerar Relatório
         </Button>
       </form>
 
       {loading && (
         <div className="flex items-center justify-center flex-col text-center p-8">
           <Loader2 className="h-8 w-8 animate-spin text-primary" />
-          <p className="mt-4 text-muted-foreground">Generating report... This may take a moment.</p>
+          <p className="mt-4 text-muted-foreground">Gerando relatório... Isso pode levar um momento.</p>
         </div>
       )}
 
@@ -114,7 +125,7 @@ export function ReportGenerator() {
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <FileText className="h-5 w-5 text-primary" />
-              Generated Wound Report
+              Relatório da Ferida Gerado
             </CardTitle>
           </CardHeader>
           <CardContent>
