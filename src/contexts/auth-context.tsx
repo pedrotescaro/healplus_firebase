@@ -68,7 +68,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       const userCredential = await createUserWithEmailAndPassword(auth, email, password);
       await updateProfile(userCredential.user, { displayName: name });
       await sendEmailVerification(userCredential.user);
-      // await signOut(auth); // Keep user logged in after sign up
+      // Keep user logged in after sign up
       return userCredential;
   };
 
