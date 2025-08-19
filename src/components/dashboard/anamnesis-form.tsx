@@ -25,6 +25,7 @@ import {
   AccordionTrigger,
 } from "@/components/ui/accordion";
 import { Separator } from "@/components/ui/separator";
+import { WoundBedProgress } from "./wound-bed-progress";
 
 export function AnamnesisForm() {
   const { toast } = useToast();
@@ -55,12 +56,32 @@ export function AnamnesisForm() {
       pele_perilesional_edema: false,
       data_consulta: new Date().toISOString().split('T')[0], // default to today
       hora_consulta: new Date().toTimeString().slice(0, 5), // default to now
+      percentual_granulacao_leito: 0,
+      percentual_epitelizacao_leito: 0,
+      percentual_esfacelo_leito: 0,
+      percentual_necrose_seca_leito: 0,
     },
   });
 
   const watch = form.watch();
 
+  const tissueData = [
+    { name: "percentual_granulacao_leito" as const, value: watch.percentual_granulacao_leito || 0 },
+    { name: "percentual_epitelizacao_leito" as const, value: watch.percentual_epitelizacao_leito || 0 },
+    { name: "percentual_esfacelo_leito" as const, value: watch.percentual_esfacelo_leito || 0 },
+    { name: "percentual_necrose_seca_leito" as const, value: watch.percentual_necrose_seca_leito || 0 },
+  ];
+
   function onSubmit(data: AnamnesisFormValues) {
+    const totalPercentage = data.percentual_granulacao_leito + data.percentual_epitelizacao_leito + data.percentual_esfacelo_leito + data.percentual_necrose_seca_leito;
+    if (totalPercentage > 100) {
+      toast({
+        title: "Percentual Inválido",
+        description: `A soma dos percentuais do leito da ferida não pode exceder 100%. Total atual: ${totalPercentage}%.`,
+        variant: "destructive",
+      });
+      return;
+    }
     console.log(data);
     toast({
       title: "Formulário Enviado",
@@ -182,6 +203,9 @@ export function AnamnesisForm() {
               <Separator />
                <div>
                   <h4 className="font-semibold mb-2">Leito da Ferida (%)</h4>
+                  <div className="mb-4">
+                    <WoundBedProgress data={tissueData} />
+                  </div>
                   <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                       <FormField control={form.control} name="percentual_granulacao_leito" render={({ field }) => ( <FormItem><FormLabel>Granulação</FormLabel><FormControl><Input type="number" min="0" max="100" {...field} /></FormControl><FormMessage /></FormItem> )} />
                       <FormField control={form.control} name="percentual_epitelizacao_leito" render={({ field }) => ( <FormItem><FormLabel>Epitelização</FormLabel><FormControl><Input type="number" min="0" max="100" {...field} /></FormControl><FormMessage /></FormItem> )} />
