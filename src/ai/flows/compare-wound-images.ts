@@ -40,7 +40,7 @@ const prompt = ai.definePrompt({
   name: 'compareWoundImagesPrompt',
   input: {schema: CompareWoundImagesInputSchema},
   output: {schema: CompareWoundImagesOutputSchema},
-  prompt: `You are an expert in wound care. Compare the two wound images provided, considering any additional notes. Highlight key differences, improvements, or areas of concern. Provide a summary of the comparison and suggest actions based on your analysis.
+  prompt: `Você é um especialista em cuidados com feridas. Compare as duas imagens de feridas fornecidas, em **português**, considerando quaisquer notas adicionais. Destaque as principais diferenças, melhorias ou áreas de preocupação. Forneça um resumo da comparação e sugira ações com base em sua análise.
 
 Image 1: {{media url=image1DataUri}}
 Image 2: {{media url=image2DataUri}}
