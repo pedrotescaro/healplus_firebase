@@ -61,10 +61,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const login = async (email: string, password: string): Promise<any> => {
     const userCredential = await signInWithEmailAndPassword(auth, email, password);
-    if (!userCredential.user.emailVerified) {
-      await signOut(auth);
-      throw new Error("Por favor, verifique seu e-mail antes de fazer login.");
-    }
     return userCredential;
   };
   
@@ -72,7 +68,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       const userCredential = await createUserWithEmailAndPassword(auth, email, password);
       await updateProfile(userCredential.user, { displayName: name });
       await sendEmailVerification(userCredential.user);
-      await signOut(auth); 
+      // await signOut(auth); // Keep user logged in after sign up
       return userCredential;
   };
 
