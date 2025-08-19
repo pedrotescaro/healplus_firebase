@@ -41,8 +41,8 @@ export function ImageComparator() {
     e.preventDefault();
     if (!image1 || !image2) {
       toast({
-        title: "Missing Images",
-        description: "Please upload both wound images for comparison.",
+        title: "Imagens Faltando",
+        description: "Por favor, envie ambas as imagens da ferida para comparação.",
         variant: "destructive",
       });
       return;
@@ -58,10 +58,10 @@ export function ImageComparator() {
       const result = await compareWoundImages({ image1DataUri, image2DataUri, additionalNotes });
       setComparison(result);
     } catch (error) {
-      console.error("Error comparing images:", error);
+      console.error("Erro ao comparar imagens:", error);
       toast({
-        title: "Error",
-        description: "Failed to compare images. Please try again.",
+        title: "Erro",
+        description: "Falha ao comparar as imagens. Por favor, tente novamente.",
         variant: "destructive",
       });
     } finally {
@@ -76,12 +76,12 @@ export function ImageComparator() {
             <label htmlFor={id} className="flex flex-col items-center justify-center w-full h-64 border-2 border-dashed rounded-lg cursor-pointer bg-card hover:bg-muted transition-colors">
                 <div className="flex flex-col items-center justify-center pt-5 pb-6">
                     {previewSrc ? (
-                        <Image src={previewSrc} alt="Wound preview" width={200} height={200} className="object-contain h-48 w-full" data-ai-hint="wound" />
+                        <Image src={previewSrc} alt="Pré-visualização da ferida" width={200} height={200} className="object-contain h-48 w-full" data-ai-hint="wound" />
                     ) : (
                         <>
                             <UploadCloud className="w-8 h-8 mb-4 text-gray-500" />
-                            <p className="mb-2 text-sm text-gray-500"><span className="font-semibold">Click to upload</span></p>
-                            <p className="text-xs text-gray-500">PNG, JPG, or WEBP</p>
+                            <p className="mb-2 text-sm text-gray-500"><span className="font-semibold">Clique para enviar</span></p>
+                            <p className="text-xs text-gray-500">PNG, JPG ou WEBP</p>
                         </>
                     )}
                 </div>
@@ -95,28 +95,28 @@ export function ImageComparator() {
     <div className="space-y-8">
       <form onSubmit={handleSubmit} className="space-y-6">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <ImageUploader id="image-1" onChange={(e) => handleImageChange(e, 1)} previewSrc={image1Preview} label="Image 1 (e.g., older)" />
-          <ImageUploader id="image-2" onChange={(e) => handleImageChange(e, 2)} previewSrc={image2Preview} label="Image 2 (e.g., newer)" />
+          <ImageUploader id="image-1" onChange={(e) => handleImageChange(e, 1)} previewSrc={image1Preview} label="Imagem 1 (ex: mais antiga)" />
+          <ImageUploader id="image-2" onChange={(e) => handleImageChange(e, 2)} previewSrc={image2Preview} label="Imagem 2 (ex: mais recente)" />
         </div>
         <div className="space-y-2">
-            <Label htmlFor="additional-notes">Additional Notes (Optional)</Label>
+            <Label htmlFor="additional-notes">Notas Adicionais (Opcional)</Label>
             <Textarea
               id="additional-notes"
-              placeholder="Provide any context, like treatment changes between photos..."
+              placeholder="Forneça qualquer contexto, como mudanças no tratamento entre as fotos..."
               value={additionalNotes}
               onChange={(e) => setAdditionalNotes(e.target.value)}
             />
           </div>
         <Button type="submit" disabled={loading} className="w-full md:w-auto">
           {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-          Compare Images
+          Comparar Imagens
         </Button>
       </form>
 
       {loading && (
         <div className="flex items-center justify-center flex-col text-center p-8">
           <Loader2 className="h-8 w-8 animate-spin text-primary" />
-          <p className="mt-4 text-muted-foreground">Comparing images... The AI is analyzing the changes.</p>
+          <p className="mt-4 text-muted-foreground">Comparando imagens... A IA está analisando as mudanças.</p>
         </div>
       )}
 
@@ -125,17 +125,17 @@ export function ImageComparator() {
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <GitCompareArrows className="h-5 w-5 text-primary" />
-              Comparison Result
+              Resultado da Comparação
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
             <div>
-              <h3 className="font-semibold text-lg mb-2">Comparison Summary</h3>
+              <h3 className="font-semibold text-lg mb-2">Resumo da Comparação</h3>
               <p className="prose prose-sm max-w-none dark:prose-invert whitespace-pre-wrap">{comparison.comparisonSummary}</p>
             </div>
             <Separator />
             <div>
-              <h3 className="font-semibold text-lg mb-2">Suggested Actions</h3>
+              <h3 className="font-semibold text-lg mb-2">Ações Sugeridas</h3>
               <p className="prose prose-sm max-w-none dark:prose-invert whitespace-pre-wrap">{comparison.suggestedActions}</p>
             </div>
           </CardContent>

@@ -5,8 +5,8 @@ export default function ComparePage() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-3xl font-bold tracking-tight">Compare Wound Images</h1>
-        <p className="text-muted-foreground">Upload two images to analyze healing progress with AI.</p>
+        <h1 className="text-3xl font-bold tracking-tight">Comparar Imagens de Feridas</h1>
+        <p className="text-muted-foreground">Envie duas imagens para analisar o progresso da cicatrização com IA.</p>
       </div>
       <Card>
         <CardContent className="p-6">
