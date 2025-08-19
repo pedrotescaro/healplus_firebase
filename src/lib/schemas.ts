@@ -12,7 +12,7 @@ export const signupSchema = z.object({
 });
 
 export const profileSchema = z.object({
-  name: z.string().min(2, { message: "Name must be at least 2 characters." }),
-  specialty: z.string().min(2, { message: "Specialty is required." }),
-  credentials: z.string().optional(),
+  name: z.string().min(2, { message: "O nome deve ter pelo menos 2 caracteres." }),
+  specialty: z.string().min(2, { message: "A especialidade é obrigatória." }),
+  crm_coren: z.string().optional(),
 });

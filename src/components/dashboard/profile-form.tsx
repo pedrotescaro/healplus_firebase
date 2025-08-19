@@ -8,7 +8,6 @@ import { useAuth } from "@/hooks/use-auth";
 import { useToast } from "@/hooks/use-toast";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
 import {
   Form,
   FormControl,
@@ -29,8 +28,8 @@ export function ProfileForm() {
     resolver: zodResolver(profileSchema),
     defaultValues: {
       name: user?.name || "",
-      specialty: "Wound Care Specialist", // Mock data
-      credentials: "RN, CWS", // Mock data
+      specialty: "Especialista em Feridas", // Mock data
+      crm_coren: "123456-SP", // Mock data
     },
   });
 
@@ -43,8 +42,8 @@ export function ProfileForm() {
         login(updatedUser);
       }
       toast({
-        title: "Profile Updated",
-        description: "Your information has been successfully saved.",
+        title: "Perfil Atualizado",
+        description: "Suas informações foram salvas com sucesso.",
       });
       setLoading(false);
     }, 1000);
@@ -58,9 +57,9 @@ export function ProfileForm() {
           name="name"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Full Name</FormLabel>
+              <FormLabel>Nome Completo</FormLabel>
               <FormControl>
-                <Input placeholder="Dr. Jane Doe" {...field} />
+                <Input placeholder="Dra. Joana da Silva" {...field} />
               </FormControl>
               <FormMessage />
             </FormItem>
@@ -77,9 +76,9 @@ export function ProfileForm() {
           name="specialty"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Specialty</FormLabel>
+              <FormLabel>Especialidade</FormLabel>
               <FormControl>
-                <Input placeholder="e.g., Dermatology, Nursing" {...field} />
+                <Input placeholder="ex: Dermatologia, Enfermagem" {...field} />
               </FormControl>
               <FormMessage />
             </FormItem>
@@ -87,14 +86,13 @@ export function ProfileForm() {
         />
         <FormField
           control={form.control}
-          name="credentials"
+          name="crm_coren"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Credentials</FormLabel>
+              <FormLabel>CRM/COREN</FormLabel>
               <FormControl>
-                <Textarea
-                  placeholder="e.g., MD, PhD, RN, CWS"
-                  className="resize-none"
+                <Input
+                  placeholder="ex: 123456-SP"
                   {...field}
                 />
               </FormControl>
@@ -104,7 +102,7 @@ export function ProfileForm() {
         />
         <Button type="submit" disabled={loading}>
           {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-          Save Changes
+          Salvar Alterações
         </Button>
       </form>
     </Form>
