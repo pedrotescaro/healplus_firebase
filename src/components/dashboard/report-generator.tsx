@@ -192,10 +192,11 @@ export function ReportGenerator() {
 
 
         // --- Avaliação da Ferida (IA) ---
+        const cleanReportText = report.report.replace(/\*\*/g, ''); // Remove asterisks
         autoTable(doc, {
             startY: finalY + 5,
             head: [['Avaliação da Ferida (Análise por IA)']],
-            body: [[report.report]],
+            body: [[cleanReportText]],
             theme: 'grid',
             headStyles: { fontStyle: 'bold', fillColor: [22, 160, 133] },
             didDrawPage: () => addFooter(),
