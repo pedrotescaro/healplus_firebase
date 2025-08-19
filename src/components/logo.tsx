@@ -7,11 +7,11 @@ export function Logo({ className }: { className?: string }) {
       <Image
         src="https://i.imgur.com/HJ8HDJs.png"
         alt="Heal+ Logo"
-        width={32}
-        height={32}
-        className="h-8 w-8"
+        width={40}
+        height={40}
+        className="h-10 w-10"
       />
-      <span className="text-xl font-bold tracking-tight text-foreground">
+      <span className="text-2xl font-bold tracking-tight text-foreground">
         Heal+
       </span>
     </div>
