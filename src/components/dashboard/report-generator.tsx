@@ -22,6 +22,8 @@ import {
 import jsPDF from "jspdf";
 import autoTable from 'jspdf-autotable';
 import { useAuth } from "@/hooks/use-auth";
+import { db } from "@/firebase/client-app";
+import { collection, query, onSnapshot, orderBy } from "firebase/firestore";
 
 type StoredAnamnesis = AnamnesisFormValues & { id: string };
 
@@ -39,21 +41,26 @@ export function ReportGenerator() {
 
   useEffect(() => {
     if (!user) return;
-    try {
-      const key = `heal-plus-anamneses-${user.uid}`;
-      const storedData = localStorage.getItem(key);
-      if (storedData) {
-        setAnamnesisRecords(JSON.parse(storedData));
-      }
-    } catch (error) {
-      console.error("Failed to load anamnesis records from localStorage", error);
-      toast({
+    
+    const q = query(collection(db, `users/${user.uid}/anamnesis`), orderBy("data_consulta", "desc"));
+    
+    const unsubscribe = onSnapshot(q, (querySnapshot) => {
+      const records: StoredAnamnesis[] = [];
+      querySnapshot.forEach((doc) => {
+        records.push({ id: doc.id, ...doc.data() } as StoredAnamnesis);
+      });
+      setAnamnesisRecords(records);
+    }, (error) => {
+      console.error("Error fetching anamnesis records: ", error);
+       toast({
         title: "Erro ao Carregar",
         description: "Não foi possível carregar as fichas de anamnese salvas.",
         variant: "destructive",
       });
-    }
-  }, [user]);
+    });
+
+    return () => unsubscribe();
+  }, [user, toast]);
 
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -256,7 +263,7 @@ export function ReportGenerator() {
                 {anamnesisRecords.length > 0 ? (
                   anamnesisRecords.map((record) => (
                     <SelectItem key={record.id} value={record.id}>
-                      {record.nome_cliente} - {new Date(record.data_consulta).toLocaleDateString()}
+                      {record.nome_cliente} - {new Date(record.data_consulta).toLocaleDateString('pt-BR', { timeZone: 'UTC' })}
                     </SelectItem>
                   ))
                 ) : (
@@ -267,7 +274,7 @@ export function ReportGenerator() {
               </SelectContent>
             </Select>
             <p className="text-sm text-muted-foreground pt-2">
-                As fichas de anamnese são salvas localmente no seu navegador. Crie uma nova na página "Nova Anamnese".
+                As fichas de anamnese são salvas na nuvem e associadas à sua conta.
             </p>
           </div>
         </div>
@@ -312,3 +319,5 @@ export function ReportGenerator() {
     </div>
   );
 }
+
+    

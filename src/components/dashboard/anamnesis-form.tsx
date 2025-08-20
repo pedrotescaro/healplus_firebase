@@ -47,6 +47,8 @@ import {
 import { useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useState } from "react";
 import { useAuth } from "@/hooks/use-auth";
+import { db } from "@/firebase/client-app";
+import { collection, addDoc, doc, getDoc, updateDoc, serverTimestamp } from "firebase/firestore";
 
 
 export function AnamnesisForm() {
@@ -99,29 +101,28 @@ export function AnamnesisForm() {
   });
 
   useEffect(() => {
-    if (!user) return;
     const editId = searchParams.get('edit');
-    if (editId) {
-      try {
-        const key = `heal-plus-anamneses-${user.uid}`;
-        const storedData = localStorage.getItem(key);
-        if (storedData) {
-          const allRecords = JSON.parse(storedData);
-          const recordToEdit = allRecords.find((r: { id: string }) => r.id === editId);
-          if (recordToEdit) {
-            form.reset(recordToEdit);
-            setIsEditMode(true);
-            setRecordId(editId);
+    if (editId && user) {
+      setIsEditMode(true);
+      setRecordId(editId);
+      const fetchRecord = async () => {
+        try {
+          const docRef = doc(db, `users/${user.uid}/anamnesis`, editId);
+          const docSnap = await getDoc(docRef);
+          if (docSnap.exists()) {
+            form.reset(docSnap.data() as AnamnesisFormValues);
           } else {
-            router.push('/dashboard/anamnesis'); // Record not found
+            toast({ title: "Erro", description: "Ficha de anamnese não encontrada.", variant: "destructive" });
+            router.push('/dashboard/anamnesis-records');
           }
+        } catch (error) {
+          console.error("Error fetching document:", error);
+          toast({ title: "Erro", description: "Não foi possível carregar a ficha.", variant: "destructive" });
         }
-      } catch (error) {
-        console.error("Failed to load anamnesis for editing", error);
-        router.push('/dashboard/anamnesis');
-      }
+      };
+      fetchRecord();
     }
-  }, [searchParams, form, router, user]);
+  }, [searchParams, form, router, user, toast]);
 
 
   const watch = form.watch();
@@ -168,7 +169,7 @@ export function AnamnesisForm() {
     )
   };
 
-  function onSubmit(data: AnamnesisFormValues) {
+  async function onSubmit(data: AnamnesisFormValues) {
     if (!user) {
       toast({
         title: "Erro de Autenticação",
@@ -189,28 +190,19 @@ export function AnamnesisForm() {
     }
 
     try {
-      const key = `heal-plus-anamneses-${user.uid}`;
-      const existingAnamneses = JSON.parse(localStorage.getItem(key) || "[]");
       if (isEditMode && recordId) {
         // Update existing record
-        const recordIndex = existingAnamneses.findIndex((r: { id: string }) => r.id === recordId);
-        if (recordIndex > -1) {
-          existingAnamneses[recordIndex] = { ...data, id: recordId };
-        }
-         localStorage.setItem(key, JSON.stringify(existingAnamneses));
+        const docRef = doc(db, `users/${user.uid}/anamnesis`, recordId);
+        await updateDoc(docRef, { ...data, updatedAt: serverTimestamp() });
         toast({
           title: "Formulário Atualizado",
           description: "A ficha de anamnese foi atualizada com sucesso.",
         });
-        router.push("/dashboard");
+        router.push("/dashboard/anamnesis-records");
       } else {
         // Create new record
-        const newAnamnesis = {
-          id: `${data.nome_cliente}-${data.data_consulta}-${Date.now()}`,
-          ...data,
-        };
-        existingAnamneses.push(newAnamnesis);
-        localStorage.setItem(key, JSON.stringify(existingAnamneses));
+        const collectionRef = collection(db, `users/${user.uid}/anamnesis`);
+        await addDoc(collectionRef, { ...data, createdAt: serverTimestamp() });
         toast({
           title: "Formulário Salvo",
           description: "A ficha de anamnese foi salva com sucesso.",
@@ -223,7 +215,7 @@ export function AnamnesisForm() {
         description: "Não foi possível salvar a ficha de anamnese. Tente novamente.",
         variant: "destructive",
       });
-      console.error("Failed to save anamnesis to localStorage", error);
+      console.error("Failed to save anamnesis to Firestore", error);
     }
   }
 
@@ -720,3 +712,5 @@ export function AnamnesisForm() {
     </Form>
   );
 }
+
+    

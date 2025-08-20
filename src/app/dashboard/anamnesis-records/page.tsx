@@ -6,7 +6,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { MoreHorizontal, Trash2, Eye, Edit, PlusCircle } from "lucide-react";
+import { MoreHorizontal, Trash2, Eye, Edit, PlusCircle, Loader2 } from "lucide-react";
 import { useEffect, useState } from "react";
 import type { AnamnesisFormValues } from "@/lib/anamnesis-schema";
 import { Badge } from "@/components/ui/badge";
@@ -39,6 +39,8 @@ import {
 } from "@/components/ui/dialog";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { useToast } from "@/hooks/use-toast";
+import { db } from "@/firebase/client-app";
+import { collection, query, onSnapshot, doc, deleteDoc, orderBy } from "firebase/firestore";
 
 type StoredAnamnesis = AnamnesisFormValues & { id: string };
 
@@ -47,37 +49,38 @@ export default function AnamnesisRecordsPage() {
   const router = useRouter();
   const { toast } = useToast();
   const [anamneses, setAnamneses] = useState<StoredAnamnesis[]>([]);
+  const [loading, setLoading] = useState(true);
   const [recordToDelete, setRecordToDelete] = useState<string | null>(null);
   const [recordToView, setRecordToView] = useState<StoredAnamnesis | null>(null);
 
-  const loadAnamneses = () => {
-    if (!user) return;
-    try {
-      const key = `heal-plus-anamneses-${user.uid}`;
-      const storedData = localStorage.getItem(key);
-      if (storedData) {
-        const allRecords: StoredAnamnesis[] = JSON.parse(storedData);
-        allRecords.sort((a, b) => new Date(b.data_consulta).getTime() - new Date(a.data_consulta).getTime());
-        setAnamneses(allRecords);
-      } else {
-        setAnamneses([]);
-      }
-    } catch (error) {
-      console.error("Failed to load anamnesis records from localStorage", error);
-    }
-  };
-
   useEffect(() => {
-    loadAnamneses();
-  }, [user]);
+    if (!user) {
+      setLoading(false);
+      return;
+    }
 
-  const handleDelete = () => {
+    const q = query(collection(db, `users/${user.uid}/anamnesis`), orderBy("data_consulta", "desc"));
+
+    const unsubscribe = onSnapshot(q, (querySnapshot) => {
+      const records: StoredAnamnesis[] = [];
+      querySnapshot.forEach((doc) => {
+        records.push({ id: doc.id, ...doc.data() } as StoredAnamnesis);
+      });
+      setAnamneses(records);
+      setLoading(false);
+    }, (error) => {
+      console.error("Error fetching anamnesis records: ", error);
+      toast({ title: "Erro", description: "Não foi possível carregar as fichas.", variant: "destructive" });
+      setLoading(false);
+    });
+
+    return () => unsubscribe();
+  }, [user, toast]);
+
+  const handleDelete = async () => {
     if (!recordToDelete || !user) return;
     try {
-      const updatedAnamneses = anamneses.filter(record => record.id !== recordToDelete);
-      const key = `heal-plus-anamneses-${user.uid}`;
-      localStorage.setItem(key, JSON.stringify(updatedAnamneses));
-      setAnamneses(updatedAnamneses);
+      await deleteDoc(doc(db, `users/${user.uid}/anamnesis`, recordToDelete));
       toast({
         title: "Registro Excluído",
         description: "A ficha de anamnese foi excluída com sucesso.",
@@ -112,7 +115,12 @@ export default function AnamnesisRecordsPage() {
                 </CardDescription>
             </CardHeader>
             <CardContent>
-                {anamneses.length > 0 ? (
+                {loading ? (
+                  <div className="flex justify-center items-center py-8">
+                    <Loader2 className="h-8 w-8 animate-spin text-primary" />
+                    <p className="ml-4 text-muted-foreground">Carregando fichas...</p>
+                  </div>
+                ) : anamneses.length > 0 ? (
                     <Table>
                     <TableHeader>
                         <TableRow>
@@ -227,3 +235,5 @@ export default function AnamnesisRecordsPage() {
     </div>
   );
 }
+
+    
