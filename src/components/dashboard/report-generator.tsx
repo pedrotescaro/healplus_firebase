@@ -56,7 +56,9 @@ export function ReportGenerator() {
         });
       }
     };
-    fetchRecords();
+    if (user) {
+      fetchRecords();
+    }
   }, [user, toast]);
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {

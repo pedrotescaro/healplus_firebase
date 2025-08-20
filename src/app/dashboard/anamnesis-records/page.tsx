@@ -72,7 +72,9 @@ export default function AnamnesisRecordsPage() {
       }
     };
 
-    fetchRecords();
+    if (user) {
+      fetchRecords();
+    }
   }, [user, toast]);
 
   const handleDelete = async () => {

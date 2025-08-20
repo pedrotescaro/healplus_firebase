@@ -75,7 +75,9 @@ export default function DashboardPage() {
         setLoading(false);
       }
     };
-    fetchRecentRecords();
+    if (user) {
+      fetchRecentRecords();
+    }
   }, [user, toast]);
 
   const handleDelete = async () => {
