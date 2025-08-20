@@ -48,7 +48,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useState } from "react";
 import { useAuth } from "@/hooks/use-auth";
 import { db } from "@/firebase/client-app";
-import { collection, addDoc, doc, getDoc, updateDoc, serverTimestamp } from "firebase/firestore";
+import { collection, addDoc, doc, getDoc, updateDoc } from "firebase/firestore";
 
 
 export function AnamnesisForm() {
@@ -294,7 +294,7 @@ export function AnamnesisForm() {
       if (isEditMode && recordId) {
         // Update existing record
         const docRef = doc(db, `users/${user.uid}/anamnesis`, recordId);
-        await updateDoc(docRef, { ...data, updatedAt: serverTimestamp() });
+        await updateDoc(docRef, data);
         toast({
           title: "Formulário Atualizado",
           description: "A ficha de anamnese foi atualizada com sucesso.",
@@ -303,7 +303,7 @@ export function AnamnesisForm() {
       } else {
         // Create new record
         const collectionRef = collection(db, `users/${user.uid}/anamnesis`);
-        await addDoc(collectionRef, { ...data, createdAt: serverTimestamp() });
+        await addDoc(collectionRef, data);
         toast({
           title: "Formulário Salvo",
           description: "A ficha de anamnese foi salva com sucesso.",
@@ -813,5 +813,3 @@ export function AnamnesisForm() {
     </Form>
   );
 }
-
-    
