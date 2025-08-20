@@ -21,11 +21,9 @@ import {
 } from "@/components/ui/select"
 import jsPDF from "jspdf";
 import autoTable from 'jspdf-autotable';
-import { useAuth } from "@/hooks/use-auth";
-import { db } from "@/firebase/client-app";
-import { collection, query, onSnapshot, orderBy } from "firebase/firestore";
 
 type StoredAnamnesis = AnamnesisFormValues & { id: string };
+const ANAMNESIS_STORAGE_KEY = "anamnesisRecords";
 
 export function ReportGenerator() {
   const [woundImage, setWoundImage] = useState<File | null>(null);
@@ -37,30 +35,21 @@ export function ReportGenerator() {
   const [pdfLoading, setPdfLoading] = useState(false);
   const { toast } = useToast();
   const reportRef = useRef<HTMLDivElement>(null);
-  const { user } = useAuth();
 
   useEffect(() => {
-    if (!user) return;
-    
-    const q = query(collection(db, `users/${user.uid}/anamnesis`), orderBy("data_consulta", "desc"));
-    
-    const unsubscribe = onSnapshot(q, (querySnapshot) => {
-      const records: StoredAnamnesis[] = [];
-      querySnapshot.forEach((doc) => {
-        records.push({ id: doc.id, ...doc.data() } as StoredAnamnesis);
-      });
-      setAnamnesisRecords(records);
-    }, (error) => {
-      console.error("Error fetching anamnesis records: ", error);
+    try {
+      const storedRecords = JSON.parse(localStorage.getItem(ANAMNESIS_STORAGE_KEY) || '[]') as StoredAnamnesis[];
+      storedRecords.sort((a, b) => new Date(b.data_consulta).getTime() - new Date(a.data_consulta).getTime());
+      setAnamnesisRecords(storedRecords);
+    } catch (error) {
+       console.error("Error fetching anamnesis records from localStorage: ", error);
        toast({
         title: "Erro ao Carregar",
         description: "Não foi possível carregar as fichas de anamnese salvas.",
         variant: "destructive",
       });
-    });
-
-    return () => unsubscribe();
-  }, [user, toast]);
+    }
+  }, [toast]);
 
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -162,7 +151,7 @@ export function ReportGenerator() {
 
         // --- Anamnese ---
         const anamnesisBody = [
-            ['Histórico Médico', selectedRecord.historico_cicatrizacao || 'Nenhum relatado'],
+            ['Histórico Médico', selectedRecord.historico_cicrizacao || 'Nenhum relatado'],
             ['Alergias', selectedRecord.possui_alergia ? selectedRecord.qual_alergia : 'Nenhuma relatada'],
             ['Medicamentos em Uso', selectedRecord.usa_medicacao ? selectedRecord.qual_medicacao : 'Nenhum'],
             ['Hábitos', `Atividade Física: ${selectedRecord.pratica_atividade_fisica ? 'Sim' : 'Não'}\nÁlcool: ${selectedRecord.ingestao_alcool ? 'Sim' : 'Não'}\nFumante: ${selectedRecord.fumante ? 'Sim' : 'Não'}`],
@@ -274,7 +263,7 @@ export function ReportGenerator() {
               </SelectContent>
             </Select>
             <p className="text-sm text-muted-foreground pt-2">
-                As fichas de anamnese são salvas na nuvem e associadas à sua conta.
+                As fichas de anamnese são salvas localmente no seu navegador.
             </p>
           </div>
         </div>
@@ -319,5 +308,3 @@ export function ReportGenerator() {
     </div>
   );
 }
-
-    

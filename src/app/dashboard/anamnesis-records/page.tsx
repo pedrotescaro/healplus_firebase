@@ -1,7 +1,6 @@
 
 "use client";
 
-import { useAuth } from "@/hooks/use-auth";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card";
@@ -39,13 +38,11 @@ import {
 } from "@/components/ui/dialog";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { useToast } from "@/hooks/use-toast";
-import { db } from "@/firebase/client-app";
-import { collection, query, onSnapshot, doc, deleteDoc, orderBy } from "firebase/firestore";
 
 type StoredAnamnesis = AnamnesisFormValues & { id: string };
+const ANAMNESIS_STORAGE_KEY = "anamnesisRecords";
 
 export default function AnamnesisRecordsPage() {
-  const { user } = useAuth();
   const router = useRouter();
   const { toast } = useToast();
   const [anamneses, setAnamneses] = useState<StoredAnamnesis[]>([]);
@@ -54,33 +51,25 @@ export default function AnamnesisRecordsPage() {
   const [recordToView, setRecordToView] = useState<StoredAnamnesis | null>(null);
 
   useEffect(() => {
-    if (!user) {
-      setLoading(false);
-      return;
-    }
-
-    const q = query(collection(db, `users/${user.uid}/anamnesis`), orderBy("data_consulta", "desc"));
-
-    const unsubscribe = onSnapshot(q, (querySnapshot) => {
-      const records: StoredAnamnesis[] = [];
-      querySnapshot.forEach((doc) => {
-        records.push({ id: doc.id, ...doc.data() } as StoredAnamnesis);
-      });
-      setAnamneses(records);
-      setLoading(false);
-    }, (error) => {
-      console.error("Error fetching anamnesis records: ", error);
-      toast({ title: "Erro", description: "Não foi possível carregar as fichas.", variant: "destructive" });
-      setLoading(false);
-    });
-
-    return () => unsubscribe();
-  }, [user, toast]);
-
-  const handleDelete = async () => {
-    if (!recordToDelete || !user) return;
     try {
-      await deleteDoc(doc(db, `users/${user.uid}/anamnesis`, recordToDelete));
+      const storedRecords = JSON.parse(localStorage.getItem(ANAMNESIS_STORAGE_KEY) || '[]') as StoredAnamnesis[];
+      // Sort by consultation date, newest first
+      storedRecords.sort((a, b) => new Date(b.data_consulta).getTime() - new Date(a.data_consulta).getTime());
+      setAnamneses(storedRecords);
+    } catch (error) {
+      console.error("Error fetching anamnesis records from localStorage: ", error);
+      toast({ title: "Erro", description: "Não foi possível carregar as fichas.", variant: "destructive" });
+    } finally {
+      setLoading(false);
+    }
+  }, [toast]);
+
+  const handleDelete = () => {
+    if (!recordToDelete) return;
+    try {
+      const updatedRecords = anamneses.filter(record => record.id !== recordToDelete);
+      localStorage.setItem(ANAMNESIS_STORAGE_KEY, JSON.stringify(updatedRecords));
+      setAnamneses(updatedRecords);
       toast({
         title: "Registro Excluído",
         description: "A ficha de anamnese foi excluída com sucesso.",
@@ -91,7 +80,7 @@ export default function AnamnesisRecordsPage() {
         description: "Não foi possível excluir a ficha de anamnese.",
         variant: "destructive",
       });
-      console.error("Failed to delete anamnesis record", error);
+      console.error("Failed to delete anamnesis record from localStorage", error);
     } finally {
       setRecordToDelete(null);
     }
@@ -235,5 +224,3 @@ export default function AnamnesisRecordsPage() {
     </div>
   );
 }
-
-    

@@ -39,10 +39,9 @@ import {
 } from "@/components/ui/dialog";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { useToast } from "@/hooks/use-toast";
-import { db } from "@/firebase/client-app";
-import { collection, query, onSnapshot, doc, deleteDoc, orderBy, limit } from "firebase/firestore";
 
 type StoredAnamnesis = AnamnesisFormValues & { id: string };
+const ANAMNESIS_STORAGE_KEY = "anamnesisRecords";
 
 export default function DashboardPage() {
   const { user } = useAuth();
@@ -54,33 +53,29 @@ export default function DashboardPage() {
   const [recordToView, setRecordToView] = useState<StoredAnamnesis | null>(null);
 
   useEffect(() => {
-    if (!user) {
-      setLoading(false);
-      return;
-    }
-    
-    const q = query(collection(db, `users/${user.uid}/anamnesis`), orderBy("data_consulta", "desc"), limit(5));
-
-    const unsubscribe = onSnapshot(q, (querySnapshot) => {
-      const records: StoredAnamnesis[] = [];
-      querySnapshot.forEach((doc) => {
-        records.push({ id: doc.id, ...doc.data() } as StoredAnamnesis);
-      });
-      setRecentAnamneses(records);
-      setLoading(false);
-    }, (error) => {
-      console.error("Error fetching recent anamnesis records: ", error);
-      toast({ title: "Erro", description: "Não foi possível carregar as fichas recentes.", variant: "destructive" });
-      setLoading(false);
-    });
-
-    return () => unsubscribe();
-  }, [user, toast]);
-
-  const handleDelete = async () => {
-    if (!recordToDelete || !user) return;
     try {
-      await deleteDoc(doc(db, `users/${user.uid}/anamnesis`, recordToDelete));
+      const storedRecords = JSON.parse(localStorage.getItem(ANAMNESIS_STORAGE_KEY) || '[]') as StoredAnamnesis[];
+      // Sort by consultation date, newest first, and take the top 5
+      const sorted = storedRecords.sort((a, b) => new Date(b.data_consulta).getTime() - new Date(a.data_consulta).getTime());
+      setRecentAnamneses(sorted.slice(0, 5));
+    } catch (error) {
+      console.error("Error fetching recent anamnesis records from localStorage: ", error);
+      toast({ title: "Erro", description: "Não foi possível carregar as fichas recentes.", variant: "destructive" });
+    } finally {
+      setLoading(false);
+    }
+  }, [toast]);
+
+  const handleDelete = () => {
+    if (!recordToDelete) return;
+    try {
+      const storedRecords = JSON.parse(localStorage.getItem(ANAMNESIS_STORAGE_KEY) || '[]') as StoredAnamnesis[];
+      const updatedRecords = storedRecords.filter(record => record.id !== recordToDelete);
+      localStorage.setItem(ANAMNESIS_STORAGE_KEY, JSON.stringify(updatedRecords));
+      
+      // Update the state as well to reflect the change immediately
+      setRecentAnamneses(updatedRecords.sort((a, b) => new Date(b.data_consulta).getTime() - new Date(a.data_consulta).getTime()).slice(0, 5));
+      
       toast({
         title: "Registro Excluído",
         description: "A ficha de anamnese foi excluída com sucesso.",
@@ -91,7 +86,7 @@ export default function DashboardPage() {
         description: "Não foi possível excluir a ficha de anamnese.",
         variant: "destructive",
       });
-      console.error("Failed to delete anamnesis record", error);
+      console.error("Failed to delete anamnesis record from localStorage", error);
     } finally {
       setRecordToDelete(null);
     }

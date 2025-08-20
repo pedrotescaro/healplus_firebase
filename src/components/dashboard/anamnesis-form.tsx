@@ -13,7 +13,6 @@ import {
   FormItem,
   FormLabel,
   FormMessage,
-  FormDescription
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -35,7 +34,6 @@ import { Separator } from "@/components/ui/separator";
 import { WoundBedProgress } from "./wound-bed-progress";
 import { User, Stethoscope, HeartPulse, Pill, Microscope, FilePlus, Info, MapPin, RefreshCw } from "lucide-react";
 import { Slider } from "@/components/ui/slider";
-import { cn } from "@/lib/utils";
 import { BodyMapSelector } from "./body-map-selector";
 import {
   Dialog,
@@ -47,16 +45,15 @@ import {
 } from "@/components/ui/dialog";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useState } from "react";
-import { useAuth } from "@/hooks/use-auth";
-import { db } from "@/firebase/client-app";
-import { collection, addDoc, doc, getDoc, updateDoc } from "firebase/firestore";
 
+const ANAMNESIS_STORAGE_KEY = "anamnesisRecords";
+
+type StoredAnamnesis = AnamnesisFormValues & { id: string };
 
 export function AnamnesisForm() {
   const { toast } = useToast();
   const router = useRouter();
   const searchParams = useSearchParams();
-  const { user } = useAuth();
   const [isEditMode, setIsEditMode] = useState(false);
   const [recordId, setRecordId] = useState<string | null>(null);
 
@@ -201,30 +198,24 @@ export function AnamnesisForm() {
 
   useEffect(() => {
     const editId = searchParams.get('edit');
-    if (editId && user) {
+    if (editId) {
       setIsEditMode(true);
       setRecordId(editId);
-      const fetchRecord = async () => {
-        try {
-          const docRef = doc(db, `users/${user.uid}/anamnesis`, editId);
-          const docSnap = await getDoc(docRef);
-          if (docSnap.exists()) {
-            // Ensure all fields have a value to prevent uncontrolled -> controlled error
-            const data = docSnap.data();
-            const populatedData = { ...defaultValues, ...data };
-            form.reset(populatedData as AnamnesisFormValues);
-          } else {
-            toast({ title: "Erro", description: "Ficha de anamnese não encontrada.", variant: "destructive" });
-            router.push('/dashboard/anamnesis-records');
-          }
-        } catch (error) {
-          console.error("Error fetching document:", error);
-          toast({ title: "Erro", description: "Não foi possível carregar a ficha.", variant: "destructive" });
+      try {
+        const storedRecords = JSON.parse(localStorage.getItem(ANAMNESIS_STORAGE_KEY) || '[]') as StoredAnamnesis[];
+        const recordToEdit = storedRecords.find(r => r.id === editId);
+        if (recordToEdit) {
+          form.reset(recordToEdit);
+        } else {
+          toast({ title: "Erro", description: "Ficha de anamnese não encontrada.", variant: "destructive" });
+          router.push('/dashboard/anamnesis-records');
         }
-      };
-      fetchRecord();
+      } catch (error) {
+        console.error("Error fetching from localStorage:", error);
+        toast({ title: "Erro", description: "Não foi possível carregar a ficha.", variant: "destructive" });
+      }
     }
-  }, [searchParams, form, router, user, toast]);
+  }, [searchParams, form, router, toast]);
 
 
   const watch = form.watch();
@@ -271,16 +262,7 @@ export function AnamnesisForm() {
     )
   };
 
-  async function onSubmit(data: AnamnesisFormValues) {
-    if (!user) {
-      toast({
-        title: "Erro de Autenticação",
-        description: "Você precisa estar logado para salvar uma anamnese.",
-        variant: "destructive",
-      });
-      return;
-    }
-
+  function onSubmit(data: AnamnesisFormValues) {
     const totalPercentage = (data.percentual_granulacao_leito || 0) + (data.percentual_epitelizacao_leito || 0) + (data.percentual_esfacelo_leito || 0) + (data.percentual_necrose_seca_leito || 0);
     if (totalPercentage > 100) {
       toast({
@@ -290,18 +272,14 @@ export function AnamnesisForm() {
       });
       return;
     }
-    
-    // Sanitize data before sending to Firestore
-    const dataToSave = Object.fromEntries(
-      Object.entries(data).map(([key, value]) => [key, value === undefined ? "" : value])
-    );
-
 
     try {
+      const storedRecords = JSON.parse(localStorage.getItem(ANAMNESIS_STORAGE_KEY) || '[]') as StoredAnamnesis[];
+
       if (isEditMode && recordId) {
         // Update existing record
-        const docRef = doc(db, `users/${user.uid}/anamnesis`, recordId);
-        await updateDoc(docRef, dataToSave);
+        const updatedRecords = storedRecords.map(r => r.id === recordId ? { ...data, id: recordId } : r);
+        localStorage.setItem(ANAMNESIS_STORAGE_KEY, JSON.stringify(updatedRecords));
         toast({
           title: "Formulário Atualizado",
           description: "A ficha de anamnese foi atualizada com sucesso.",
@@ -309,8 +287,9 @@ export function AnamnesisForm() {
         router.push("/dashboard/anamnesis-records");
       } else {
         // Create new record
-        const collectionRef = collection(db, `users/${user.uid}/anamnesis`);
-        await addDoc(collectionRef, dataToSave);
+        const newRecord: StoredAnamnesis = { ...data, id: new Date().toISOString() };
+        const updatedRecords = [...storedRecords, newRecord];
+        localStorage.setItem(ANAMNESIS_STORAGE_KEY, JSON.stringify(updatedRecords));
         toast({
           title: "Formulário Salvo",
           description: "A ficha de anamnese foi salva com sucesso.",
@@ -320,10 +299,10 @@ export function AnamnesisForm() {
     } catch (error) {
        toast({
         title: "Erro ao Salvar",
-        description: "Não foi possível salvar a ficha de anamnese. Tente novamente.",
+        description: "Não foi possível salvar a ficha no localStorage. Verifique as permissões do seu navegador.",
         variant: "destructive",
       });
-      console.error("Failed to save anamnesis to Firestore", error);
+      console.error("Failed to save anamnesis to localStorage", error);
     }
   }
 
