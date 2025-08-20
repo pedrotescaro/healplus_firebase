@@ -22,9 +22,11 @@ import {
 import jsPDF from "jspdf";
 import autoTable from 'jspdf-autotable';
 import { ImageCapture } from "./image-capture";
+import { useAuth } from "@/hooks/use-auth";
+import { db } from "@/firebase/client-app";
+import { collection, query, getDocs, orderBy } from "firebase/firestore";
 
 type StoredAnamnesis = AnamnesisFormValues & { id: string };
-const ANAMNESIS_STORAGE_KEY = "anamnesisRecords";
 
 export function ReportGenerator() {
   const [woundImage, setWoundImage] = useState<File | null>(null);
@@ -35,21 +37,27 @@ export function ReportGenerator() {
   const [loading, setLoading] = useState(false);
   const [pdfLoading, setPdfLoading] = useState(false);
   const { toast } = useToast();
+  const { user } = useAuth();
 
   useEffect(() => {
-    try {
-      const storedRecords = JSON.parse(localStorage.getItem(ANAMNESIS_STORAGE_KEY) || '[]') as StoredAnamnesis[];
-      storedRecords.sort((a, b) => new Date(b.data_consulta).getTime() - new Date(a.data_consulta).getTime());
-      setAnamnesisRecords(storedRecords);
-    } catch (error) {
-       console.error("Error fetching anamnesis records from localStorage: ", error);
-       toast({
-        title: "Erro ao Carregar",
-        description: "Não foi possível carregar as fichas de anamnese salvas.",
-        variant: "destructive",
-      });
-    }
-  }, [toast]);
+    const fetchRecords = async () => {
+      if (!user) return;
+      try {
+        const q = query(collection(db, "users", user.uid, "anamnesis"), orderBy("data_consulta", "desc"));
+        const querySnapshot = await getDocs(q);
+        const records = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as StoredAnamnesis));
+        setAnamnesisRecords(records);
+      } catch (error) {
+        console.error("Error fetching anamnesis records from Firestore: ", error);
+        toast({
+          title: "Erro ao Carregar",
+          description: "Não foi possível carregar as fichas de anamnese salvas.",
+          variant: "destructive",
+        });
+      }
+    };
+    fetchRecords();
+  }, [user, toast]);
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -283,7 +291,7 @@ export function ReportGenerator() {
               </SelectContent>
             </Select>
             <p className="text-sm text-muted-foreground pt-2">
-                As fichas de anamnese são salvas localmente no seu navegador.
+                As fichas de anamnese são salvas na nuvem e associadas à sua conta.
             </p>
           </div>
         </div>

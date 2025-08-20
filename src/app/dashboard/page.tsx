@@ -39,9 +39,10 @@ import {
 } from "@/components/ui/dialog";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { useToast } from "@/hooks/use-toast";
+import { db } from "@/firebase/client-app";
+import { collection, query, getDocs, orderBy, limit, doc, deleteDoc } from "firebase/firestore";
 
 type StoredAnamnesis = AnamnesisFormValues & { id: string };
-const ANAMNESIS_STORAGE_KEY = "anamnesisRecords";
 
 export default function DashboardPage() {
   const { user } = useAuth();
@@ -53,29 +54,35 @@ export default function DashboardPage() {
   const [recordToView, setRecordToView] = useState<StoredAnamnesis | null>(null);
 
   useEffect(() => {
-    try {
-      const storedRecords = JSON.parse(localStorage.getItem(ANAMNESIS_STORAGE_KEY) || '[]') as StoredAnamnesis[];
-      // Sort by consultation date, newest first, and take the top 5
-      const sorted = storedRecords.sort((a, b) => new Date(b.data_consulta).getTime() - new Date(a.data_consulta).getTime());
-      setRecentAnamneses(sorted.slice(0, 5));
-    } catch (error) {
-      console.error("Error fetching recent anamnesis records from localStorage: ", error);
-      toast({ title: "Erro", description: "Não foi possível carregar as fichas recentes.", variant: "destructive" });
-    } finally {
-      setLoading(false);
-    }
-  }, [toast]);
+    const fetchRecentRecords = async () => {
+      if (!user) {
+        setLoading(false);
+        return;
+      }
+      try {
+        const q = query(
+          collection(db, "users", user.uid, "anamnesis"),
+          orderBy("data_consulta", "desc"),
+          limit(5)
+        );
+        const querySnapshot = await getDocs(q);
+        const records = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as StoredAnamnesis));
+        setRecentAnamneses(records);
+      } catch (error) {
+        console.error("Error fetching recent anamnesis records from Firestore: ", error);
+        toast({ title: "Erro", description: "Não foi possível carregar as fichas recentes.", variant: "destructive" });
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchRecentRecords();
+  }, [user, toast]);
 
-  const handleDelete = () => {
-    if (!recordToDelete) return;
+  const handleDelete = async () => {
+    if (!recordToDelete || !user) return;
     try {
-      const storedRecords = JSON.parse(localStorage.getItem(ANAMNESIS_STORAGE_KEY) || '[]') as StoredAnamnesis[];
-      const updatedRecords = storedRecords.filter(record => record.id !== recordToDelete);
-      localStorage.setItem(ANAMNESIS_STORAGE_KEY, JSON.stringify(updatedRecords));
-      
-      // Update the state as well to reflect the change immediately
-      setRecentAnamneses(updatedRecords.sort((a, b) => new Date(b.data_consulta).getTime() - new Date(a.data_consulta).getTime()).slice(0, 5));
-      
+      await deleteDoc(doc(db, "users", user.uid, "anamnesis", recordToDelete));
+      setRecentAnamneses(recentAnamneses.filter(record => record.id !== recordToDelete));
       toast({
         title: "Registro Excluído",
         description: "A ficha de anamnese foi excluída com sucesso.",
@@ -86,7 +93,7 @@ export default function DashboardPage() {
         description: "Não foi possível excluir a ficha de anamnese.",
         variant: "destructive",
       });
-      console.error("Failed to delete anamnesis record from localStorage", error);
+      console.error("Failed to delete anamnesis record from Firestore", error);
     } finally {
       setRecordToDelete(null);
     }

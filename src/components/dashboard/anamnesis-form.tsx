@@ -45,14 +45,15 @@ import {
 } from "@/components/ui/dialog";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useState } from "react";
+import { useAuth } from "@/hooks/use-auth";
+import { db } from "@/firebase/client-app";
+import { collection, addDoc, getDocs, doc, getDoc, updateDoc, query, where, serverTimestamp } from "firebase/firestore";
 
-const ANAMNESIS_STORAGE_KEY = "anamnesisRecords";
-
-type StoredAnamnesis = AnamnesisFormValues & { id: string };
 
 export function AnamnesisForm() {
   const { toast } = useToast();
   const router = useRouter();
+  const { user } = useAuth();
   const searchParams = useSearchParams();
   const [isEditMode, setIsEditMode] = useState(false);
   const [recordId, setRecordId] = useState<string | null>(null);
@@ -198,24 +199,27 @@ export function AnamnesisForm() {
 
   useEffect(() => {
     const editId = searchParams.get('edit');
-    if (editId) {
+    if (editId && user) {
       setIsEditMode(true);
       setRecordId(editId);
-      try {
-        const storedRecords = JSON.parse(localStorage.getItem(ANAMNESIS_STORAGE_KEY) || '[]') as StoredAnamnesis[];
-        const recordToEdit = storedRecords.find(r => r.id === editId);
-        if (recordToEdit) {
-          form.reset(recordToEdit);
-        } else {
-          toast({ title: "Erro", description: "Ficha de anamnese não encontrada.", variant: "destructive" });
-          router.push('/dashboard/anamnesis-records');
+      const fetchRecord = async () => {
+        try {
+          const docRef = doc(db, "users", user.uid, "anamnesis", editId);
+          const docSnap = await getDoc(docRef);
+          if (docSnap.exists()) {
+            form.reset(docSnap.data() as AnamnesisFormValues);
+          } else {
+            toast({ title: "Erro", description: "Ficha de anamnese não encontrada.", variant: "destructive" });
+            router.push('/dashboard/anamnesis-records');
+          }
+        } catch (error) {
+          console.error("Error fetching from Firestore:", error);
+          toast({ title: "Erro", description: "Não foi possível carregar a ficha.", variant: "destructive" });
         }
-      } catch (error) {
-        console.error("Error fetching from localStorage:", error);
-        toast({ title: "Erro", description: "Não foi possível carregar a ficha.", variant: "destructive" });
-      }
+      };
+      fetchRecord();
     }
-  }, [searchParams, form, router, toast]);
+  }, [searchParams, form, router, toast, user]);
 
 
   const watch = form.watch();
@@ -262,7 +266,12 @@ export function AnamnesisForm() {
     )
   };
 
-  function onSubmit(data: AnamnesisFormValues) {
+  async function onSubmit(data: AnamnesisFormValues) {
+    if (!user) {
+      toast({ title: "Erro", description: "Você precisa estar logado para salvar uma ficha.", variant: "destructive" });
+      return;
+    }
+
     const totalPercentage = (data.percentual_granulacao_leito || 0) + (data.percentual_epitelizacao_leito || 0) + (data.percentual_esfacelo_leito || 0) + (data.percentual_necrose_seca_leito || 0);
     if (totalPercentage > 100) {
       toast({
@@ -273,36 +282,43 @@ export function AnamnesisForm() {
       return;
     }
 
-    try {
-      const storedRecords = JSON.parse(localStorage.getItem(ANAMNESIS_STORAGE_KEY) || '[]') as StoredAnamnesis[];
+    // Sanitize data to ensure no undefined values are sent
+    const sanitizedData = Object.fromEntries(
+        Object.entries(data).map(([key, value]) => [key, value === undefined ? '' : value])
+    );
 
+    try {
       if (isEditMode && recordId) {
-        // Update existing record
-        const updatedRecords = storedRecords.map(r => r.id === recordId ? { ...data, id: recordId } : r);
-        localStorage.setItem(ANAMNESIS_STORAGE_KEY, JSON.stringify(updatedRecords));
+        // Update existing record in Firestore
+        const docRef = doc(db, "users", user.uid, "anamnesis", recordId);
+        await updateDoc(docRef, {
+            ...sanitizedData,
+            updatedAt: serverTimestamp(),
+        });
         toast({
           title: "Formulário Atualizado",
           description: "A ficha de anamnese foi atualizada com sucesso.",
         });
         router.push("/dashboard/anamnesis-records");
       } else {
-        // Create new record
-        const newRecord: StoredAnamnesis = { ...data, id: new Date().toISOString() };
-        const updatedRecords = [...storedRecords, newRecord];
-        localStorage.setItem(ANAMNESIS_STORAGE_KEY, JSON.stringify(updatedRecords));
+        // Create new record in Firestore
+        await addDoc(collection(db, "users", user.uid, "anamnesis"), {
+            ...sanitizedData,
+            createdAt: serverTimestamp(),
+        });
         toast({
           title: "Formulário Salvo",
-          description: "A ficha de anamnese foi salva com sucesso.",
+          description: "A ficha de anamnese foi salva com sucesso no Firestore.",
         });
         form.reset(defaultValues);
       }
-    } catch (error) {
+    } catch (error: any) {
        toast({
         title: "Erro ao Salvar",
-        description: "Não foi possível salvar a ficha no localStorage. Verifique as permissões do seu navegador.",
+        description: error.message || "Não foi possível salvar a ficha no Firestore.",
         variant: "destructive",
       });
-      console.error("Failed to save anamnesis to localStorage", error);
+      console.error("Failed to save anamnesis to Firestore", error);
     }
   }
 
