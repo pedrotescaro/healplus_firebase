@@ -14,7 +14,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
+import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription, SheetTrigger } from "@/components/ui/sheet";
 import { useAuth } from "@/hooks/use-auth";
 import { Avatar, AvatarFallback, AvatarImage } from "../ui/avatar";
 import AppSidebar from "./app-sidebar";
@@ -41,6 +41,12 @@ export default function MobileNav() {
           </Button>
         </SheetTrigger>
         <SheetContent side="left" className="flex flex-col p-0 w-64">
+           <SheetHeader className="sr-only">
+              <SheetTitle>Menu de Navegação</SheetTitle>
+              <SheetDescription>
+                Navegue pelas seções do dashboard, incluindo anamnese, relatórios e seu perfil.
+              </SheetDescription>
+            </SheetHeader>
            <AppSidebar onLinkClick={() => setIsSheetOpen(false)} />
         </SheetContent>
       </Sheet>
