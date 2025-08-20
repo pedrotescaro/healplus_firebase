@@ -1,7 +1,7 @@
 
 "use client";
 
-import { useRouter } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { useAuth } from "@/hooks/use-auth";
 import { useEffect } from "react";
 import AppSidebar from "@/components/dashboard/app-sidebar";
@@ -16,6 +16,7 @@ export default function DashboardLayout({
 }) {
   const { user, loading } = useAuth();
   const router = useRouter();
+  const pathname = usePathname();
 
   useEffect(() => {
     if (!loading && !user) {
@@ -49,7 +50,7 @@ export default function DashboardLayout({
         <main className="flex-1 overflow-auto bg-background/95 p-4 sm:p-6 lg:p-8">
           {children}
         </main>
-        <CatSupport />
+        <CatSupport currentPage={pathname} />
       </div>
     </div>
   );
