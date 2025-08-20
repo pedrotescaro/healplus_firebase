@@ -100,7 +100,7 @@ export function CatSupport({ currentPage }: { currentPage: string }) {
         <PopoverTrigger asChild>
           <Button
             size="icon"
-            className="rounded-full h-14 w-14 shadow-lg animate-pulse hover:scale-110 hover:animate-none transform transition-transform duration-200"
+            className="rounded-full h-14 w-14 shadow-lg hover:scale-110 transform transition-transform duration-200"
           >
             <Cat className="h-7 w-7" />
             <span className="sr-only">Ajuda</span>
