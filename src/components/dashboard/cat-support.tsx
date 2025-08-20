@@ -35,7 +35,7 @@ const chatTopics = {
 type ChatStep = 'intro' | 'anamnesis' | 'report' | 'compare';
 
 const greetings = [
-  "Olá! Sou o Miau-Lhor.",
+  "Olá! Sou o Zelo.",
   "Miau! Precisando de uma pata?",
   "Olá de novo! O que vamos fazer hoje?",
   "Estou por aqui se precisar de ajuda!",
@@ -115,7 +115,7 @@ export function CatSupport({ currentPage }: { currentPage: string }) {
                         </AvatarFallback>
                     </Avatar>
                     <div>
-                        <h3 className="font-bold text-md text-foreground">Miau-Lhor</h3>
+                        <h3 className="font-bold text-md text-foreground">Zelo</h3>
                         <p className="text-xs text-muted-foreground">Seu assistente Heal+</p>
                     </div>
                  </div>
