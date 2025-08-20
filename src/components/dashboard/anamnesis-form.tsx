@@ -43,6 +43,7 @@ import {
   DialogHeader,
   DialogTitle,
   DialogTrigger,
+  DialogDescription,
 } from "@/components/ui/dialog";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useState } from "react";
@@ -289,12 +290,18 @@ export function AnamnesisForm() {
       });
       return;
     }
+    
+    // Sanitize data before sending to Firestore
+    const dataToSave = Object.fromEntries(
+      Object.entries(data).map(([key, value]) => [key, value === undefined ? "" : value])
+    );
+
 
     try {
       if (isEditMode && recordId) {
         // Update existing record
         const docRef = doc(db, `users/${user.uid}/anamnesis`, recordId);
-        await updateDoc(docRef, data);
+        await updateDoc(docRef, dataToSave);
         toast({
           title: "Formulário Atualizado",
           description: "A ficha de anamnese foi atualizada com sucesso.",
@@ -303,7 +310,7 @@ export function AnamnesisForm() {
       } else {
         // Create new record
         const collectionRef = collection(db, `users/${user.uid}/anamnesis`);
-        await addDoc(collectionRef, data);
+        await addDoc(collectionRef, dataToSave);
         toast({
           title: "Formulário Salvo",
           description: "A ficha de anamnese foi salva com sucesso.",
@@ -733,6 +740,9 @@ export function AnamnesisForm() {
                                   <DialogContent className="max-w-4xl">
                                     <DialogHeader>
                                       <DialogTitle>Selecione a Localização da Ferida</DialogTitle>
+                                      <DialogDescription>
+                                        Clique em uma parte do corpo para selecioná-la.
+                                      </DialogDescription>
                                     </DialogHeader>
                                     <BodyMapSelector
                                       onLocationSelect={(location) => {
