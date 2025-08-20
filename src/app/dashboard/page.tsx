@@ -182,52 +182,54 @@ export default function DashboardPage() {
                 <p className="ml-4 text-muted-foreground">Carregando fichas...</p>
               </div>
             ) : recentAnamneses.length > 0 ? (
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Paciente</TableHead>
-                  <TableHead>Localização da Ferida</TableHead>
-                  <TableHead>Data da Consulta</TableHead>
-                  <TableHead className="text-right">Ações</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {recentAnamneses.map((record) => (
-                  <TableRow key={record.id}>
-                    <TableCell className="font-medium">{record.nome_cliente}</TableCell>
-                    <TableCell>
-                      <Badge variant="outline">{record.localizacao_ferida}</Badge>
-                    </TableCell>
-                    <TableCell>
-                       {new Date(record.data_consulta).toLocaleDateString('pt-BR', { timeZone: 'UTC' })}
-                    </TableCell>
-                    <TableCell className="text-right">
-                       <DropdownMenu>
-                        <DropdownMenuTrigger asChild>
-                          <Button aria-haspopup="true" size="icon" variant="ghost">
-                            <MoreHorizontal className="h-4 w-4" />
-                            <span className="sr-only">Toggle menu</span>
-                          </Button>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent align="end">
-                          <DropdownMenuLabel>Ações</DropdownMenuLabel>
-                          <DropdownMenuSeparator />
-                          <DropdownMenuItem onSelect={() => setRecordToView(record)}>
-                            <Eye className="mr-2 h-4 w-4" /> Ver Detalhes
-                          </DropdownMenuItem>
-                          <DropdownMenuItem onSelect={() => handleEdit(record.id)}>
-                            <Edit className="mr-2 h-4 w-4" /> Editar
-                          </DropdownMenuItem>
-                          <DropdownMenuItem onSelect={() => setRecordToDelete(record.id)} className="text-destructive focus:text-destructive">
-                            <Trash2 className="mr-2 h-4 w-4" /> Excluir
-                          </DropdownMenuItem>
-                        </DropdownMenuContent>
-                      </DropdownMenu>
-                    </TableCell>
+            <div className="w-full overflow-x-auto">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Paciente</TableHead>
+                    <TableHead className="hidden sm:table-cell">Localização da Ferida</TableHead>
+                    <TableHead className="hidden md:table-cell">Data da Consulta</TableHead>
+                    <TableHead className="text-right">Ações</TableHead>
                   </TableRow>
-                ))}
-              </TableBody>
-            </Table>
+                </TableHeader>
+                <TableBody>
+                  {recentAnamneses.map((record) => (
+                    <TableRow key={record.id}>
+                      <TableCell className="font-medium">{record.nome_cliente}</TableCell>
+                      <TableCell className="hidden sm:table-cell">
+                        <Badge variant="outline">{record.localizacao_ferida}</Badge>
+                      </TableCell>
+                      <TableCell className="hidden md:table-cell">
+                         {new Date(record.data_consulta).toLocaleDateString('pt-BR', { timeZone: 'UTC' })}
+                      </TableCell>
+                      <TableCell className="text-right">
+                         <DropdownMenu>
+                          <DropdownMenuTrigger asChild>
+                            <Button aria-haspopup="true" size="icon" variant="ghost">
+                              <MoreHorizontal className="h-4 w-4" />
+                              <span className="sr-only">Toggle menu</span>
+                            </Button>
+                          </DropdownMenuTrigger>
+                          <DropdownMenuContent align="end">
+                            <DropdownMenuLabel>Ações</DropdownMenuLabel>
+                            <DropdownMenuSeparator />
+                            <DropdownMenuItem onSelect={() => setRecordToView(record)}>
+                              <Eye className="mr-2 h-4 w-4" /> Ver Detalhes
+                            </DropdownMenuItem>
+                            <DropdownMenuItem onSelect={() => handleEdit(record.id)}>
+                              <Edit className="mr-2 h-4 w-4" /> Editar
+                            </DropdownMenuItem>
+                            <DropdownMenuItem onSelect={() => setRecordToDelete(record.id)} className="text-destructive focus:text-destructive">
+                              <Trash2 className="mr-2 h-4 w-4" /> Excluir
+                            </DropdownMenuItem>
+                          </DropdownMenuContent>
+                        </DropdownMenu>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </div>
           ) : (
             <div className="text-center py-8">
               <p className="text-muted-foreground mb-4">Nenhuma ficha de anamnese encontrada.</p>
