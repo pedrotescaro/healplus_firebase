@@ -10,7 +10,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { fileToDataUri } from "@/lib/file-to-data-uri";
-import { UploadCloud, Loader2, FileText, Download, Camera } from "lucide-react";
+import { UploadCloud, Loader2, FileText, Download, Camera, AlertCircle } from "lucide-react";
 import { AnamnesisFormValues } from "@/lib/anamnesis-schema";
 import {
   Select,
@@ -25,8 +25,10 @@ import { ImageCapture } from "./image-capture";
 import { useAuth } from "@/hooks/use-auth";
 import { db } from "@/firebase/client-app";
 import { collection, query, getDocs, orderBy } from "firebase/firestore";
+import { Alert, AlertDescription, AlertTitle } from "../ui/alert";
 
 type StoredAnamnesis = AnamnesisFormValues & { id: string };
+const isAIEnabled = !!process.env.NEXT_PUBLIC_GEMINI_API_KEY;
 
 export function ReportGenerator() {
   const [woundImage, setWoundImage] = useState<File | null>(null);
@@ -102,7 +104,6 @@ export function ReportGenerator() {
     setReport(null);
     try {
       const woundImageUri = await fileToDataUri(woundImage);
-      // Convert the anamnesis data to a string for the AI prompt
       const anamnesisDataString = JSON.stringify(selectedRecord, null, 2);
       const result = await generateWoundReport({ woundImage: woundImageUri, anamnesisData: anamnesisDataString });
       setReport(result);
@@ -110,7 +111,7 @@ export function ReportGenerator() {
       console.error("Error generating report:", error);
       toast({
         title: "Erro",
-        description: "Falha ao gerar o relatório. Por favor, tente novamente.",
+        description: "Falha ao gerar o relatório. Verifique se a chave de API do Gemini está configurada corretamente.",
         variant: "destructive",
       });
     } finally {
@@ -141,12 +142,10 @@ export function ReportGenerator() {
             }
         };
 
-        // --- Cabeçalho ---
         doc.setFont('helvetica', 'bold');
         doc.setFontSize(16);
         doc.text("Relatório de Avaliação e Plano de Tratamento de Ferida", pageWidth / 2, 20, { align: 'center' });
 
-        // --- Identificação do Paciente ---
         doc.setFontSize(12);
         const evaluationDate = new Date(selectedRecord.data_consulta + 'T' + selectedRecord.hora_consulta);
         const formattedDate = evaluationDate.toLocaleDateString('pt-BR', { day: '2-digit', month: 'long', year: 'numeric' });
@@ -163,7 +162,6 @@ export function ReportGenerator() {
             headStyles: { fontStyle: 'bold', fillColor: [22, 160, 133] },
         });
 
-        // --- Anamnese ---
         const anamnesisBody = [
             ['Histórico Médico', selectedRecord.historico_cicrizacao || 'Nenhum relatado'],
             ['Alergias', selectedRecord.possui_alergia ? selectedRecord.qual_alergia : 'Nenhuma relatada'],
@@ -182,7 +180,6 @@ export function ReportGenerator() {
         
         let finalY = (doc as any).lastAutoTable.finalY;
 
-        // --- Imagem da Ferida ---
          if (doc.internal.pageSize.getHeight() - finalY < 80) {
             doc.addPage();
             finalY = margin;
@@ -203,9 +200,7 @@ export function ReportGenerator() {
         doc.addImage(imagePreview, 'PNG', imgX, finalY + 15, imgWidth, imgHeight);
         finalY += imgHeight + 20;
 
-
-        // --- Avaliação da Ferida (IA) ---
-        const cleanReportText = report.report.replace(/\*\*/g, ''); // Remove asterisks
+        const cleanReportText = report.report.replace(/\*\*/g, '');
         autoTable(doc, {
             startY: finalY + 5,
             head: [['Avaliação da Ferida (Análise por IA)']],
@@ -217,7 +212,6 @@ export function ReportGenerator() {
 
         addFooter();
 
-        // --- Salvar o PDF ---
         const fileName = `Relatorio_${selectedRecord.nome_cliente.replace(/\s/g, '_')}_${new Date().toLocaleDateString('pt-BR').replace(/\//g, '-')}.pdf`;
         doc.save(fileName);
 
@@ -232,6 +226,18 @@ export function ReportGenerator() {
         setPdfLoading(false);
     }
 };
+
+  if (!isAIEnabled) {
+    return (
+       <Alert variant="destructive">
+        <AlertCircle className="h-4 w-4" />
+        <AlertTitle>Funcionalidade de IA Desativada</AlertTitle>
+        <AlertDescription>
+          A chave de API do Gemini não foi configurada. Por favor, adicione a `GEMINI_API_KEY` ao seu ambiente para habilitar a geração de relatórios.
+        </AlertDescription>
+      </Alert>
+    )
+  }
 
   return (
     <div className="space-y-8">

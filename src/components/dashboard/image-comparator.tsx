@@ -11,9 +11,12 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { fileToDataUri } from "@/lib/file-to-data-uri";
-import { UploadCloud, Loader2, GitCompareArrows, Camera } from "lucide-react";
+import { UploadCloud, Loader2, GitCompareArrows, Camera, AlertCircle } from "lucide-react";
 import { Separator } from "@/components/ui/separator";
 import { ImageCapture } from "./image-capture";
+import { Alert, AlertDescription, AlertTitle } from "../ui/alert";
+
+const isAIEnabled = !!process.env.NEXT_PUBLIC_GEMINI_API_KEY;
 
 export function ImageComparator() {
   const [image1, setImage1] = useState<File | null>(null);
@@ -68,7 +71,7 @@ export function ImageComparator() {
       console.error("Erro ao comparar imagens:", error);
       toast({
         title: "Erro",
-        description: "Falha ao comparar as imagens. Por favor, tente novamente.",
+        description: "Falha ao comparar as imagens. Verifique se a chave de API do Gemini está configurada.",
         variant: "destructive",
       });
     } finally {
@@ -132,6 +135,18 @@ export function ImageComparator() {
       )}
     </div>
   );
+
+  if (!isAIEnabled) {
+    return (
+       <Alert variant="destructive">
+        <AlertCircle className="h-4 w-4" />
+        <AlertTitle>Funcionalidade de IA Desativada</AlertTitle>
+        <AlertDescription>
+          A chave de API do Gemini não foi configurada. Por favor, adicione a `GEMINI_API_KEY` ao seu ambiente para habilitar a comparação de imagens.
+        </AlertDescription>
+      </Alert>
+    )
+  }
 
   return (
     <div className="space-y-8">
