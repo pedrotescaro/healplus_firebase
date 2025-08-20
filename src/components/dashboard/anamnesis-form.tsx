@@ -42,13 +42,13 @@ import {
   DialogTitle,
   DialogTrigger,
   DialogDescription,
+  DialogClose,
 } from "@/components/ui/dialog";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useState } from "react";
 import { useAuth } from "@/hooks/use-auth";
 import { db } from "@/firebase/client-app";
-import { collection, addDoc, getDocs, doc, getDoc, updateDoc, query, where, serverTimestamp } from "firebase/firestore";
-
+import { collection, addDoc, getDoc, doc, updateDoc } from "firebase/firestore";
 
 export function AnamnesisForm() {
   const { toast } = useToast();
@@ -221,7 +221,6 @@ export function AnamnesisForm() {
     }
   }, [searchParams, form, router, toast, user]);
 
-
   const watch = form.watch();
 
   const tissueData = [
@@ -282,19 +281,16 @@ export function AnamnesisForm() {
       return;
     }
 
-    // Sanitize data to ensure no undefined values are sent
+    // Sanitize data to ensure no undefined values are sent to Firestore
     const sanitizedData = Object.fromEntries(
-        Object.entries(data).map(([key, value]) => [key, value === undefined ? '' : value])
+        Object.entries(data).map(([key, value]) => [key, value === undefined ? "" : value])
     );
 
     try {
       if (isEditMode && recordId) {
         // Update existing record in Firestore
         const docRef = doc(db, "users", user.uid, "anamnesis", recordId);
-        await updateDoc(docRef, {
-            ...sanitizedData,
-            updatedAt: serverTimestamp(),
-        });
+        await updateDoc(docRef, sanitizedData);
         toast({
           title: "Formulário Atualizado",
           description: "A ficha de anamnese foi atualizada com sucesso.",
@@ -302,10 +298,7 @@ export function AnamnesisForm() {
         router.push("/dashboard/anamnesis-records");
       } else {
         // Create new record in Firestore
-        await addDoc(collection(db, "users", user.uid, "anamnesis"), {
-            ...sanitizedData,
-            createdAt: serverTimestamp(),
-        });
+        await addDoc(collection(db, "users", user.uid, "anamnesis"), sanitizedData);
         toast({
           title: "Formulário Salvo",
           description: "A ficha de anamnese foi salva com sucesso no Firestore.",
@@ -745,6 +738,7 @@ export function AnamnesisForm() {
                                       }}
                                       currentLocation={field.value}
                                     />
+                                    <DialogClose />
                                   </DialogContent>
                                 </Dialog>
                               </div>

@@ -237,30 +237,28 @@ export function ReportGenerator() {
         <div className="grid gap-6 md:grid-cols-2">
           <div className="space-y-2">
             <Label htmlFor="wound-image">Imagem da Ferida</Label>
-            <div className="relative flex h-64 w-full items-center justify-center rounded-lg border-2 border-dashed bg-card">
+             <div className="relative flex h-64 w-full flex-col items-center justify-center rounded-lg border-2 border-dashed bg-card p-4">
               {imagePreview ? (
                 <div className="relative h-full w-full">
                   <Image src={imagePreview} alt="Wound preview" layout="fill" className="object-contain" data-ai-hint="wound" />
                 </div>
               ) : (
-                <div className="flex h-full w-full flex-col items-center justify-center gap-4 text-center">
-                  <label htmlFor="wound-image" className="w-full cursor-pointer flex-grow flex flex-col items-center justify-center">
-                    <div className="flex flex-col items-center justify-center text-gray-500">
-                      <UploadCloud className="mb-2 h-8 w-8" />
-                      <p className="font-semibold">Arraste ou clique para enviar</p>
-                      <p className="text-xs">PNG, JPG, ou WEBP</p>
-                    </div>
+                <>
+                  <label htmlFor="wound-image" className="w-full cursor-pointer flex-grow flex flex-col items-center justify-center text-center text-muted-foreground hover:text-primary transition-colors">
+                    <UploadCloud className="mb-2 h-8 w-8" />
+                    <p className="font-semibold">Arraste ou clique para enviar</p>
+                    <p className="text-xs">PNG, JPG, ou WEBP</p>
                   </label>
-                  <div className="text-xs text-muted-foreground -my-2">OU</div>
-                   <div onClick={(e) => e.stopPropagation()} className="p-2">
+                  <div className="my-2 text-xs text-muted-foreground">OU</div>
+                  <div onClick={(e) => e.stopPropagation()}>
                     <ImageCapture onCapture={handleFileSelect}>
-                      <Button type="button" variant="outline">
+                      <Button type="button" variant="outline" size="sm">
                         <Camera className="mr-2" />
-                        Tirar Foto com a Câmera
+                        Tirar Foto
                       </Button>
                     </ImageCapture>
                   </div>
-                </div>
+                </>
               )}
             </div>
             <Input id="wound-image" type="file" className="sr-only" accept="image/*" onChange={handleFileChange} />
