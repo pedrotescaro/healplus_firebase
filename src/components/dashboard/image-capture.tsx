@@ -15,7 +15,6 @@ import {
 } from "@/components/ui/dialog";
 import { useToast } from "@/hooks/use-toast";
 import { Alert, AlertTitle, AlertDescription } from "@/components/ui/alert";
-import html2canvas from "html2canvas";
 
 interface ImageCaptureProps {
   onCapture: (file: File) => void;
@@ -62,11 +61,18 @@ export function ImageCapture({ onCapture, children }: ImageCaptureProps) {
     }
   }, [isDialogOpen, toast]);
 
-  const handleCapture = async () => {
-    if (videoRef.current) {
-        const canvas = await html2canvas(videoRef.current);
+  const handleCapture = () => {
+    const video = videoRef.current;
+    const canvas = canvasRef.current;
+    if (video && canvas) {
+      const context = canvas.getContext('2d');
+      if (context) {
+        canvas.width = video.videoWidth;
+        canvas.height = video.videoHeight;
+        context.drawImage(video, 0, 0, video.videoWidth, video.videoHeight);
         const dataUrl = canvas.toDataURL('image/png');
         setCapturedImage(dataUrl);
+      }
     }
   };
 
@@ -109,6 +115,7 @@ export function ImageCapture({ onCapture, children }: ImageCaptureProps) {
                 muted
                 style={{ display: capturedImage ? 'none' : 'block' }}
               />
+               <canvas ref={canvasRef} style={{ display: 'none' }} />
               {capturedImage && (
                 <img src={capturedImage} alt="Captured" className="h-full w-full object-cover" />
               )}
