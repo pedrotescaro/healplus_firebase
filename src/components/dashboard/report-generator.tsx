@@ -229,33 +229,35 @@ export function ReportGenerator() {
         <div className="grid gap-6 md:grid-cols-2">
           <div className="space-y-2">
             <Label htmlFor="wound-image">Imagem da Ferida</Label>
-             <div className="flex h-64 w-full items-center justify-center rounded-lg border-2 border-dashed bg-card">
+            <div className="relative flex h-64 w-full items-center justify-center rounded-lg border-2 border-dashed bg-card">
               {imagePreview ? (
                 <div className="relative h-full w-full">
                   <Image src={imagePreview} alt="Wound preview" layout="fill" className="object-contain" data-ai-hint="wound" />
                 </div>
               ) : (
-                <div className="flex flex-col items-center justify-center gap-4 text-center">
-                   <div className="flex flex-col items-center justify-center text-gray-500">
+                <label htmlFor="wound-image" className="h-full w-full cursor-pointer">
+                  <div className="flex h-full w-full flex-col items-center justify-center gap-4 text-center">
+                    <div className="flex flex-col items-center justify-center text-gray-500">
                       <UploadCloud className="mb-2 h-8 w-8" />
                       <p className="font-semibold">Arraste ou clique para enviar</p>
                       <p className="text-xs">PNG, JPG, ou WEBP</p>
-                   </div>
-                   <div className="text-xs text-muted-foreground">OU</div>
-                   <ImageCapture onCapture={handleFileSelect}>
-                    <Button type="button" variant="outline">
-                      <Camera className="mr-2" />
-                      Tirar Foto com a Câmera
-                    </Button>
-                  </ImageCapture>
-                </div>
+                    </div>
+                    <div className="text-xs text-muted-foreground">OU</div>
+                    <ImageCapture onCapture={handleFileSelect}>
+                      <Button type="button" variant="outline" onClick={(e) => e.preventDefault()}>
+                        <Camera className="mr-2" />
+                        Tirar Foto com a Câmera
+                      </Button>
+                    </ImageCapture>
+                  </div>
+                </label>
               )}
             </div>
             <Input id="wound-image" type="file" className="sr-only" accept="image/*" onChange={handleFileChange} />
-             {imagePreview && (
-                <Button type="button" variant="link" className="w-full" onClick={() => { setImagePreview(null); setWoundImage(null); }}>
-                    Remover Imagem
-                </Button>
+            {imagePreview && (
+              <Button type="button" variant="link" className="w-full" onClick={() => { setImagePreview(null); setWoundImage(null); }}>
+                Remover Imagem
+              </Button>
             )}
           </div>
           <div className="space-y-2 flex flex-col">

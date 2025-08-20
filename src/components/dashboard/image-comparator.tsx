@@ -90,46 +90,46 @@ export function ImageComparator() {
     label: string 
   }) => (
     <div className="space-y-2">
-        <Label htmlFor={id}>{label}</Label>
-        <div className="flex h-64 w-full items-center justify-center rounded-lg border-2 border-dashed bg-card">
-              {previewSrc ? (
-                 <div className="relative h-full w-full">
-                  <Image src={previewSrc} alt="Pré-visualização da ferida" layout="fill" className="object-contain" data-ai-hint="wound" />
-                </div>
-              ) : (
-                <div className="flex flex-col items-center justify-center gap-4 text-center">
-                    <label htmlFor={id} className="cursor-pointer">
-                       <div className="flex flex-col items-center justify-center text-gray-500">
-                          <UploadCloud className="mb-2 h-8 w-8" />
-                          <p className="font-semibold">Arraste ou clique para enviar</p>
-                          <p className="text-xs">PNG, JPG, ou WEBP</p>
-                       </div>
-                    </label>
-                   <div className="text-xs text-muted-foreground">OU</div>
-                    <ImageCapture onCapture={onCapture}>
-                        <Button type="button" variant="outline">
-                        <Camera className="mr-2" />
-                        Tirar Foto com a Câmera
-                        </Button>
-                    </ImageCapture>
-                </div>
-              )}
+      <Label htmlFor={id}>{label}</Label>
+      <div className="relative flex h-64 w-full items-center justify-center rounded-lg border-2 border-dashed bg-card">
+        {previewSrc ? (
+          <div className="relative h-full w-full">
+            <Image src={previewSrc} alt="Pré-visualização da ferida" layout="fill" className="object-contain" data-ai-hint="wound" />
+          </div>
+        ) : (
+          <label htmlFor={id} className="h-full w-full cursor-pointer">
+            <div className="flex h-full w-full flex-col items-center justify-center gap-4 text-center">
+              <div className="flex flex-col items-center justify-center text-gray-500">
+                <UploadCloud className="mb-2 h-8 w-8" />
+                <p className="font-semibold">Arraste ou clique para enviar</p>
+                <p className="text-xs">PNG, JPG, ou WEBP</p>
+              </div>
+              <div className="text-xs text-muted-foreground">OU</div>
+              <ImageCapture onCapture={onCapture}>
+                <Button type="button" variant="outline" onClick={(e) => e.preventDefault()}>
+                  <Camera className="mr-2" />
+                  Tirar Foto com a Câmera
+                </Button>
+              </ImageCapture>
             </div>
-        <Input id={id} type="file" className="sr-only" accept="image/*" onChange={onFileChange} />
-        {previewSrc && (
-            <Button type="button" variant="link" className="w-full" onClick={() => {
-                const isImage1 = id === 'image-1';
-                if (isImage1) {
-                    setImage1(null);
-                    setImage1Preview(null);
-                } else {
-                    setImage2(null);
-                    setImage2Preview(null);
-                }
-            }}>
-                Remover Imagem
-            </Button>
+          </label>
         )}
+      </div>
+      <Input id={id} type="file" className="sr-only" accept="image/*" onChange={onFileChange} />
+      {previewSrc && (
+        <Button type="button" variant="link" className="w-full" onClick={() => {
+          const isImage1 = id === 'image-1';
+          if (isImage1) {
+            setImage1(null);
+            setImage1Preview(null);
+          } else {
+            setImage2(null);
+            setImage2Preview(null);
+          }
+        }}>
+          Remover Imagem
+        </Button>
+      )}
     </div>
   );
 
