@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useState } from "react";
@@ -10,8 +11,9 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { fileToDataUri } from "@/lib/file-to-data-uri";
-import { UploadCloud, Loader2, GitCompareArrows } from "lucide-react";
+import { UploadCloud, Loader2, GitCompareArrows, Camera } from "lucide-react";
 import { Separator } from "@/components/ui/separator";
+import { ImageCapture } from "./image-capture";
 
 export function ImageComparator() {
   const [image1, setImage1] = useState<File | null>(null);
@@ -23,17 +25,22 @@ export function ImageComparator() {
   const [loading, setLoading] = useState(false);
   const { toast } = useToast();
 
-  const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>, imageNumber: 1 | 2) => {
+  const handleFileSelect = (file: File, imageNumber: 1 | 2) => {
+    const setFile = imageNumber === 1 ? setImage1 : setImage2;
+    const setPreview = imageNumber === 1 ? setImage1Preview : setImage2Preview;
+    
+    setFile(file);
+    const reader = new FileReader();
+    reader.onloadend = () => {
+      setPreview(reader.result as string);
+    };
+    reader.readAsDataURL(file);
+  };
+  
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>, imageNumber: 1 | 2) => {
     const file = e.target.files?.[0];
     if (file) {
-      const setFile = imageNumber === 1 ? setImage1 : setImage2;
-      const setPreview = imageNumber === 1 ? setImage1Preview : setImage2Preview;
-      setFile(file);
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        setPreview(reader.result as string);
-      };
-      reader.readAsDataURL(file);
+      handleFileSelect(file, imageNumber);
     }
   };
 
@@ -69,25 +76,60 @@ export function ImageComparator() {
     }
   };
 
-  const ImageUploader = ({ id, onChange, previewSrc, label }: { id: string, onChange: (e: React.ChangeEvent<HTMLInputElement>) => void, previewSrc: string | null, label: string }) => (
+  const ImageUploader = ({ 
+    id, 
+    onFileChange, 
+    onCapture,
+    previewSrc, 
+    label 
+  }: { 
+    id: string, 
+    onFileChange: (e: React.ChangeEvent<HTMLInputElement>) => void, 
+    onCapture: (file: File) => void,
+    previewSrc: string | null, 
+    label: string 
+  }) => (
     <div className="space-y-2">
         <Label htmlFor={id}>{label}</Label>
-        <div className="flex items-center justify-center w-full">
-            <label htmlFor={id} className="flex flex-col items-center justify-center w-full h-64 border-2 border-dashed rounded-lg cursor-pointer bg-card hover:bg-muted transition-colors">
-                <div className="flex flex-col items-center justify-center pt-5 pb-6">
-                    {previewSrc ? (
-                        <Image src={previewSrc} alt="Pré-visualização da ferida" width={200} height={200} className="object-contain h-48 w-full" data-ai-hint="wound" />
-                    ) : (
-                        <>
-                            <UploadCloud className="w-8 h-8 mb-4 text-gray-500" />
-                            <p className="mb-2 text-sm text-gray-500"><span className="font-semibold">Clique para enviar</span></p>
-                            <p className="text-xs text-gray-500">PNG, JPG ou WEBP</p>
-                        </>
-                    )}
+        <div className="flex h-64 w-full items-center justify-center rounded-lg border-2 border-dashed bg-card">
+              {previewSrc ? (
+                 <div className="relative h-full w-full">
+                  <Image src={previewSrc} alt="Pré-visualização da ferida" layout="fill" className="object-contain" data-ai-hint="wound" />
                 </div>
-                <Input id={id} type="file" className="hidden" accept="image/*" onChange={onChange} />
-            </label>
-        </div>
+              ) : (
+                <div className="flex flex-col items-center justify-center gap-4 text-center">
+                    <label htmlFor={id} className="cursor-pointer">
+                       <div className="flex flex-col items-center justify-center text-gray-500">
+                          <UploadCloud className="mb-2 h-8 w-8" />
+                          <p className="font-semibold">Arraste ou clique para enviar</p>
+                          <p className="text-xs">PNG, JPG, ou WEBP</p>
+                       </div>
+                    </label>
+                   <div className="text-xs text-muted-foreground">OU</div>
+                    <ImageCapture onCapture={onCapture}>
+                        <Button type="button" variant="outline">
+                        <Camera className="mr-2" />
+                        Tirar Foto com a Câmera
+                        </Button>
+                    </ImageCapture>
+                </div>
+              )}
+            </div>
+        <Input id={id} type="file" className="sr-only" accept="image/*" onChange={onFileChange} />
+        {previewSrc && (
+            <Button type="button" variant="link" className="w-full" onClick={() => {
+                const isImage1 = id === 'image-1';
+                if (isImage1) {
+                    setImage1(null);
+                    setImage1Preview(null);
+                } else {
+                    setImage2(null);
+                    setImage2Preview(null);
+                }
+            }}>
+                Remover Imagem
+            </Button>
+        )}
     </div>
   );
 
@@ -95,8 +137,20 @@ export function ImageComparator() {
     <div className="space-y-8">
       <form onSubmit={handleSubmit} className="space-y-6">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <ImageUploader id="image-1" onChange={(e) => handleImageChange(e, 1)} previewSrc={image1Preview} label="Imagem 1 (ex: mais antiga)" />
-          <ImageUploader id="image-2" onChange={(e) => handleImageChange(e, 2)} previewSrc={image2Preview} label="Imagem 2 (ex: mais recente)" />
+          <ImageUploader 
+            id="image-1" 
+            onFileChange={(e) => handleFileChange(e, 1)} 
+            onCapture={(file) => handleFileSelect(file, 1)}
+            previewSrc={image1Preview} 
+            label="Imagem 1 (ex: mais antiga)" 
+          />
+          <ImageUploader 
+            id="image-2" 
+            onFileChange={(e) => handleFileChange(e, 2)} 
+            onCapture={(file) => handleFileSelect(file, 2)}
+            previewSrc={image2Preview} 
+            label="Imagem 2 (ex: mais recente)" 
+          />
         </div>
         <div className="space-y-2">
             <Label htmlFor="additional-notes">Notas Adicionais (Opcional)</Label>

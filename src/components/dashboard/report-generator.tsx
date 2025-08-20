@@ -1,7 +1,7 @@
 
 "use client";
 
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect } from "react";
 import Image from "next/image";
 import { generateWoundReport, GenerateWoundReportOutput } from "@/ai/flows/generate-wound-report";
 import { useToast } from "@/hooks/use-toast";
@@ -10,7 +10,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { fileToDataUri } from "@/lib/file-to-data-uri";
-import { UploadCloud, Loader2, FileText, Download } from "lucide-react";
+import { UploadCloud, Loader2, FileText, Download, Camera } from "lucide-react";
 import { AnamnesisFormValues } from "@/lib/anamnesis-schema";
 import {
   Select,
@@ -21,6 +21,7 @@ import {
 } from "@/components/ui/select"
 import jsPDF from "jspdf";
 import autoTable from 'jspdf-autotable';
+import { ImageCapture } from "./image-capture";
 
 type StoredAnamnesis = AnamnesisFormValues & { id: string };
 const ANAMNESIS_STORAGE_KEY = "anamnesisRecords";
@@ -34,7 +35,6 @@ export function ReportGenerator() {
   const [loading, setLoading] = useState(false);
   const [pdfLoading, setPdfLoading] = useState(false);
   const { toast } = useToast();
-  const reportRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     try {
@@ -51,16 +51,20 @@ export function ReportGenerator() {
     }
   }, [toast]);
 
-  const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
-      setWoundImage(file);
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        setImagePreview(reader.result as string);
-      };
-      reader.readAsDataURL(file);
+      handleFileSelect(file);
     }
+  };
+
+  const handleFileSelect = (file: File) => {
+    setWoundImage(file);
+    const reader = new FileReader();
+    reader.onloadend = () => {
+      setImagePreview(reader.result as string);
+    };
+    reader.readAsDataURL(file);
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -225,22 +229,34 @@ export function ReportGenerator() {
         <div className="grid gap-6 md:grid-cols-2">
           <div className="space-y-2">
             <Label htmlFor="wound-image">Imagem da Ferida</Label>
-            <div className="flex items-center justify-center w-full">
-                <label htmlFor="wound-image" className="flex flex-col items-center justify-center w-full h-64 border-2 border-dashed rounded-lg cursor-pointer bg-card hover:bg-muted transition-colors">
-                    <div className="flex flex-col items-center justify-center pt-5 pb-6">
-                        {imagePreview ? (
-                            <Image src={imagePreview} alt="Wound preview" width={200} height={200} className="object-contain h-48 w-full" data-ai-hint="wound" />
-                        ) : (
-                            <>
-                                <UploadCloud className="w-8 h-8 mb-4 text-gray-500" />
-                                <p className="mb-2 text-sm text-gray-500"><span className="font-semibold">Clique para enviar</span> ou arraste e solte</p>
-                                <p className="text-xs text-gray-500">PNG, JPG, ou WEBP</p>
-                            </>
-                        )}
-                    </div>
-                    <Input id="wound-image" type="file" className="hidden" accept="image/*" onChange={handleImageChange} />
-                </label>
+             <div className="flex h-64 w-full items-center justify-center rounded-lg border-2 border-dashed bg-card">
+              {imagePreview ? (
+                <div className="relative h-full w-full">
+                  <Image src={imagePreview} alt="Wound preview" layout="fill" className="object-contain" data-ai-hint="wound" />
+                </div>
+              ) : (
+                <div className="flex flex-col items-center justify-center gap-4 text-center">
+                   <div className="flex flex-col items-center justify-center text-gray-500">
+                      <UploadCloud className="mb-2 h-8 w-8" />
+                      <p className="font-semibold">Arraste ou clique para enviar</p>
+                      <p className="text-xs">PNG, JPG, ou WEBP</p>
+                   </div>
+                   <div className="text-xs text-muted-foreground">OU</div>
+                   <ImageCapture onCapture={handleFileSelect}>
+                    <Button type="button" variant="outline">
+                      <Camera className="mr-2" />
+                      Tirar Foto com a Câmera
+                    </Button>
+                  </ImageCapture>
+                </div>
+              )}
             </div>
+            <Input id="wound-image" type="file" className="sr-only" accept="image/*" onChange={handleFileChange} />
+             {imagePreview && (
+                <Button type="button" variant="link" className="w-full" onClick={() => { setImagePreview(null); setWoundImage(null); }}>
+                    Remover Imagem
+                </Button>
+            )}
           </div>
           <div className="space-y-2 flex flex-col">
             <Label htmlFor="anamnesis-data">Selecionar Anamnese Salva</Label>
@@ -292,7 +308,7 @@ export function ReportGenerator() {
               Salvar em PDF
             </Button>
           </CardHeader>
-          <CardContent ref={reportRef}>
+          <CardContent>
              {imagePreview && (
                 <div className="mb-4">
                     <h3 className="font-bold text-lg mb-2 text-center">Imagem da Ferida Analisada</h3>
