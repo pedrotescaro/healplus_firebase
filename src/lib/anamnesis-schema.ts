@@ -14,7 +14,7 @@ export const anamnesisFormSchema = z.object({
 
   // Dados Clínicos
   objetivo_tratamento: z.string().optional(),
-  historico_cicatrizacao: z.string().optional(),
+  historico_cicrizacao: z.string().optional(),
   estado_nutricional: z.string().optional(),
   usa_medicacao: z.boolean().default(false),
   qual_medicacao: z.string().optional(),
@@ -158,3 +158,5 @@ export const anamnesisFormSchema = z.object({
 });
 
 export type AnamnesisFormValues = z.infer<typeof anamnesisFormSchema>;
+
+    

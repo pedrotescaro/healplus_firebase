@@ -59,41 +59,139 @@ export function AnamnesisForm() {
   const [isEditMode, setIsEditMode] = useState(false);
   const [recordId, setRecordId] = useState<string | null>(null);
 
-  const defaultValues: Partial<AnamnesisFormValues> = {
-      // Initialize boolean fields to false
-      usa_medicacao: false, possui_doenca: false, possui_alergia: false,
-      pratica_atividade_fisica: false, ingestao_alcool: false, tem_filhos: false,
-      realizou_cirurgias: false, claudicacao_intermitente: false, dor_repouso: false,
-      fumante: false, dmi: false, dmii: false, has: false, neoplasia: false,
-      hiv_aids: false, obesidade: false, cardiopatia: false, dpoc: false,
-      doenca_hematologica: false, doenca_vascular: false, demencia_senil: false,
-      insuficiencia_renal: false, hanseniase: false, insuficiencia_hepatica: false,
-      doenca_autoimune: false, anti_hipertensivo: false, corticoides: false,
-      hipoglicemiantes_orais: false, aines: false, insulina: false,
-      drogas_vasoativa: false, suplemento: false, anticoagulante: false,
-      vitaminico: false, antirretroviral: false, inflamacao_rubor: false,
-      inflamacao_calor: false, inflamacao_edema: false, inflamacao_dor_local: false,
-      inflamacao_perda_funcao: false, infeccao_eritema_perilesional: false,
-      infeccao_calor_local: false, infeccao_edema: false, infeccao_dor_local: false,
-      infeccao_exsudato: false, infeccao_odor: false, infeccao_retardo_cicatrizacao: false,
-      cultura_realizada: false, tunel_cavidade: false, pele_perilesional_integra: false,
-      pele_perilesional_eritematosa: false, pele_perilesional_macerada: false,
-      pele_perilesional_seca_descamativa: false, pele_perilesional_eczematosa: false,
-      pele_perilesional_hiperpigmentada: false, pele_perilesional_hipopigmentada: false,
-      pele_perilesional_indurada: false, pele_perilesional_sensivel: false,
-      pele_perilesional_edema: false,
-      data_consulta: new Date().toISOString().split('T')[0], // default to today
-      hora_consulta: new Date().toTimeString().slice(0, 5), // default to now
-      ferida_largura: 0,
-      ferida_comprimento: 0,
-      ferida_profundidade: 0,
-      percentual_granulacao_leito: 0,
-      percentual_epitelizacao_leito: 0,
-      percentual_esfacelo_leito: 0,
-      percentual_necrose_seca_leito: 0,
-      dor_escala: 0,
-      localizacao_ferida: "",
-  }
+  const defaultValues: AnamnesisFormValues = {
+    nome_cliente: "",
+    data_nascimento: "",
+    telefone: "",
+    email: "",
+    profissao: "",
+    estado_civil: "",
+    nivel_atividade: "",
+    suporte_social: "",
+    compreensao_adesao: "",
+    objetivo_tratamento: "",
+    historico_cicrizacao: "",
+    estado_nutricional: "",
+    usa_medicacao: false,
+    qual_medicacao: "",
+    possui_doenca: false,
+    qual_doenca: "",
+    possui_alergia: false,
+    qual_alergia: "",
+    pratica_atividade_fisica: false,
+    qual_atividade: "",
+    frequencia_atividade: "",
+    ingestao_agua_dia: "",
+    ingestao_alcool: false,
+    frequencia_alcool: "",
+    tem_filhos: false,
+    quantos_filhos: 0,
+    realizou_cirurgias: false,
+    quais_cirurgias: "",
+    claudicacao_intermitente: false,
+    dor_repouso: false,
+    pulsos_perifericos: "",
+    fumante: false,
+    dmi: false,
+    dmii: false,
+    has: false,
+    neoplasia: false,
+    hiv_aids: false,
+    obesidade: false,
+    cardiopatia: false,
+    dpoc: false,
+    doenca_hematologica: false,
+    doenca_vascular: false,
+    demencia_senil: false,
+    insuficiencia_renal: false,
+    hanseniase: false,
+    insuficiencia_hepatica: false,
+    doenca_autoimune: false,
+    outros_hpp: "",
+    anti_hipertensivo: false,
+    anti_hipertensivo_nome: "",
+    anti_hipertensivo_dose: "",
+    corticoides: false,
+    corticoides_nome: "",
+    corticoides_dose: "",
+    hipoglicemiantes_orais: false,
+    hipoglicemiantes_orais_nome: "",
+    hipoglicemiantes_orais_dose: "",
+    aines: false,
+    aines_nome: "",
+    aines_dose: "",
+    insulina: false,
+    insulina_nome: "",
+    insulina_dose: "",
+    drogas_vasoativa: false,
+    drogas_vasoativa_nome: "",
+    drogas_vasoativa_dose: "",
+    suplemento: false,
+    suplemento_nome: "",
+    suplemento_dose: "",
+    anticoagulante: false,
+    anticoagulante_nome: "",
+    anticoagulante_dose: "",
+    vitaminico: false,
+    vitaminico_nome: "",
+    vitaminico_dose: "",
+    antirretroviral: false,
+    antirretroviral_nome: "",
+    antirretroviral_dose: "",
+    outros_medicamento: "",
+    ferida_largura: 0,
+    ferida_comprimento: 0,
+    ferida_profundidade: 0,
+    localizacao_ferida: "",
+    etiologia_ferida: "",
+    etiologia_outra: "",
+    tempo_evolucao: "",
+    dor_escala: 0,
+    dor_fatores: "",
+    percentual_granulacao_leito: 0,
+    percentual_epitelizacao_leito: 0,
+    percentual_esfacelo_leito: 0,
+    percentual_necrose_seca_leito: 0,
+    inflamacao_rubor: false,
+    inflamacao_calor: false,
+    inflamacao_edema: false,
+    inflamacao_dor_local: false,
+    inflamacao_perda_funcao: false,
+    infeccao_eritema_perilesional: false,
+    infeccao_calor_local: false,
+    infeccao_edema: false,
+    infeccao_dor_local: false,
+    infeccao_exsudato: false,
+    infeccao_odor: false,
+    infeccao_retardo_cicatrizacao: false,
+    cultura_realizada: false,
+    resultado_cultura: "",
+    quantidade_exsudato: "",
+    tipo_exsudato: "",
+    consistencia_exsudato: "",
+    pele_perilesional_umidade: "",
+    pele_perilesional_extensao: "",
+    bordas_caracteristicas: "",
+    fixacao_bordas: "",
+    tunel_cavidade: false,
+    localizacao_tunel_cavidade: "",
+    velocidade_cicatrizacao: "",
+    pele_perilesional_integra: false,
+    pele_perilesional_eritematosa: false,
+    pele_perilesional_macerada: false,
+    pele_perilesional_seca_descamativa: false,
+    pele_perilesional_eczematosa: false,
+    pele_perilesional_hiperpigmentada: false,
+    pele_perilesional_hipopigmentada: false,
+    pele_perilesional_indurada: false,
+    pele_perilesional_sensivel: false,
+    pele_perilesional_edema: false,
+    observacoes: "",
+    data_consulta: new Date().toISOString().split('T')[0],
+    hora_consulta: new Date().toTimeString().slice(0, 5),
+    profissional_responsavel: "",
+    coren: "",
+  };
 
   const form = useForm<AnamnesisFormValues>({
     resolver: zodResolver(anamnesisFormSchema),
@@ -110,7 +208,10 @@ export function AnamnesisForm() {
           const docRef = doc(db, `users/${user.uid}/anamnesis`, editId);
           const docSnap = await getDoc(docRef);
           if (docSnap.exists()) {
-            form.reset(docSnap.data() as AnamnesisFormValues);
+            // Ensure all fields have a value to prevent uncontrolled -> controlled error
+            const data = docSnap.data();
+            const populatedData = { ...defaultValues, ...data };
+            form.reset(populatedData as AnamnesisFormValues);
           } else {
             toast({ title: "Erro", description: "Ficha de anamnese não encontrada.", variant: "destructive" });
             router.push('/dashboard/anamnesis-records');
@@ -258,7 +359,7 @@ export function AnamnesisForm() {
             <AccordionTrigger className="text-lg font-semibold"><Stethoscope className="mr-2 text-primary" /> Dados Clínicos e Hábitos</AccordionTrigger>
             <AccordionContent className="space-y-4 p-2 border-l-2 border-primary/20">
               <FormField control={form.control} name="objetivo_tratamento" render={({ field }) => ( <FormItem><FormLabel>Objetivo do Tratamento</FormLabel><FormControl><Textarea {...field} /></FormControl><FormMessage /></FormItem> )} />
-              <FormField control={form.control} name="historico_cicatrizacao" render={({ field }) => ( <FormItem><FormLabel>Histórico de Cicatrização</FormLabel><FormControl><Textarea {...field} /></FormControl><FormMessage /></FormItem> )} />
+              <FormField control={form.control} name="historico_cicrizacao" render={({ field }) => ( <FormItem><FormLabel>Histórico de Cicatrização</FormLabel><FormControl><Textarea {...field} /></FormControl><FormMessage /></FormItem> )} />
               <FormField control={form.control} name="estado_nutricional" render={({ field }) => ( <FormItem><FormLabel>Estado Nutricional</FormLabel><FormControl><Textarea placeholder="Alimentação, peso, etc." {...field} /></FormControl><FormMessage /></FormItem> )} />
               <FormField control={form.control} name="ingestao_agua_dia" render={({ field }) => ( <FormItem><FormLabel>Ingestão de Água por Dia</FormLabel><FormControl><Input {...field} /></FormControl><FormMessage /></FormItem> )} />
               
@@ -389,7 +490,7 @@ export function AnamnesisForm() {
                       render={({ field }) => (
                         <FormItem>
                           <FormLabel>Quantidade</FormLabel>
-                          <Select onValueChange={field.onChange} defaultValue={field.value}>
+                          <Select onValueChange={field.onChange} value={field.value}>
                             <FormControl>
                               <SelectTrigger><SelectValue placeholder="Selecione..." /></SelectTrigger>
                             </FormControl>
@@ -411,7 +512,7 @@ export function AnamnesisForm() {
                       render={({ field }) => (
                         <FormItem>
                           <FormLabel>Tipo</FormLabel>
-                          <Select onValueChange={field.onChange} defaultValue={field.value}>
+                          <Select onValueChange={field.onChange} value={field.value}>
                             <FormControl>
                               <SelectTrigger><SelectValue placeholder="Selecione..." /></SelectTrigger>
                             </FormControl>
@@ -433,7 +534,7 @@ export function AnamnesisForm() {
                       render={({ field }) => (
                         <FormItem>
                           <FormLabel>Consistência</FormLabel>
-                          <Select onValueChange={field.onChange} defaultValue={field.value}>
+                          <Select onValueChange={field.onChange} value={field.value}>
                             <FormControl>
                               <SelectTrigger><SelectValue placeholder="Selecione..." /></SelectTrigger>
                             </FormControl>
@@ -459,7 +560,7 @@ export function AnamnesisForm() {
                         render={({ field }) => (
                           <FormItem>
                             <FormLabel>Características das Bordas</FormLabel>
-                             <Select onValueChange={field.onChange} defaultValue={field.value}>
+                             <Select onValueChange={field.onChange} value={field.value}>
                               <FormControl>
                                 <SelectTrigger><SelectValue placeholder="Selecione..." /></SelectTrigger>
                               </FormControl>
@@ -481,7 +582,7 @@ export function AnamnesisForm() {
                         render={({ field }) => (
                           <FormItem>
                             <FormLabel>Fixação das Bordas</FormLabel>
-                             <Select onValueChange={field.onChange} defaultValue={field.value}>
+                             <Select onValueChange={field.onChange} value={field.value}>
                               <FormControl>
                                 <SelectTrigger><SelectValue placeholder="Selecione..." /></SelectTrigger>
                               </FormControl>
@@ -501,7 +602,7 @@ export function AnamnesisForm() {
                         render={({ field }) => (
                           <FormItem>
                             <FormLabel>Velocidade de Cicatrização</FormLabel>
-                             <Select onValueChange={field.onChange} defaultValue={field.value}>
+                             <Select onValueChange={field.onChange} value={field.value}>
                               <FormControl>
                                 <SelectTrigger><SelectValue placeholder="Selecione..." /></SelectTrigger>
                               </FormControl>
@@ -532,7 +633,7 @@ export function AnamnesisForm() {
                         render={({ field }) => (
                           <FormItem>
                             <FormLabel>Umidade da Pele</FormLabel>
-                            <Select onValueChange={field.onChange} defaultValue={field.value}>
+                            <Select onValueChange={field.onChange} value={field.value}>
                               <FormControl>
                                 <SelectTrigger><SelectValue placeholder="Selecione..." /></SelectTrigger>
                               </FormControl>
@@ -653,7 +754,7 @@ export function AnamnesisForm() {
                         render={({ field }) => (
                           <FormItem>
                             <FormLabel>Etiologia</FormLabel>
-                            <Select onValueChange={field.onChange} defaultValue={field.value}>
+                            <Select onValueChange={field.onChange} value={field.value}>
                               <FormControl>
                                 <SelectTrigger><SelectValue placeholder="Selecione a causa..." /></SelectTrigger>
                               </FormControl>
