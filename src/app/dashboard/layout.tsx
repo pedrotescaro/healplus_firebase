@@ -7,6 +7,7 @@ import { useEffect } from "react";
 import AppSidebar from "@/components/dashboard/app-sidebar";
 import { Skeleton } from "@/components/ui/skeleton";
 import MobileNav from "@/components/dashboard/mobile-nav";
+import { CatSupport } from "@/components/dashboard/cat-support";
 
 export default function DashboardLayout({
   children,
@@ -48,6 +49,7 @@ export default function DashboardLayout({
         <main className="flex-1 overflow-auto bg-background/95 p-4 sm:p-6 lg:p-8">
           {children}
         </main>
+        <CatSupport />
       </div>
     </div>
   );
