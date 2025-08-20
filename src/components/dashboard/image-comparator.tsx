@@ -97,22 +97,24 @@ export function ImageComparator() {
             <Image src={previewSrc} alt="Pré-visualização da ferida" layout="fill" className="object-contain" data-ai-hint="wound" />
           </div>
         ) : (
-          <label htmlFor={id} className="h-full w-full cursor-pointer">
-            <div className="flex h-full w-full flex-col items-center justify-center gap-4 text-center">
+          <div className="flex h-full w-full flex-col items-center justify-center gap-4 text-center">
+            <label htmlFor={id} className="w-full cursor-pointer flex-grow flex flex-col items-center justify-center">
               <div className="flex flex-col items-center justify-center text-gray-500">
                 <UploadCloud className="mb-2 h-8 w-8" />
                 <p className="font-semibold">Arraste ou clique para enviar</p>
                 <p className="text-xs">PNG, JPG, ou WEBP</p>
               </div>
-              <div className="text-xs text-muted-foreground">OU</div>
+            </label>
+            <div className="text-xs text-muted-foreground -my-2">OU</div>
+            <div onClick={(e) => e.stopPropagation()} className="p-2">
               <ImageCapture onCapture={onCapture}>
-                <Button type="button" variant="outline" onClick={(e) => e.preventDefault()}>
+                <Button type="button" variant="outline">
                   <Camera className="mr-2" />
                   Tirar Foto com a Câmera
                 </Button>
               </ImageCapture>
             </div>
-          </label>
+          </div>
         )}
       </div>
       <Input id={id} type="file" className="sr-only" accept="image/*" onChange={onFileChange} />
