@@ -22,6 +22,7 @@ import {
 } from "@/components/ui/tooltip";
 import { Logo } from "../logo";
 import { Avatar, AvatarFallback, AvatarImage } from "../ui/avatar";
+import { cn } from "@/lib/utils";
 
 const getInitials = (name: string | null | undefined): string => {
   if (!name) return "U";
@@ -30,7 +31,6 @@ const getInitials = (name: string | null | undefined): string => {
   const lastInitial = names.length > 1 ? names[names.length - 1]?.[0] || "" : "";
   return `${firstInitial}${lastInitial}`.toUpperCase();
 }
-
 
 const navItems = [
   { href: "/dashboard", icon: LayoutDashboard, label: "Dashboard" },
@@ -41,45 +41,51 @@ const navItems = [
   { href: "/dashboard/profile", icon: User, label: "Perfil" },
 ];
 
-export default function AppSidebar() {
+interface AppSidebarProps {
+  className?: string;
+  onLinkClick?: () => void;
+}
+
+export default function AppSidebar({ className, onLinkClick }: AppSidebarProps) {
   const pathname = usePathname();
   const router = useRouter();
   const { user, logout } = useAuth();
 
   const handleLogout = async () => {
+    if (onLinkClick) onLinkClick();
     await logout();
     router.push("/login");
   };
+  
+  const handleLinkClick = (href: string) => {
+    if (onLinkClick) onLinkClick();
+    router.push(href);
+  }
 
   return (
-    <aside className="hidden w-64 flex-col border-r bg-card p-4 sm:flex">
-      <div className="mb-8">
-        <Logo />
+    <aside className={cn("flex h-full max-h-screen flex-col gap-2", className)}>
+      <div className="flex h-14 items-center border-b px-4 lg:h-[60px] lg:px-6">
+        <Link href="/dashboard" className="flex items-center gap-2 font-semibold">
+          <Logo />
+        </Link>
       </div>
-      <nav className="flex-1 space-y-2">
-        <TooltipProvider>
+      <div className="flex-1">
+        <nav className="grid items-start px-2 text-sm font-medium lg:px-4 space-y-1">
           {navItems.map((item) => (
-            <Tooltip key={item.href} delayDuration={0}>
-              <TooltipTrigger asChild>
-                <Link href={item.href}>
-                  <Button
-                    variant={pathname.startsWith(item.href) && (item.href !== "/dashboard" || pathname === "/dashboard") ? "secondary" : "ghost"}
-                    className="w-full justify-start"
-                  >
-                    <item.icon className="mr-2 h-4 w-4" />
-                    {item.label}
-                  </Button>
-                </Link>
-              </TooltipTrigger>
-              <TooltipContent side="right">
-                <p>{item.label}</p>
-              </TooltipContent>
-            </Tooltip>
+             <Button
+                key={item.href}
+                variant={pathname.startsWith(item.href) && (item.href !== "/dashboard" || pathname === "/dashboard") ? "secondary" : "ghost"}
+                className="w-full justify-start"
+                onClick={() => handleLinkClick(item.href)}
+              >
+                <item.icon className="mr-2 h-4 w-4" />
+                {item.label}
+              </Button>
           ))}
-        </TooltipProvider>
-      </nav>
-      <div className="mt-auto">
-        <div className="mb-4 border-t pt-4 flex items-center gap-3">
+        </nav>
+      </div>
+      <div className="mt-auto p-4 border-t">
+        <div className="mb-4 flex items-center gap-3">
             <Avatar className="h-10 w-10">
                 <AvatarImage src={user?.photoURL ?? undefined} alt={user?.name ?? "User Avatar"} />
                 <AvatarFallback>{getInitials(user?.name)}</AvatarFallback>
