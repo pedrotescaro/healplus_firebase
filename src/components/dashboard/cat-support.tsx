@@ -1,43 +1,38 @@
 
 "use client";
 
-import { Cat, ClipboardList, FileText, GitCompareArrows, LayoutDashboard } from "lucide-react";
+import { Cat, ClipboardList, FileText, GitCompareArrows, MessageSquare, Bot, User, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   Popover,
   PopoverContent,
   PopoverTrigger,
+  PopoverClose,
 } from "@/components/ui/popover";
 import { Separator } from "@/components/ui/separator";
-import { useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
+import { Avatar, AvatarFallback, AvatarImage } from "../ui/avatar";
+import { AnimatePresence, motion } from "framer-motion";
 
-const pageTips = {
-  "/dashboard": {
-    icon: LayoutDashboard,
-    title: "Seu Painel Principal",
-    description: "Aqui você tem um resumo de tudo! Crie novas fichas ou acesse rapidamente as funcionalidades de IA para gerar relatórios e comparar imagens.",
-  },
-  "/dashboard/anamnesis": {
+const chatTopics = {
+  anamnesis: {
+    question: "Como crio uma ficha de anamnese?",
     icon: ClipboardList,
-    title: "Criando uma Ficha de Anamnese",
-    description: "Preencha o máximo de informações que puder. Quanto mais detalhada a ficha, mais precisa será a análise da IA para o relatório da ferida!",
+    answer: "Para criar uma nova ficha, vá para a página 'Nova Anamnese'. Preencha o máximo de informações que puder. Quanto mais detalhada a ficha, mais precisa será a análise da IA para o relatório da ferida!",
   },
-   "/dashboard/anamnesis-records": {
-    icon: ClipboardList,
-    title: "Gerenciando suas Fichas",
-    description: "Nesta tela, você pode visualizar, editar ou excluir qualquer ficha de anamnese que já criou. Mantenha os registros dos seus pacientes sempre organizados.",
-  },
-  "/dashboard/report": {
+  report: {
+    question: "Como gero um relatório com IA?",
     icon: FileText,
-    title: "Gerando um Relatório com IA",
-    description: "Escolha uma ficha salva, envie uma foto nítida da ferida e deixe que eu analise! Vou te dar uma avaliação completa e sugestões de tratamento.",
+    answer: "Na página 'Gerar Relatório', escolha uma ficha salva, envie uma foto nítida da ferida e deixe que eu analise! Vou te dar uma avaliação completa e sugestões de tratamento.",
   },
-  "/dashboard/compare": {
+  compare: {
+    question: "Para que serve a comparação de imagens?",
     icon: GitCompareArrows,
-    title: "Comparando o Progresso",
-    description: "Envie duas fotos da mesma ferida, tiradas em datas diferentes. Vou analisar as imagens e te mostrar como a cicatrização está progredindo.",
+    answer: "Use a página 'Comparar Imagens' para enviar duas fotos da mesma ferida, tiradas em datas diferentes. Vou analisar as imagens e te mostrar como a cicatrização está progredindo.",
   },
 };
+
+type ChatStep = 'intro' | 'anamnesis' | 'report' | 'compare';
 
 const greetings = [
   "Olá! Sou o Miau-Lhor.",
@@ -47,17 +42,61 @@ const greetings = [
 ];
 
 export function CatSupport({ currentPage }: { currentPage: string }) {
-  const currentTipKey = Object.keys(pageTips).find(key => currentPage.startsWith(key)) || "/dashboard";
-  const currentTip = pageTips[currentTipKey as keyof typeof pageTips];
-
+  const [step, setStep] = useState<ChatStep>('intro');
+  const [isOpen, setIsOpen] = useState(false);
+  
   const randomGreeting = useMemo(() => {
     const randomIndex = Math.floor(Math.random() * greetings.length);
     return greetings[randomIndex];
   }, []);
-  
+
+  useEffect(() => {
+    // Reset chat when popover is closed
+    if (!isOpen) {
+      setTimeout(() => setStep('intro'), 200);
+    }
+  }, [isOpen]);
+
+  const ChatBlock = ({ icon: Icon, text, onClick, isUser = false }: { icon: React.ElementType, text: string, onClick?: () => void, isUser?: boolean }) => (
+    <motion.div
+      initial={{ opacity: 0, y: 10 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.3 }}
+      className={`flex items-start gap-3 w-full ${isUser ? "justify-end" : ""}`}
+    >
+      {!isUser && (
+        <Avatar className="h-8 w-8 border-2 border-primary/50">
+          <AvatarFallback className="bg-primary/20">
+            <Cat className="h-5 w-5 text-primary" />
+          </AvatarFallback>
+        </Avatar>
+      )}
+      <div
+        onClick={onClick}
+        className={`max-w-[80%] rounded-lg px-3 py-2 text-sm ${
+          isUser
+            ? "bg-primary text-primary-foreground"
+            : `bg-muted ${onClick ? "cursor-pointer hover:bg-muted/80" : ""}`
+        }`}
+      >
+        <p className="flex items-center gap-2">
+            {Icon && <Icon className="h-4 w-4 shrink-0" />}
+            <span>{text}</span>
+        </p>
+      </div>
+       {isUser && (
+        <Avatar className="h-8 w-8">
+            <AvatarFallback>
+                <User className="h-5 w-5" />
+            </AvatarFallback>
+        </Avatar>
+      )}
+    </motion.div>
+  );
+
   return (
     <div className="fixed bottom-6 right-6 z-50">
-      <Popover>
+      <Popover open={isOpen} onOpenChange={setIsOpen}>
         <PopoverTrigger asChild>
           <Button
             size="icon"
@@ -67,31 +106,70 @@ export function CatSupport({ currentPage }: { currentPage: string }) {
             <span className="sr-only">Ajuda</span>
           </Button>
         </PopoverTrigger>
-        <PopoverContent className="w-80 mr-4" side="top" align="end">
-          <div className="grid gap-4">
-            <div className="space-y-2">
-              <h3 className="font-bold text-lg text-primary flex items-center">
-                <Cat className="mr-2" />
-                {randomGreeting}
-              </h3>
-              <p className="text-sm text-muted-foreground">
-                Aqui vai uma dica sobre a tela atual:
-              </p>
-            </div>
-            <Separator />
-            <div className="grid gap-3 text-sm">
-                <div className="flex items-start gap-3">
-                    <div className="p-2 bg-primary/10 rounded-full">
-                        <currentTip.icon className="h-5 w-5 text-primary" />
-                    </div>
+        <PopoverContent className="w-80 mr-4 p-0 border-none shadow-2xl" side="top" align="end">
+            <div className="flex items-center justify-between p-3 bg-card rounded-t-lg border-b">
+                 <div className="flex items-center gap-2">
+                    <Avatar className="h-9 w-9">
+                        <AvatarFallback className="bg-primary/20">
+                            <Cat className="h-5 w-5 text-primary" />
+                        </AvatarFallback>
+                    </Avatar>
                     <div>
-                        <p className="font-semibold">{currentTip.title}</p>
-                        <p className="text-muted-foreground">
-                           {currentTip.description}
-                        </p>
+                        <h3 className="font-bold text-md text-foreground">Miau-Lhor</h3>
+                        <p className="text-xs text-muted-foreground">Seu assistente Heal+</p>
                     </div>
-                </div>
+                 </div>
+                 <PopoverClose asChild>
+                    <Button variant="ghost" size="icon" className="h-8 w-8">
+                        <X className="h-4 w-4" />
+                    </Button>
+                 </PopoverClose>
             </div>
+          <div className="p-4 bg-background/95 space-y-4 h-96 overflow-y-auto">
+            <AnimatePresence mode="wait">
+                <motion.div
+                    key={step}
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: -10 }}
+                    transition={{ duration: 0.3 }}
+                    className="space-y-4 flex flex-col items-start"
+                >
+              {step === 'intro' && (
+                <>
+                    <ChatBlock icon={Bot} text={randomGreeting} />
+                    <ChatBlock icon={Bot} text="Como posso te ajudar hoje?" />
+                    <Separator className="my-2" />
+                    <div className="w-full space-y-2">
+                        {Object.entries(chatTopics).map(([key, topic]) => (
+                            <ChatBlock 
+                                key={key} 
+                                icon={topic.icon} 
+                                text={topic.question} 
+                                onClick={() => setStep(key as ChatStep)} 
+                            />
+                        ))}
+                    </div>
+                </>
+              )}
+              {step !== 'intro' && (
+                <>
+                    <ChatBlock 
+                        icon={User}
+                        text={chatTopics[step].question} 
+                        isUser 
+                    />
+                    <ChatBlock 
+                        icon={Bot}
+                        text={chatTopics[step].answer} 
+                    />
+                     <Button variant="link" size="sm" onClick={() => setStep('intro')} className="mt-4">
+                        Ver outras opções
+                    </Button>
+                </>
+              )}
+              </motion.div>
+            </AnimatePresence>
           </div>
         </PopoverContent>
       </Popover>
