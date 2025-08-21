@@ -32,18 +32,28 @@ const GoogleIcon = () => (
     </svg>
 );
 
+const MicrosoftIcon = () => (
+    <svg className="h-4 w-4" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <path d="M11.4 22.5H2.3V13.4H11.4V22.5Z" fill="#F25022"/>
+        <path d="M21.8 22.5H12.6V13.4H21.8V22.5Z" fill="#7FBA00"/>
+        <path d="M11.4 12.2H2.3V3.1H11.4V12.2Z" fill="#00A4EF"/>
+        <path d="M21.8 12.2H12.6V3.1H21.8V12.2Z" fill="#FFB900"/>
+    </svg>
+);
+
 const DISCLAIMER_AGREED_KEY = 'heal-plus-disclaimer-agreed';
 
 export function LoginForm() {
   const router = useRouter();
-  const { login, loginWithGoogle } = useAuth();
+  const { login, loginWithGoogle, loginWithMicrosoft } = useAuth();
   const { toast } = useToast();
   const [loading, setLoading] = useState(false);
   const [googleLoading, setGoogleLoading] = useState(false);
+  const [microsoftLoading, setMicrosoftLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [showDisclaimer, setShowDisclaimer] = useState(false);
   const [loginValues, setLoginValues] = useState<z.infer<typeof loginSchema> | null>(null);
-  const [loginMethod, setLoginMethod] = useState<'email' | 'google' | null>(null);
+  const [loginMethod, setLoginMethod] = useState<'email' | 'google' | 'microsoft' | null>(null);
 
   const form = useForm<z.infer<typeof loginSchema>>({
     resolver: zodResolver(loginSchema),
@@ -81,6 +91,15 @@ export function LoginForm() {
     }
   }
 
+  function handleMicrosoftClick() {
+    if (hasAgreedToDisclaimer()) {
+        handleMicrosoftLogin();
+    } else {
+        setLoginMethod('microsoft');
+        setShowDisclaimer(true);
+    }
+  }
+
   async function handleDisclaimerAgree() {
     setShowDisclaimer(false);
     try {
@@ -93,6 +112,8 @@ export function LoginForm() {
         await handleEmailLogin(loginValues);
     } else if (loginMethod === 'google') {
         await handleGoogleLogin();
+    } else if (loginMethod === 'microsoft') {
+        await handleMicrosoftLogin();
     }
     setLoginMethod(null);
   }
@@ -128,6 +149,24 @@ export function LoginForm() {
         });
     } finally {
         setGoogleLoading(false);
+    }
+  }
+
+  async function handleMicrosoftLogin() {
+    setMicrosoftLoading(true);
+    try {
+        await loginWithMicrosoft();
+        router.push("/dashboard");
+    } catch (error: any) {
+        toast({
+            title: "Erro no Login com Microsoft",
+            description: error.code === 'auth/popup-closed-by-user' 
+                ? "A janela de login foi fechada. Por favor, tente novamente."
+                : error.message || "Não foi possível fazer login com a Microsoft.",
+            variant: "destructive",
+        });
+    } finally {
+        setMicrosoftLoading(false);
     }
   }
 
@@ -187,10 +226,16 @@ export function LoginForm() {
           </span>
         </div>
       </div>
-       <Button variant="outline" className="w-full" onClick={handleGoogleClick} disabled={googleLoading}>
-        {googleLoading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <GoogleIcon />}
-        Google
-      </Button>
+      <div className="space-y-2">
+        <Button variant="outline" className="w-full" onClick={handleGoogleClick} disabled={googleLoading || microsoftLoading}>
+            {googleLoading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <GoogleIcon />}
+            Google
+        </Button>
+        <Button variant="outline" className="w-full" onClick={handleMicrosoftClick} disabled={googleLoading || microsoftLoading}>
+            {microsoftLoading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <MicrosoftIcon />}
+            Microsoft
+        </Button>
+      </div>
       <div className="mt-4 text-center text-sm text-muted-foreground">
         Don&apos;t have an account?{" "}
         <Link href="/signup" className="font-medium text-primary hover:underline">
