@@ -233,7 +233,7 @@ export function LoginForm() {
         </Button>
         <Button variant="outline" className="w-full" onClick={handleMicrosoftClick} disabled={googleLoading || microsoftLoading}>
             {microsoftLoading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <MicrosoftIcon />}
-            Microsoft
+            Login com Microsoft
         </Button>
       </div>
       <div className="mt-4 text-center text-sm text-muted-foreground">
