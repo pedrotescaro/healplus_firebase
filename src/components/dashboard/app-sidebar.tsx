@@ -24,6 +24,8 @@ import {
 import { Logo } from "../logo";
 import { Avatar, AvatarFallback, AvatarImage } from "../ui/avatar";
 import { cn } from "@/lib/utils";
+import { useTranslation } from "@/contexts/app-provider";
+
 
 const getInitials = (name: string | null | undefined): string => {
   if (!name) return "U";
@@ -32,16 +34,6 @@ const getInitials = (name: string | null | undefined): string => {
   const lastInitial = names.length > 1 ? names[names.length - 1]?.[0] || "" : "";
   return `${firstInitial}${lastInitial}`.toUpperCase();
 }
-
-const navItems = [
-  { href: "/dashboard", icon: LayoutDashboard, label: "Dashboard" },
-  { href: "/dashboard/anamnesis", icon: ClipboardList, label: "Nova Anamnese" },
-  { href: "/dashboard/anamnesis-records", icon: Archive, label: "Minhas Fichas" },
-  { href: "/dashboard/agenda", icon: CalendarDays, label: "Agenda" },
-  { href: "/dashboard/report", icon: FileText, label: "Gerar Relatório" },
-  { href: "/dashboard/compare", icon: GitCompareArrows, label: "Comparar Imagens" },
-  { href: "/dashboard/profile", icon: User, label: "Perfil" },
-];
 
 interface AppSidebarProps {
   className?: string;
@@ -52,6 +44,17 @@ export default function AppSidebar({ className, onLinkClick }: AppSidebarProps) 
   const pathname = usePathname();
   const router = useRouter();
   const { user, logout } = useAuth();
+  const { t } = useTranslation();
+
+  const navItems = [
+    { href: "/dashboard", icon: LayoutDashboard, label: t.dashboard },
+    { href: "/dashboard/anamnesis", icon: ClipboardList, label: t.newAnamnesis },
+    { href: "/dashboard/anamnesis-records", icon: Archive, label: t.myRecords },
+    { href: "/dashboard/agenda", icon: CalendarDays, label: t.agenda },
+    { href: "/dashboard/report", icon: FileText, label: t.generateReport },
+    { href: "/dashboard/compare", icon: GitCompareArrows, label: t.compareImages },
+    { href: "/dashboard/profile", icon: User, label: t.profile },
+  ];
 
   const handleLogout = async () => {
     if (onLinkClick) onLinkClick();
@@ -99,7 +102,7 @@ export default function AppSidebar({ className, onLinkClick }: AppSidebarProps) 
         </div>
         <Button variant="outline" className="w-full" onClick={handleLogout}>
           <LogOut className="mr-2 h-4 w-4" />
-          Logout
+          {t.logout}
         </Button>
       </div>
     </aside>

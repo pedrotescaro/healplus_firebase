@@ -22,9 +22,11 @@ import { Loader2, Eye, EyeOff } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { Alert, AlertDescription, AlertTitle } from "../ui/alert";
 import { CheckCircle } from "lucide-react";
+import { useTranslation } from "@/contexts/app-provider";
 
 export function SignupForm() {
   const { signup } = useAuth();
+  const { t } = useTranslation();
   const { toast } = useToast();
   const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
@@ -80,7 +82,7 @@ export function SignupForm() {
           name="name"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Full Name</FormLabel>
+              <FormLabel>{t.fullName}</FormLabel>
               <FormControl>
                 <Input placeholder="Dr. Jane Doe" {...field} />
               </FormControl>
@@ -106,7 +108,7 @@ export function SignupForm() {
           name="password"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Password</FormLabel>
+              <FormLabel>{t.password}</FormLabel>
                <FormControl>
                 <div className="relative">
                   <Input type={showPassword ? "text" : "password"} placeholder="••••••••" {...field} />
@@ -114,7 +116,7 @@ export function SignupForm() {
                     type="button"
                     onClick={() => setShowPassword(!showPassword)}
                     className="absolute inset-y-0 right-0 flex items-center pr-3 text-muted-foreground"
-                    aria-label={showPassword ? "Hide password" : "Show password"}
+                    aria-label={showPassword ? t.hidePassword : t.showPassword}
                   >
                     {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                   </button>
@@ -126,12 +128,12 @@ export function SignupForm() {
         />
         <Button type="submit" className="w-full" disabled={loading}>
           {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-          Create Account
+          {t.createAccountBtn}
         </Button>
          <div className="text-center text-sm text-muted-foreground">
-          Already have an account?{" "}
+          {t.alreadyHaveAccount}{" "}
           <Link href="/login" className="font-medium text-primary hover:underline">
-            Sign in
+            {t.signIn}
           </Link>
         </div>
       </form>

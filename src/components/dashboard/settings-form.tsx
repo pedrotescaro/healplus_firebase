@@ -1,7 +1,6 @@
 
 "use client";
 
-import { useState } from "react";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import {
@@ -12,14 +11,12 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Languages, Moon, Sun, Contrast, Text } from "lucide-react";
-import { useTheme } from "@/contexts/theme-provider";
+import { useTranslation, useTheme, Language } from "@/contexts/app-provider";
 
 export function SettingsForm() {
-  const { theme, setTheme, fontSize, setFontSize } = useTheme();
-  const [language, setLanguage] = useState("pt-br");
+  const { t } = useTranslation();
+  const { theme, setTheme, fontSize, setFontSize, language, setLanguage } = useTheme();
 
-  // These functions are for UI demonstration purposes.
-  // A full implementation would require a theme and language provider.
   const handleThemeChange = (checked: boolean) => {
     if (checked) {
       if (theme === 'high-contrast') {
@@ -45,11 +42,6 @@ export function SettingsForm() {
       setTheme(window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
     }
   };
-
-  const handleLanguageChange = (value: string) => {
-    setLanguage(value);
-    // In a real app: i18n.changeLanguage(value);
-  };
   
   const handleFontSizeChange = (value: string) => {
     setFontSize(parseFloat(value));
@@ -60,11 +52,11 @@ export function SettingsForm() {
       <div className="flex items-center justify-between">
         <Label htmlFor="language-selector" className="flex items-center gap-2">
           <Languages className="h-5 w-5 text-muted-foreground" />
-          <span>Idioma</span>
+          <span>{t.language}</span>
         </Label>
-        <Select value={language} onValueChange={handleLanguageChange}>
+        <Select value={language} onValueChange={(value) => setLanguage(value as Language)}>
           <SelectTrigger id="language-selector" className="w-[180px]">
-            <SelectValue placeholder="Selecione o idioma" />
+            <SelectValue placeholder={t.selectLanguage} />
           </SelectTrigger>
           <SelectContent>
             <SelectItem value="pt-br">Português (Brasil)</SelectItem>
@@ -76,16 +68,16 @@ export function SettingsForm() {
        <div className="flex items-center justify-between">
         <Label htmlFor="font-size-selector" className="flex items-center gap-2">
           <Text className="h-5 w-5 text-muted-foreground" />
-          <span>Tamanho da Fonte</span>
+          <span>{t.fontSize}</span>
         </Label>
         <Select value={String(fontSize)} onValueChange={handleFontSizeChange}>
           <SelectTrigger id="font-size-selector" className="w-[180px]">
-            <SelectValue placeholder="Selecione o tamanho" />
+            <SelectValue placeholder={t.selectSize} />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="0.9">Pequeno</SelectItem>
-            <SelectItem value="1">Médio (Padrão)</SelectItem>
-            <SelectItem value="1.1">Grande</SelectItem>
+            <SelectItem value="0.9">{t.small}</SelectItem>
+            <SelectItem value="1">{t.medium}</SelectItem>
+            <SelectItem value="1.1">{t.large}</SelectItem>
           </SelectContent>
         </Select>
       </div>
@@ -97,7 +89,7 @@ export function SettingsForm() {
           ) : (
             <Sun className="h-5 w-5 text-muted-foreground" />
           )}
-          <span>Modo Escuro</span>
+          <span>{t.darkMode}</span>
         </Label>
         <Switch
           id="dark-mode-switch"
@@ -110,7 +102,7 @@ export function SettingsForm() {
       <div className="flex items-center justify-between">
         <Label htmlFor="high-contrast-switch" className="flex items-center gap-2">
           <Contrast className="h-5 w-5 text-muted-foreground" />
-          <span>Alto Contraste</span>
+          <span>{t.highContrast}</span>
         </Label>
         <Switch
           id="high-contrast-switch"

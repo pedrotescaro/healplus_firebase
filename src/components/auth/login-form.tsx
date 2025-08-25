@@ -22,6 +22,7 @@ import Link from "next/link";
 import { Loader2, Eye, EyeOff } from "lucide-react";
 import { DisclaimerDialog } from "./disclaimer-dialog";
 import { useToast } from "@/hooks/use-toast";
+import { useTranslation } from "@/contexts/app-provider";
 
 const GoogleIcon = () => (
     <svg className="h-5 w-5" viewBox="0 0 24 24" fill="currentColor">
@@ -46,6 +47,7 @@ const DISCLAIMER_AGREED_KEY = 'heal-plus-disclaimer-agreed';
 export function LoginForm() {
   const router = useRouter();
   const { login, loginWithGoogle, loginWithMicrosoft } = useAuth();
+  const { t } = useTranslation();
   const { toast } = useToast();
   const [loading, setLoading] = useState(false);
   const [googleLoading, setGoogleLoading] = useState(false);
@@ -125,8 +127,8 @@ export function LoginForm() {
       router.push("/dashboard");
     } catch (error: any) {
        toast({
-        title: "Erro no Login",
-        description: error.message || "Credenciais inválidas ou e-mail não verificado.",
+        title: t.loginErrorTitle,
+        description: error.message || t.loginErrorDescription,
         variant: "destructive",
       });
     } finally {
@@ -141,10 +143,10 @@ export function LoginForm() {
         router.push("/dashboard");
     } catch (error: any) {
         toast({
-            title: "Erro no Login com Google",
+            title: t.loginGoogleErrorTitle,
             description: error.code === 'auth/popup-closed-by-user' 
-                ? "A janela de login foi fechada. Por favor, tente novamente."
-                : error.message || "Não foi possível fazer login com o Google.",
+                ? t.loginPopupClosed
+                : error.message || t.loginGoogleErrorDescription,
             variant: "destructive",
         });
     } finally {
@@ -159,10 +161,10 @@ export function LoginForm() {
         router.push("/dashboard");
     } catch (error: any) {
         toast({
-            title: "Erro no Login com Microsoft",
+            title: t.loginMicrosoftErrorTitle,
             description: error.code === 'auth/popup-closed-by-user' 
-                ? "A janela de login foi fechada. Por favor, tente novamente."
-                : error.message || "Não foi possível fazer login com a Microsoft.",
+                ? t.loginPopupClosed
+                : error.message || t.loginMicrosoftErrorDescription,
             variant: "destructive",
         });
     } finally {
@@ -192,7 +194,7 @@ export function LoginForm() {
             name="password"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Password</FormLabel>
+                <FormLabel>{t.password}</FormLabel>
                 <FormControl>
                   <div className="relative">
                     <Input type={showPassword ? "text" : "password"} placeholder="••••••••" {...field} />
@@ -200,7 +202,7 @@ export function LoginForm() {
                       type="button"
                       onClick={() => setShowPassword(!showPassword)}
                       className="absolute inset-y-0 right-0 flex items-center pr-3 text-muted-foreground"
-                      aria-label={showPassword ? "Hide password" : "Show password"}
+                      aria-label={showPassword ? t.hidePassword : t.showPassword}
                     >
                       {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                     </button>
@@ -212,7 +214,7 @@ export function LoginForm() {
           />
           <Button type="submit" className="w-full" disabled={loading}>
             {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-            Sign In
+            {t.signIn}
           </Button>
         </form>
       </Form>
@@ -222,22 +224,22 @@ export function LoginForm() {
         </div>
         <div className="relative flex justify-center text-xs uppercase">
           <span className="bg-background px-2 text-muted-foreground">
-            Ou continue com
+            {t.orContinueWith}
           </span>
         </div>
       </div>
       <div className="flex justify-center gap-4">
-        <Button variant="outline" size="icon" onClick={handleGoogleClick} disabled={googleLoading || microsoftLoading} aria-label="Login com Google">
+        <Button variant="outline" size="icon" onClick={handleGoogleClick} disabled={googleLoading || microsoftLoading} aria-label={t.loginWithGoogle}>
             {googleLoading ? <Loader2 className="animate-spin" /> : <GoogleIcon />}
         </Button>
-        <Button variant="outline" size="icon" onClick={handleMicrosoftClick} disabled={googleLoading || microsoftLoading} aria-label="Login com Microsoft">
+        <Button variant="outline" size="icon" onClick={handleMicrosoftClick} disabled={googleLoading || microsoftLoading} aria-label={t.loginWithMicrosoft}>
             {microsoftLoading ? <Loader2 className="animate-spin" /> : <MicrosoftIcon />}
         </Button>
       </div>
       <div className="mt-4 text-center text-sm text-muted-foreground">
-        Don&apos;t have an account?{" "}
+        {t.dontHaveAccount}{" "}
         <Link href="/signup" className="font-medium text-primary hover:underline">
-          Sign up
+          {t.signUp}
         </Link>
       </div>
       <DisclaimerDialog 

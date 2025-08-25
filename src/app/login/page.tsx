@@ -1,8 +1,13 @@
+
+"use client";
+
 import { LoginForm } from "@/components/auth/login-form";
 import { Logo } from "@/components/logo";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
+import { useTranslation } from "@/contexts/app-provider";
 
 export default function LoginPage() {
+  const { t } = useTranslation();
   return (
     <div className="flex min-h-screen flex-col items-center justify-center bg-background p-4">
       <div className="w-full max-w-md">
@@ -10,8 +15,8 @@ export default function LoginPage() {
           <CardHeader className="flex flex-col items-center justify-center gap-4">
             <Logo />
             <div className="text-center">
-                <h1 className="text-2xl font-semibold tracking-tight">Bem-vindo(a) de volta</h1>
-                <p className="text-sm text-muted-foreground">Insira suas credenciais para acessar sua conta</p>
+                <h1 className="text-2xl font-semibold tracking-tight">{t.welcomeBack}</h1>
+                <p className="text-sm text-muted-foreground">{t.loginPrompt}</p>
             </div>
           </CardHeader>
           <CardContent>
