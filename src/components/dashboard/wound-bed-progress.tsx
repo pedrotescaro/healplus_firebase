@@ -1,3 +1,4 @@
+
 "use client";
 
 import { TISSUE_TYPES, TissueType, TissueName } from "@/lib/tissue-types";
@@ -21,7 +22,7 @@ export function WoundBedProgress({ data }: WoundBedProgressProps) {
   return (
     <div>
       <TooltipProvider>
-        <div className="flex h-4 w-full overflow-hidden rounded-full bg-muted">
+        <div className="flex h-8 w-full overflow-hidden rounded-md bg-muted text-xs font-semibold text-white">
           {data.map((item) => {
             const tissueInfo = TISSUE_TYPES[item.name];
             if (!tissueInfo || item.value <= 0) return null;
@@ -29,12 +30,18 @@ export function WoundBedProgress({ data }: WoundBedProgressProps) {
               <Tooltip key={item.name} delayDuration={0}>
                 <TooltipTrigger asChild>
                   <div
-                    className="h-full transition-all duration-300"
+                    className="flex h-full items-center justify-center transition-all duration-300 overflow-hidden"
                     style={{
                       width: `${item.value}%`,
                       backgroundColor: tissueInfo.color,
                     }}
-                  />
+                  >
+                    {item.value >= 15 && (
+                       <div className="truncate px-1">
+                          {tissueInfo.label} {item.value}%
+                       </div>
+                    )}
+                  </div>
                 </TooltipTrigger>
                 <TooltipContent>
                   <p>{`${tissueInfo.label}: ${item.value}%`}</p>
