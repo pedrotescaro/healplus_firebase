@@ -2,7 +2,7 @@
 "use client"
 
 import * as React from "react"
-import { useLayoutEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { translations, Translation, defaultLanguage, Language } from "@/lib/i18n";
 
 type Theme = "dark" | "light" | "system" | "high-contrast"
@@ -47,19 +47,26 @@ export function AppProvider({
   defaultLanguage = "pt-br",
   ...props
 }: AppProviderProps) {
-  const [theme, setTheme] = React.useState<Theme>(
-    () => (typeof window !== 'undefined' ? (localStorage.getItem(storageKey) as Theme) : undefined) || defaultTheme
-  );
+  const [theme, setTheme] = useState<Theme>(defaultTheme);
+  const [fontSize, setFontSize] = useState<number>(defaultFontSize);
+  const [language, setLanguage] = useState<Language>(defaultLanguage);
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    const storedTheme = localStorage.getItem(storageKey) as Theme | null;
+    const storedFontSize = localStorage.getItem(fontSizeStorageKey);
+    const storedLanguage = localStorage.getItem(languageStorageKey) as Language | null;
+
+    if (storedTheme) setTheme(storedTheme);
+    if (storedFontSize) setFontSize(parseFloat(storedFontSize));
+    if (storedLanguage) setLanguage(storedLanguage);
+    
+    setMounted(true);
+  }, [storageKey, fontSizeStorageKey, languageStorageKey]);
   
-  const [fontSize, setFontSize] = React.useState<number>(
-    () => typeof window !== 'undefined' ? parseFloat(localStorage.getItem(fontSizeStorageKey) || String(defaultFontSize)) : defaultFontSize
-  );
+  useEffect(() => {
+    if (!mounted) return;
 
-  const [language, setLanguage] = React.useState<Language>(
-    () => (typeof window !== 'undefined' ? (localStorage.getItem(languageStorageKey) as Language) : undefined) || defaultLanguage
-  );
-
-  useLayoutEffect(() => {
     const root = window.document.documentElement;
     root.classList.remove("light", "dark");
     root.removeAttribute("data-theme");
@@ -78,10 +85,9 @@ export function AppProvider({
     }
     
     root.style.setProperty('--font-scale', String(fontSize));
-
     root.lang = language;
 
-  }, [theme, fontSize, language]);
+  }, [theme, fontSize, language, mounted]);
 
   const value = {
     theme,
@@ -99,6 +105,10 @@ export function AppProvider({
         localStorage.setItem(languageStorageKey, lang);
         setLanguage(lang);
     }
+  }
+
+  if (!mounted) {
+    return null;
   }
 
   return (
@@ -123,5 +133,5 @@ const TranslationContext = React.createContext<Translation>(translations[default
 
 export const useTranslation = () => {
     const { language } = useTheme();
-    return { t: translations[language] };
+    return { t: translations[language] || translations[defaultLanguage] };
 }
