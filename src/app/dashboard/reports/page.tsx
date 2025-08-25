@@ -204,13 +204,15 @@ export default function ReportsPage() {
                 <div>
                   <h3 className="font-bold text-lg mb-2 text-center">{t.analyzedImage}</h3>
                   <div className="relative w-full max-w-sm mx-auto aspect-square">
-                    <Image
-                      src={reportToView.woundImageUri}
-                      alt={`Wound for ${reportToView.patientName}`}
-                      layout="fill"
-                      className="rounded-md object-contain"
-                      data-ai-hint="wound"
-                    />
+                    {reportToView.woundImageUri && (
+                        <Image
+                        src={reportToView.woundImageUri}
+                        alt={`Wound for ${reportToView.patientName}`}
+                        layout="fill"
+                        className="rounded-md object-contain"
+                        data-ai-hint="wound"
+                        />
+                    )}
                   </div>
                 </div>
                 <div className="prose prose-sm max-w-none dark:prose-invert whitespace-pre-wrap">
