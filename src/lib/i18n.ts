@@ -1,6 +1,7 @@
 
 export const translations = {
   "pt-br": {
+    locale: "pt-BR",
     // Geral
     language: "Idioma",
     selectLanguage: "Selecione o idioma",
@@ -11,6 +12,14 @@ export const translations = {
     large: "Grande",
     darkMode: "Modo Escuro",
     highContrast: "Alto Contraste",
+    errorTitle: "Erro",
+    yes: "Sim",
+    no: "Não",
+    close: "Fechar",
+    cancel: "Cancelar",
+    actions: "Ações",
+    patient: "Paciente",
+    date: "Data",
     
     // Login & Signup
     welcomeBack: "Bem-vindo(a) de volta",
@@ -39,7 +48,7 @@ export const translations = {
     loginMicrosoftErrorDescription: "Não foi possível fazer login com a Microsoft.",
     loginPopupClosed: "A janela de login foi fechada. Por favor, tente novamente.",
     
-    // Sidebar
+    // Sidebar & Navegação
     dashboard: "Dashboard",
     newAnamnesis: "Nova Anamnese",
     myRecords: "Minhas Fichas",
@@ -48,8 +57,69 @@ export const translations = {
     compareImages: "Comparar Imagens",
     profile: "Perfil",
     logout: "Sair",
+
+    // Página do Dashboard
+    welcomeMessage: "Bem-vindo(a), {name}",
+    dashboardGreeting: "Aqui está um resumo rápido do que você pode fazer.",
+    newAnamnesisCardTitle: "Nova Ficha de Anamnese",
+    newAnamnesisCardDescription: "Crie uma nova ficha de anamnese detalhada para avaliar o paciente e a ferida.",
+    createForm: "Criar Ficha",
+    generateReportCardTitle: "Gerar Relatório da Ferida",
+    generateReportCardDescription: "Carregue uma imagem e dados da anamnese para gerar um relatório com IA.",
+    createReport: "Criar Relatório",
+    compareImagesCardTitle: "Comparar Imagens da Ferida",
+    compareImagesCardDescription: "Analise o progresso da cicatrização comparando duas imagens com IA.",
+    compareImagesBtn: "Comparar Imagens",
+    recentAnamnesisTitle: "Fichas de Anamnese Recentes",
+    recentAnamnesisDescription: "Veja as últimas fichas de anamnese que você preencheu.",
+    loadingRecords: "Carregando fichas...",
+    woundLocation: "Localização da Ferida",
+    consultationDate: "Data da Consulta",
+    viewDetails: "Ver Detalhes",
+    edit: "Editar",
+    delete: "Excluir",
+    noRecordsFound: "Nenhuma ficha de anamnese encontrada.",
+    createFirstRecord: "Criar Primeira Ficha",
+    viewAllRecords: "Ver todas as fichas",
+    activitySummaryTitle: "Resumo das Atividades",
+    activitySummaryDescription: "Sua atividade recente na plataforma.",
+    areYouSure: "Você tem certeza?",
+    deleteConfirmation: "Esta ação não pode ser desfeita. Isso excluirá permanentemente a ficha de anamnese do paciente.",
+    anamnesisDetailsTitle: "Detalhes da Anamnese",
+    dashboardErrorLoading: "Não foi possível carregar os dados do dashboard.",
+    deleteRecordTitle: "Registro Excluído",
+    deleteRecordDescription: "A ficha de anamnese foi excluída com sucesso.",
+    deleteRecordError: "Não foi possível excluir a ficha de anamnese.",
+    activityChartCompletedForms: "Fichas Concluídas",
+    activityChartGeneratedReports: "Relatórios Gerados",
+    activityChartComparisons: "Comparações Feitas",
+
+    // Página da Agenda
+    agendaTitle: "Agenda de Retornos",
+    agendaDescription: "Visualize os próximos agendamentos de reavaliação de feridas.",
+
+    // Página de Anamnese
+    anamnesisTitle: "Ficha de Anamnese",
+    anamnesisDescription: "Preencha os dados do paciente e da ferida para uma avaliação completa.",
+
+    // Página de Comparação
+    compareTitle: "Comparar Imagens de Feridas",
+    compareDescription: "Envie duas imagens para analisar o progresso da cicatrização com IA.",
+
+    // Página de Relatório
+    reportTitle: "Gerar Relatório da Ferida",
+    reportDescription: "Forneça os dados da anamnese e uma imagem para análise da IA.",
+
+    // Página de Perfil/Configurações
+    settingsTitle: "Configurações",
+    settingsDescription: "Gerencie seu perfil e preferências de exibição.",
+    profileTitle: "Perfil do Usuário",
+    profileDescription: "Mantenha suas informações profissionais atualizadas.",
+    preferencesTitle: "Preferências",
+    preferencesDescription: "Personalize a aparência e o idioma do aplicativo.",
   },
   "en-us": {
+    locale: "en-US",
     // General
     language: "Language",
     selectLanguage: "Select language",
@@ -60,6 +130,14 @@ export const translations = {
     large: "Large",
     darkMode: "Dark Mode",
     highContrast: "High Contrast",
+    errorTitle: "Error",
+    yes: "Yes",
+    no: "No",
+    close: "Close",
+    cancel: "Cancel",
+    actions: "Actions",
+    patient: "Patient",
+    date: "Date",
 
     // Login & Signup
     welcomeBack: "Welcome back",
@@ -88,7 +166,7 @@ export const translations = {
     loginMicrosoftErrorDescription: "Could not log in with Microsoft.",
     loginPopupClosed: "The login window was closed. Please try again.",
 
-    // Sidebar
+    // Sidebar & Navigation
     dashboard: "Dashboard",
     newAnamnesis: "New Anamnesis",
     myRecords: "My Records",
@@ -97,6 +175,66 @@ export const translations = {
     compareImages: "Compare Images",
     profile: "Profile",
     logout: "Logout",
+
+    // Dashboard Page
+    welcomeMessage: "Welcome, {name}",
+    dashboardGreeting: "Here's a quick summary of what you can do.",
+    newAnamnesisCardTitle: "New Anamnesis Form",
+    newAnamnesisCardDescription: "Create a new detailed anamnesis form to evaluate the patient and the wound.",
+    createForm: "Create Form",
+    generateReportCardTitle: "Generate Wound Report",
+    generateReportCardDescription: "Upload an image and anamnesis data to generate a report with AI.",
+    createReport: "Create Report",
+    compareImagesCardTitle: "Compare Wound Images",
+    compareImagesCardDescription: "Analyze healing progress by comparing two images with AI.",
+    compareImagesBtn: "Compare Images",
+    recentAnamnesisTitle: "Recent Anamnesis Forms",
+    recentAnamnesisDescription: "View the latest anamnesis forms you have filled out.",
+    loadingRecords: "Loading records...",
+    woundLocation: "Wound Location",
+    consultationDate: "Consultation Date",
+    viewDetails: "View Details",
+    edit: "Edit",
+    delete: "Delete",
+    noRecordsFound: "No anamnesis forms found.",
+    createFirstRecord: "Create First Form",
+    viewAllRecords: "View all forms",
+    activitySummaryTitle: "Activity Summary",
+    activitySummaryDescription: "Your recent activity on the platform.",
+    areYouSure: "Are you sure?",
+    deleteConfirmation: "This action cannot be undone. This will permanently delete the patient's anamnesis form.",
+    anamnesisDetailsTitle: "Anamnesis Details",
+    dashboardErrorLoading: "Could not load dashboard data.",
+    deleteRecordTitle: "Record Deleted",
+    deleteRecordDescription: "The anamnesis form has been successfully deleted.",
+    deleteRecordError: "Could not delete the anamnesis form.",
+    activityChartCompletedForms: "Forms Completed",
+    activityChartGeneratedReports: "Reports Generated",
+    activityChartComparisons: "Comparisons Made",
+
+    // Agenda Page
+    agendaTitle: "Return Schedule",
+    agendaDescription: "View upcoming appointments for wound reassessment.",
+
+    // Anamnesis Page
+    anamnesisTitle: "Anamnesis Form",
+    anamnesisDescription: "Fill in the patient and wound data for a complete evaluation.",
+
+    // Compare Page
+    compareTitle: "Compare Wound Images",
+    compareDescription: "Upload two images to analyze healing progress with AI.",
+
+    // Report Page
+    reportTitle: "Generate Wound Report",
+    reportDescription: "Provide anamnesis data and an image for AI analysis.",
+
+    // Profile/Settings Page
+    settingsTitle: "Settings",
+    settingsDescription: "Manage your profile and display preferences.",
+    profileTitle: "User Profile",
+    profileDescription: "Keep your professional information up to date.",
+    preferencesTitle: "Preferences",
+    preferencesDescription: "Customize the appearance and language of the application.",
   },
 };
 

@@ -1,4 +1,5 @@
 
+
 "use client";
 
 import { useAuth } from "@/hooks/use-auth";
@@ -42,11 +43,13 @@ import { useToast } from "@/hooks/use-toast";
 import { db } from "@/firebase/client-app";
 import { collection, query, getDocs, orderBy, limit, doc, deleteDoc,getCountFromServer } from "firebase/firestore";
 import { ActivitySummaryChart } from "@/components/dashboard/activity-summary-chart";
+import { useTranslation } from "@/contexts/app-provider";
 
 type StoredAnamnesis = AnamnesisFormValues & { id: string };
 
 export default function DashboardPage() {
   const { user } = useAuth();
+  const { t } = useTranslation();
   const router = useRouter();
   const { toast } = useToast();
   const [recentAnamneses, setRecentAnamneses] = useState<StoredAnamnesis[]>([]);
@@ -82,14 +85,14 @@ export default function DashboardPage() {
         const comparisonsCount = Math.floor(anamnesisCount * 0.5);
 
         setActivityData([
-            { name: "Fichas Concluídas", value: anamnesisCount },
-            { name: "Relatórios Gerados", value: reportsCount },
-            { name: "Comparações Feitas", value: comparisonsCount },
+            { name: t.activityChartCompletedForms, value: anamnesisCount },
+            { name: t.activityChartGeneratedReports, value: reportsCount },
+            { name: t.activityChartComparisons, value: comparisonsCount },
         ]);
 
       } catch (error) {
         console.error("Error fetching dashboard data from Firestore: ", error);
-        toast({ title: "Erro", description: "Não foi possível carregar os dados do dashboard.", variant: "destructive" });
+        toast({ title: t.errorTitle, description: t.dashboardErrorLoading, variant: "destructive" });
       } finally {
         setLoading(false);
       }
@@ -97,7 +100,7 @@ export default function DashboardPage() {
     if (user) {
       fetchData();
     }
-  }, [user, toast]);
+  }, [user, toast, t]);
 
   const handleDelete = async () => {
     if (!recordToDelete || !user) return;
@@ -105,13 +108,13 @@ export default function DashboardPage() {
       await deleteDoc(doc(db, "users", user.uid, "anamnesis", recordToDelete));
       setRecentAnamneses(recentAnamneses.filter(record => record.id !== recordToDelete));
       toast({
-        title: "Registro Excluído",
-        description: "A ficha de anamnese foi excluída com sucesso.",
+        title: t.deleteRecordTitle,
+        description: t.deleteRecordDescription,
       });
     } catch (error) {
       toast({
-        title: "Erro",
-        description: "Não foi possível excluir a ficha de anamnese.",
+        title: t.errorTitle,
+        description: t.deleteRecordError,
         variant: "destructive",
       });
       console.error("Failed to delete anamnesis record from Firestore", error);
@@ -127,8 +130,8 @@ export default function DashboardPage() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-3xl font-bold tracking-tight">Bem-vindo(a), {user?.name}</h1>
-        <p className="text-muted-foreground">Aqui está um resumo rápido do que você pode fazer.</p>
+        <h1 className="text-3xl font-bold tracking-tight">{t.welcomeMessage.replace('{name}', user?.name || '')}</h1>
+        <p className="text-muted-foreground">{t.dashboardGreeting}</p>
       </div>
       
       <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
@@ -136,15 +139,15 @@ export default function DashboardPage() {
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <ClipboardList className="h-5 w-5 text-primary" />
-              Nova Ficha de Anamnese
+              {t.newAnamnesisCardTitle}
             </CardTitle>
             <CardDescription>
-              Crie uma nova ficha de anamnese detalhada para avaliar o paciente e a ferida.
+              {t.newAnamnesisCardDescription}
             </CardDescription>
           </CardHeader>
           <CardContent className="mt-auto">
             <Link href="/dashboard/anamnesis" passHref>
-              <Button className="w-full">Criar Ficha</Button>
+              <Button className="w-full">{t.createForm}</Button>
             </Link>
           </CardContent>
         </Card>
@@ -153,15 +156,15 @@ export default function DashboardPage() {
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <FileText className="h-5 w-5 text-primary" />
-              Gerar Relatório da Ferida
+              {t.generateReportCardTitle}
             </CardTitle>
             <CardDescription>
-              Carregue uma imagem e dados da anamnese para gerar um relatório com IA.
+              {t.generateReportCardDescription}
             </CardDescription>
           </CardHeader>
           <CardContent className="mt-auto">
             <Link href="/dashboard/report" passHref>
-              <Button className="w-full">Criar Relatório</Button>
+              <Button className="w-full">{t.createReport}</Button>
             </Link>
           </CardContent>
         </Card>
@@ -170,15 +173,15 @@ export default function DashboardPage() {
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <GitCompareArrows className="h-5 w-5 text-primary" />
-              Comparar Imagens da Ferida
+              {t.compareImagesCardTitle}
             </CardTitle>
             <CardDescription>
-              Analise o progresso da cicatrização comparando duas imagens com IA.
+              {t.compareImagesCardDescription}
             </CardDescription>
           </CardHeader>
           <CardContent className="mt-auto">
             <Link href="/dashboard/compare" passHref>
-              <Button className="w-full">Comparar Imagens</Button>
+              <Button className="w-full">{t.compareImagesBtn}</Button>
             </Link>
           </CardContent>
         </Card>
@@ -187,26 +190,26 @@ export default function DashboardPage() {
       <div className="grid gap-6 lg:grid-cols-2">
         <Card className="lg:col-span-1">
           <CardHeader>
-            <CardTitle>Fichas de Anamnese Recentes</CardTitle>
+            <CardTitle>{t.recentAnamnesisTitle}</CardTitle>
             <CardDescription>
-              Veja as últimas fichas de anamnese que você preencheu.
+              {t.recentAnamnesisDescription}
             </CardDescription>
           </CardHeader>
           <CardContent>
             {loading ? (
                 <div className="flex justify-center items-center py-8">
                   <Loader2 className="h-8 w-8 animate-spin text-primary" />
-                  <p className="ml-4 text-muted-foreground">Carregando fichas...</p>
+                  <p className="ml-4 text-muted-foreground">{t.loadingRecords}</p>
                 </div>
               ) : recentAnamneses.length > 0 ? (
               <div className="w-full overflow-x-auto">
                 <Table>
                   <TableHeader>
                     <TableRow>
-                      <TableHead>Paciente</TableHead>
-                      <TableHead className="hidden sm:table-cell">Localização da Ferida</TableHead>
-                      <TableHead className="hidden md:table-cell">Data da Consulta</TableHead>
-                      <TableHead className="text-right">Ações</TableHead>
+                      <TableHead>{t.patient}</TableHead>
+                      <TableHead className="hidden sm:table-cell">{t.woundLocation}</TableHead>
+                      <TableHead className="hidden md:table-cell">{t.consultationDate}</TableHead>
+                      <TableHead className="text-right">{t.actions}</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
@@ -217,7 +220,7 @@ export default function DashboardPage() {
                           <Badge variant="outline">{record.localizacao_ferida}</Badge>
                         </TableCell>
                         <TableCell className="hidden md:table-cell">
-                          {new Date(record.data_consulta).toLocaleDateString('pt-BR', { timeZone: 'UTC' })}
+                          {new Date(record.data_consulta).toLocaleDateString(t.locale, { timeZone: 'UTC' })}
                         </TableCell>
                         <TableCell className="text-right">
                           <DropdownMenu>
@@ -228,16 +231,16 @@ export default function DashboardPage() {
                               </Button>
                             </DropdownMenuTrigger>
                             <DropdownMenuContent align="end">
-                              <DropdownMenuLabel>Ações</DropdownMenuLabel>
+                              <DropdownMenuLabel>{t.actions}</DropdownMenuLabel>
                               <DropdownMenuSeparator />
                               <DropdownMenuItem onSelect={() => setRecordToView(record)}>
-                                <Eye className="mr-2 h-4 w-4" /> Ver Detalhes
+                                <Eye className="mr-2 h-4 w-4" /> {t.viewDetails}
                               </DropdownMenuItem>
                               <DropdownMenuItem onSelect={() => handleEdit(record.id)}>
-                                <Edit className="mr-2 h-4 w-4" /> Editar
+                                <Edit className="mr-2 h-4 w-4" /> {t.edit}
                               </DropdownMenuItem>
                               <DropdownMenuItem onSelect={() => setRecordToDelete(record.id)} className="text-destructive focus:text-destructive">
-                                <Trash2 className="mr-2 h-4 w-4" /> Excluir
+                                <Trash2 className="mr-2 h-4 w-4" /> {t.delete}
                               </DropdownMenuItem>
                             </DropdownMenuContent>
                           </DropdownMenu>
@@ -249,11 +252,11 @@ export default function DashboardPage() {
               </div>
             ) : (
               <div className="text-center py-8">
-                <p className="text-muted-foreground mb-4">Nenhuma ficha de anamnese encontrada.</p>
+                <p className="text-muted-foreground mb-4">{t.noRecordsFound}</p>
                 <Link href="/dashboard/anamnesis" passHref>
                   <Button variant="outline">
                     <PlusCircle className="mr-2" />
-                    Criar Primeira Ficha
+                    {t.createFirstRecord}
                   </Button>
                 </Link>
               </div>
@@ -262,7 +265,7 @@ export default function DashboardPage() {
           { recentAnamneses.length > 0 && (
             <CardFooter>
               <Link href="/dashboard/anamnesis-records" className="w-full">
-                <Button variant="secondary" className="w-full">Ver todas as fichas</Button>
+                <Button variant="secondary" className="w-full">{t.viewAllRecords}</Button>
               </Link>
             </CardFooter>
           )}
@@ -270,9 +273,9 @@ export default function DashboardPage() {
 
         <Card className="lg:col-span-1">
             <CardHeader>
-                <CardTitle>Resumo das Atividades</CardTitle>
+                <CardTitle>{t.activitySummaryTitle}</CardTitle>
                 <CardDescription>
-                    Sua atividade recente na plataforma.
+                    {t.activitySummaryDescription}
                 </CardDescription>
             </CardHeader>
             <CardContent>
@@ -292,14 +295,14 @@ export default function DashboardPage() {
       <AlertDialog open={!!recordToDelete} onOpenChange={(open) => !open && setRecordToDelete(null)}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Você tem certeza?</AlertDialogTitle>
+            <AlertDialogTitle>{t.areYouSure}</AlertDialogTitle>
             <AlertDialogDescription>
-              Esta ação não pode ser desfeita. Isso excluirá permanentemente a ficha de anamnese do paciente.
+              {t.deleteConfirmation}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel>Cancelar</AlertDialogCancel>
-            <AlertDialogAction onClick={handleDelete}>Excluir</AlertDialogAction>
+            <AlertDialogCancel>{t.cancel}</AlertDialogCancel>
+            <AlertDialogAction onClick={handleDelete}>{t.delete}</AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
@@ -308,9 +311,9 @@ export default function DashboardPage() {
       <Dialog open={!!recordToView} onOpenChange={(open) => !open && setRecordToView(null)}>
         <DialogContent className="max-w-2xl">
           <DialogHeader>
-            <DialogTitle>Detalhes da Anamnese</DialogTitle>
+            <DialogTitle>{t.anamnesisDetailsTitle}</DialogTitle>
             <DialogDescription>
-              Paciente: {recordToView?.nome_cliente} | Data: {recordToView && new Date(recordToView.data_consulta).toLocaleDateString('pt-BR', { timeZone: 'UTC' })}
+              {t.patient}: {recordToView?.nome_cliente} | {t.date}: {recordToView && new Date(recordToView.data_consulta).toLocaleDateString(t.locale, { timeZone: 'UTC' })}
             </DialogDescription>
           </DialogHeader>
           <ScrollArea className="max-h-[60vh] p-4 border rounded-md">
@@ -319,7 +322,7 @@ export default function DashboardPage() {
                 {Object.entries(recordToView).map(([key, value]) => {
                   if (typeof value === 'boolean' || (value && typeof value !== 'object')) {
                     const formattedKey = key.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
-                    const formattedValue = typeof value === 'boolean' ? (value ? 'Sim' : 'Não') : String(value);
+                    const formattedValue = typeof value === 'boolean' ? (value ? t.yes : t.no) : String(value);
                     return (
                       <div key={key} className="grid grid-cols-2 gap-2">
                         <strong className="text-muted-foreground">{formattedKey}:</strong>
@@ -334,7 +337,7 @@ export default function DashboardPage() {
           </ScrollArea>
            <DialogClose asChild>
               <Button type="button" variant="secondary">
-                Fechar
+                {t.close}
               </Button>
             </DialogClose>
         </DialogContent>
