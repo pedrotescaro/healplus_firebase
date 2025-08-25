@@ -151,7 +151,7 @@ export function ImageComparator() {
   return (
     <div className="space-y-8">
       <form onSubmit={handleSubmit} className="space-y-6">
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           <ImageUploader 
             id="image-1" 
             onFileChange={(e) => handleFileChange(e, 1)} 

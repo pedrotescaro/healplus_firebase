@@ -242,7 +242,7 @@ export function ReportGenerator() {
   return (
     <div className="space-y-8">
       <form onSubmit={handleSubmit} className="space-y-6">
-        <div className="grid gap-6 md:grid-cols-2">
+        <div className="grid gap-6 lg:grid-cols-2">
           <div className="space-y-2">
             <Label htmlFor="wound-image">Imagem da Ferida</Label>
              <div className="relative flex h-64 w-full flex-col items-center justify-center rounded-lg border-2 border-dashed bg-card p-4">
