@@ -6,12 +6,11 @@ import {
   ChartTooltip,
   ChartTooltipContent,
   ChartLegend,
-  ChartLegendContent,
   type ChartConfig,
 } from "@/components/ui/chart"
 import { useTranslation } from "@/contexts/app-provider";
 import { useMemo } from "react";
-import { Pie, PieChart, Cell } from "recharts"
+import { Pie, PieChart, Cell, Legend } from "recharts"
 
 interface ActivitySummaryChartProps {
   data: {
@@ -62,11 +61,11 @@ export function ActivitySummaryChart({ data }: ActivitySummaryChartProps) {
                     <Cell key={`cell-${index}`} fill={entry.fill} />
                 ))}
             </Pie>
-            <ChartLegend
-              content={<ChartLegendContent layout="vertical" align="center" nameKey="label" />}
-              wrapperStyle={{
-                paddingTop: 24,
-              }}
+            <ChartLegend 
+              layout="vertical"
+              align="center"
+              verticalAlign="bottom"
+              wrapperStyle={{ paddingTop: 24 }}
             />
         </PieChart>
     </ChartContainer>
