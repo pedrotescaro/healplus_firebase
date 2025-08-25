@@ -47,67 +47,65 @@ export function AppProvider({
   defaultLanguage = "pt-br",
   ...props
 }: AppProviderProps) {
-  const [theme, setTheme] = useState<Theme>(defaultTheme);
-  const [fontSize, setFontSize] = useState<number>(defaultFontSize);
-  const [language, setLanguage] = useState<Language>(defaultLanguage);
-  const [mounted, setMounted] = useState(false);
+  const [theme, setTheme] = useState<Theme>(defaultTheme)
+  const [fontSize, setFontSize] = useState<number>(defaultFontSize)
+  const [language, setLanguage] = useState<Language>(defaultLanguage)
+  const [isMounted, setIsMounted] = useState(false)
 
   useEffect(() => {
-    const storedTheme = localStorage.getItem(storageKey) as Theme | null;
-    const storedFontSize = localStorage.getItem(fontSizeStorageKey);
-    const storedLanguage = localStorage.getItem(languageStorageKey) as Language | null;
+    setIsMounted(true)
+  }, [])
 
-    if (storedTheme) setTheme(storedTheme);
-    if (storedFontSize) setFontSize(parseFloat(storedFontSize));
-    if (storedLanguage) setLanguage(storedLanguage);
-    
-    setMounted(true);
-  }, [storageKey, fontSizeStorageKey, languageStorageKey]);
+  useEffect(() => {
+    if (isMounted) {
+      const storedTheme = localStorage.getItem(storageKey) as Theme || defaultTheme;
+      const storedFontSize = parseFloat(localStorage.getItem(fontSizeStorageKey) || String(defaultFontSize));
+      const storedLanguage = localStorage.getItem(languageStorageKey) as Language || defaultLanguage;
+
+      setTheme(storedTheme);
+      setFontSize(storedFontSize);
+      setLanguage(storedLanguage);
+    }
+  }, [isMounted, storageKey, fontSizeStorageKey, languageStorageKey, defaultTheme, defaultFontSize, defaultLanguage]);
   
   useEffect(() => {
-    if (!mounted) return;
+    if (isMounted) {
+      const root = window.document.documentElement;
+      root.classList.remove("light", "dark");
+      root.removeAttribute("data-theme");
 
-    const root = window.document.documentElement;
-    root.classList.remove("light", "dark");
-    root.removeAttribute("data-theme");
+      let effectiveTheme = theme;
+      if (theme === "system") {
+        effectiveTheme = window.matchMedia("(prefers-color-scheme: dark)").matches
+          ? "dark"
+          : "light";
+      }
 
-    let effectiveTheme = theme;
-    if (theme === "system") {
-      effectiveTheme = window.matchMedia("(prefers-color-scheme: dark)").matches
-        ? "dark"
-        : "light";
+      if (effectiveTheme === 'high-contrast') {
+          root.setAttribute('data-theme', 'high-contrast');
+      } else {
+          root.classList.add(effectiveTheme);
+      }
+      
+      root.style.setProperty('--font-scale', String(fontSize));
+      root.lang = language;
+
+      localStorage.setItem(storageKey, theme)
+      localStorage.setItem(fontSizeStorageKey, String(fontSize))
+      localStorage.setItem(languageStorageKey, language)
     }
-
-    if (effectiveTheme === 'high-contrast') {
-        root.setAttribute('data-theme', 'high-contrast');
-    } else {
-        root.classList.add(effectiveTheme);
-    }
-    
-    root.style.setProperty('--font-scale', String(fontSize));
-    root.lang = language;
-
-  }, [theme, fontSize, language, mounted]);
+  }, [theme, fontSize, language, storageKey, fontSizeStorageKey, languageStorageKey, isMounted]);
 
   const value = {
     theme,
-    setTheme: (theme: Theme) => {
-      localStorage.setItem(storageKey, theme)
-      setTheme(theme)
-    },
+    setTheme,
     fontSize,
-    setFontSize: (size: number) => {
-      localStorage.setItem(fontSizeStorageKey, String(size))
-      setFontSize(size)
-    },
+    setFontSize,
     language,
-    setLanguage: (lang: Language) => {
-        localStorage.setItem(languageStorageKey, lang);
-        setLanguage(lang);
-    }
+    setLanguage
   }
 
-  if (!mounted) {
+  if (!isMounted) {
     return null;
   }
 
