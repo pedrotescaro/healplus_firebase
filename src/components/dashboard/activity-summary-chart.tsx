@@ -16,7 +16,6 @@ import { Pie, PieChart, Cell } from "recharts"
 interface ActivitySummaryChartProps {
   data: {
     name: string;
-    label: string;
     value: number;
   }[];
 }
@@ -26,19 +25,24 @@ export function ActivitySummaryChart({ data }: ActivitySummaryChartProps) {
 
   const chartConfig = useMemo(() => ({
     completedForms: {
-      label: t.activityChartCompletedForms,
+      label: t.activityChartCompletedFormsBilingual,
       color: "hsl(var(--chart-1))",
     },
     generatedReports: {
-      label: t.activityChartGeneratedReports,
+      label: t.activityChartGeneratedReportsBilingual,
       color: "hsl(var(--chart-2))",
     },
     comparisons: {
-      label: t.activityChartComparisons,
+      label: t.activityChartComparisonsBilingual,
       color: "hsl(var(--chart-3))",
     },
   }), [t]) satisfies ChartConfig;
   
+  const chartData = data.map(item => ({
+    ...item,
+    label: chartConfig[item.name as keyof typeof chartConfig]?.label,
+    fill: chartConfig[item.name as keyof typeof chartConfig]?.color,
+  }));
 
   return (
     <ChartContainer config={chartConfig} className="min-h-[200px] w-full aspect-square">
@@ -48,18 +52,15 @@ export function ActivitySummaryChart({ data }: ActivitySummaryChartProps) {
             content={<ChartTooltipContent hideLabel />}
             />
             <Pie
-            data={data}
+            data={chartData}
             dataKey="value"
             nameKey="label"
             innerRadius="60%"
             strokeWidth={5}
             >
-                {data.map((entry, index) => {
-                    const configEntry = chartConfig[entry.name as keyof typeof chartConfig];
-                    return (
-                        <Cell key={`cell-${index}`} fill={configEntry?.color} />
-                    )
-                })}
+                {chartData.map((entry, index) => (
+                    <Cell key={`cell-${index}`} fill={entry.fill} />
+                ))}
             </Pie>
             <ChartLegend
             content={<ChartLegendContent nameKey="label" />}

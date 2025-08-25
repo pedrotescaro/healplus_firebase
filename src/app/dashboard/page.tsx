@@ -55,7 +55,7 @@ export default function DashboardPage() {
   const [loading, setLoading] = useState(true);
   const [recordToDelete, setRecordToDelete] = useState<string | null>(null);
   const [recordToView, setRecordToView] = useState<StoredAnamnesis | null>(null);
-  const [activityData, setActivityData] = useState<{ name: string; value: number; label: string }[]>([]);
+  const [activityData, setActivityData] = useState<{ name: string; value: number }[]>([]);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -84,9 +84,9 @@ export default function DashboardPage() {
         const comparisonsCount = Math.floor(anamnesisCount * 0.5);
 
         setActivityData([
-            { name: "completedForms", label: t.activityChartCompletedForms, value: anamnesisCount },
-            { name: "generatedReports", label: t.activityChartGeneratedReports, value: reportsCount },
-            { name: "comparisons", label: t.activityChartComparisons, value: comparisonsCount },
+            { name: "completedForms", value: anamnesisCount },
+            { name: "generatedReports", value: reportsCount },
+            { name: "comparisons", value: comparisonsCount },
         ]);
 
       } catch (error) {

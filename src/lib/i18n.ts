@@ -93,6 +93,10 @@ export const translations = {
     activityChartCompletedForms: "Fichas Concluídas",
     activityChartGeneratedReports: "Relatórios Gerados",
     activityChartComparisons: "Comparações Feitas",
+    activityChartCompletedFormsBilingual: "Fichas Concluídas / Forms Completed",
+    activityChartGeneratedReportsBilingual: "Relatórios Gerados / Reports Generated",
+    activityChartComparisonsBilingual: "Comparações / Comparisons",
+
 
     // Página da Agenda
     agendaTitle: "Agenda de Retornos",
@@ -211,6 +215,9 @@ export const translations = {
     activityChartCompletedForms: "Forms Completed",
     activityChartGeneratedReports: "Reports Generated",
     activityChartComparisons: "Comparisons Made",
+    activityChartCompletedFormsBilingual: "Forms Completed / Fichas Concluídas",
+    activityChartGeneratedReportsBilingual: "Reports Generated / Relatórios Gerados",
+    activityChartComparisonsBilingual: "Comparisons / Comparações",
 
     // Agenda Page
     agendaTitle: "Return Schedule",
