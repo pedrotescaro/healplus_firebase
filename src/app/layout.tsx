@@ -14,23 +14,6 @@ export const metadata: Metadata = {
   description: "Cuidado aprimorado para feridas crônicas por telessaúde.",
 };
 
-// This Client Component reads the theme context and applies styles.
-// It must be a separate component from RootLayout.
-function AppBody({ children }: { children: React.ReactNode }) {
-  "use client";
-  const { fontSize } = useTheme();
-  return (
-    <html lang="en" suppressHydrationWarning style={{ '--font-scale': fontSize } as React.CSSProperties}>
-      <body className={cn("font-body antialiased", inter.variable)}>
-        <AuthProvider>
-          {children}
-          <Toaster />
-        </AuthProvider>
-      </body>
-    </html>
-  );
-}
-
 // This is the root Server Component.
 export default function RootLayout({
   children,
@@ -38,13 +21,20 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <ThemeProvider
-      attribute="class"
-      defaultTheme="system"
-      enableSystem
-      disableTransitionOnChange
-    >
-      <AppBody>{children}</AppBody>
-    </ThemeProvider>
+    <html lang="en" suppressHydrationWarning>
+      <body className={cn("font-body antialiased", inter.variable)}>
+        <ThemeProvider
+          attribute="class"
+          defaultTheme="system"
+          enableSystem
+          disableTransitionOnChange
+        >
+          <AuthProvider>
+            {children}
+            <Toaster />
+          </AuthProvider>
+        </ThemeProvider>
+      </body>
+    </html>
   );
 }

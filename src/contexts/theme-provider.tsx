@@ -2,6 +2,7 @@
 "use client"
 
 import * as React from "react"
+import { useLayoutEffect } from 'react';
 
 type Theme = "dark" | "light" | "system" | "high-contrast"
 
@@ -39,45 +40,69 @@ export function ThemeProvider({
   fontSizeStorageKey = "vite-ui-font-size",
   defaultFontSize = 1,
   attribute = "class",
+  enableSystem = true,
   ...props
 }: ThemeProviderProps) {
   const [theme, setTheme] = React.useState<Theme>(
-    () => (typeof window !== 'undefined' ? localStorage.getItem(storageKey) as Theme : undefined) || defaultTheme
+    () => {
+      if (typeof window === 'undefined') {
+        return defaultTheme;
+      }
+      try {
+        return (localStorage.getItem(storageKey) as Theme) || defaultTheme
+      } catch (e) {
+        return defaultTheme
+      }
+    }
   )
   const [fontSize, setFontSize] = React.useState<number>(
-    () => (typeof window !== 'undefined' ? parseFloat(localStorage.getItem(fontSizeStorageKey) || String(defaultFontSize)) : defaultFontSize)
+    () => {
+      if (typeof window === 'undefined') {
+        return defaultFontSize;
+      }
+      try {
+        return parseFloat(localStorage.getItem(fontSizeStorageKey) || String(defaultFontSize))
+      } catch (e) {
+        return defaultFontSize
+      }
+    }
   )
 
-  React.useEffect(() => {
-    const root = window.document.documentElement
+  useLayoutEffect(() => {
+    const root = window.document.documentElement;
+    root.classList.remove("light", "dark");
+    root.removeAttribute("data-theme");
 
-    root.classList.remove("light", "dark")
-    root.removeAttribute("data-theme")
-
-    if (theme === "system") {
-      const systemTheme = window.matchMedia("(prefers-color-scheme: dark)")
-        .matches ? "dark" : "light"
-
-      root.classList.add(systemTheme)
-      return
+    let effectiveTheme = theme;
+    if (theme === "system" && enableSystem) {
+      effectiveTheme = window.matchMedia("(prefers-color-scheme: dark)").matches
+        ? "dark"
+        : "light";
     }
 
-    if (theme === 'high-contrast') {
-        root.setAttribute('data-theme', 'high-contrast')
+    if (effectiveTheme === 'high-contrast') {
+        root.setAttribute('data-theme', 'high-contrast');
     } else {
-        root.classList.add(theme)
+        root.classList.add(effectiveTheme);
     }
-  }, [theme])
+    
+    root.style.setProperty('--font-scale', String(fontSize));
+
+  }, [theme, fontSize, enableSystem]);
 
   const value = {
     theme,
     setTheme: (theme: Theme) => {
-      localStorage.setItem(storageKey, theme)
+      try {
+        localStorage.setItem(storageKey, theme)
+      } catch (e) {}
       setTheme(theme)
     },
     fontSize,
     setFontSize: (size: number) => {
-      localStorage.setItem(fontSizeStorageKey, String(size))
+      try {
+        localStorage.setItem(fontSizeStorageKey, String(size))
+      } catch (e) {}
       setFontSize(size)
     },
   }
