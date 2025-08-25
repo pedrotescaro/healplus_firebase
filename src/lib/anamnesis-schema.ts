@@ -155,8 +155,7 @@ export const anamnesisFormSchema = z.object({
   hora_consulta: z.string().min(1, "Hora da consulta é obrigatória"),
   profissional_responsavel: z.string().optional(),
   coren: z.string().optional(),
+  data_retorno: z.string().optional(),
 });
 
 export type AnamnesisFormValues = z.infer<typeof anamnesisFormSchema>;
-
-    

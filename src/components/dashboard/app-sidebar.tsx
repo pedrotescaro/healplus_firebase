@@ -11,6 +11,7 @@ import {
   LogOut,
   ClipboardList,
   Archive,
+  CalendarDays,
 } from "lucide-react";
 import { useAuth } from "@/hooks/use-auth";
 import { Button } from "@/components/ui/button";
@@ -36,6 +37,7 @@ const navItems = [
   { href: "/dashboard", icon: LayoutDashboard, label: "Dashboard" },
   { href: "/dashboard/anamnesis", icon: ClipboardList, label: "Nova Anamnese" },
   { href: "/dashboard/anamnesis-records", icon: Archive, label: "Minhas Fichas" },
+  { href: "/dashboard/agenda", icon: CalendarDays, label: "Agenda" },
   { href: "/dashboard/report", icon: FileText, label: "Gerar Relatório" },
   { href: "/dashboard/compare", icon: GitCompareArrows, label: "Comparar Imagens" },
   { href: "/dashboard/profile", icon: User, label: "Perfil" },

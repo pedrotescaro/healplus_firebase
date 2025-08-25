@@ -190,6 +190,7 @@ export function AnamnesisForm() {
     hora_consulta: new Date().toTimeString().slice(0, 5),
     profissional_responsavel: "",
     coren: "",
+    data_retorno: "",
   };
 
   const form = useForm<AnamnesisFormValues>({
@@ -791,6 +792,7 @@ export function AnamnesisForm() {
                 <FormField control={form.control} name="hora_consulta" render={({ field }) => ( <FormItem><FormLabel>Hora da Consulta</FormLabel><FormControl><Input type="time" {...field} /></FormControl><FormMessage /></FormItem> )} />
                 <FormField control={form.control} name="profissional_responsavel" render={({ field }) => ( <FormItem><FormLabel>Profissional Responsável</FormLabel><FormControl><Input {...field} /></FormControl><FormMessage /></FormItem> )} />
                 <FormField control={form.control} name="coren" render={({ field }) => ( <FormItem><FormLabel>COREN/CRM</FormLabel><FormControl><Input {...field} /></FormControl><FormMessage /></FormItem> )} />
+                <FormField control={form.control} name="data_retorno" render={({ field }) => ( <FormItem><FormLabel>Data de Retorno</FormLabel><FormControl><Input type="date" {...field} /></FormControl><FormMessage /></FormItem> )} />
               </div>
             </AccordionContent>
           </AccordionItem>
