@@ -1,5 +1,4 @@
 
-
 "use client";
 
 import { useAuth } from "@/hooks/use-auth";
@@ -56,7 +55,7 @@ export default function DashboardPage() {
   const [loading, setLoading] = useState(true);
   const [recordToDelete, setRecordToDelete] = useState<string | null>(null);
   const [recordToView, setRecordToView] = useState<StoredAnamnesis | null>(null);
-  const [activityData, setActivityData] = useState<{ name: string; value: number }[]>([]);
+  const [activityData, setActivityData] = useState<{ name: string; value: number; label: string }[]>([]);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -85,9 +84,9 @@ export default function DashboardPage() {
         const comparisonsCount = Math.floor(anamnesisCount * 0.5);
 
         setActivityData([
-            { name: t.activityChartCompletedForms, value: anamnesisCount },
-            { name: t.activityChartGeneratedReports, value: reportsCount },
-            { name: t.activityChartComparisons, value: comparisonsCount },
+            { name: "completedForms", label: t.activityChartCompletedForms, value: anamnesisCount },
+            { name: "generatedReports", label: t.activityChartGeneratedReports, value: reportsCount },
+            { name: "comparisons", label: t.activityChartComparisons, value: comparisonsCount },
         ]);
 
       } catch (error) {

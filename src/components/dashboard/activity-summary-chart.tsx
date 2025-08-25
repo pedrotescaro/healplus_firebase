@@ -9,32 +9,36 @@ import {
   ChartLegendContent,
   type ChartConfig,
 } from "@/components/ui/chart"
+import { useTranslation } from "@/contexts/app-provider";
+import { useMemo } from "react";
 import { Pie, PieChart, Cell } from "recharts"
 
 interface ActivitySummaryChartProps {
   data: {
     name: string;
+    label: string;
     value: number;
   }[];
 }
 
-const chartConfig = {
-  "Fichas Concluídas": {
-    label: "Fichas Concluídas",
-    color: "hsl(var(--chart-1))",
-  },
-  "Relatórios Gerados": {
-    label: "Relatórios Gerados",
-    color: "hsl(var(--chart-2))",
-  },
-  "Comparações Feitas": {
-    label: "Comparações Feitas",
-    color: "hsl(var(--chart-3))",
-  },
-} satisfies ChartConfig
-
 export function ActivitySummaryChart({ data }: ActivitySummaryChartProps) {
-  const totalValue = data.reduce((acc, curr) => acc + curr.value, 0);
+  const { t } = useTranslation();
+
+  const chartConfig = useMemo(() => ({
+    completedForms: {
+      label: t.activityChartCompletedForms,
+      color: "hsl(var(--chart-1))",
+    },
+    generatedReports: {
+      label: t.activityChartGeneratedReports,
+      color: "hsl(var(--chart-2))",
+    },
+    comparisons: {
+      label: t.activityChartComparisons,
+      color: "hsl(var(--chart-3))",
+    },
+  }), [t]) satisfies ChartConfig;
+  
 
   return (
     <ChartContainer config={chartConfig} className="min-h-[200px] w-full aspect-square">
@@ -46,16 +50,19 @@ export function ActivitySummaryChart({ data }: ActivitySummaryChartProps) {
             <Pie
             data={data}
             dataKey="value"
-            nameKey="name"
+            nameKey="label"
             innerRadius="60%"
             strokeWidth={5}
             >
-                {data.map((entry, index) => (
-                    <Cell key={`cell-${index}`} fill={chartConfig[entry.name as keyof typeof chartConfig]?.color} />
-                ))}
+                {data.map((entry, index) => {
+                    const configEntry = chartConfig[entry.name as keyof typeof chartConfig];
+                    return (
+                        <Cell key={`cell-${index}`} fill={configEntry?.color} />
+                    )
+                })}
             </Pie>
             <ChartLegend
-            content={<ChartLegendContent nameKey="name" />}
+            content={<ChartLegendContent nameKey="label" />}
             className="-mt-4"
             />
         </PieChart>
