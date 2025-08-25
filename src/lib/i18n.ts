@@ -52,6 +52,7 @@ export const translations = {
     dashboard: "Dashboard",
     newAnamnesis: "Nova Anamnese",
     myRecords: "Minhas Fichas",
+    myReports: "Meus Relatórios",
     agenda: "Agenda",
     generateReport: "Gerar Relatório",
     compareImages: "Comparar Imagens",
@@ -114,6 +115,22 @@ export const translations = {
     reportTitle: "Gerar Relatório da Ferida",
     reportDescription: "Forneça os dados da anamnese e uma imagem para análise da IA.",
 
+    // Página de Meus Relatórios
+    myReportsTitle: "Meus Relatórios Gerados",
+    myReportsDescription: "Visualize e gerencie todos os seus relatórios gerados por IA.",
+    allReportsTitle: "Todos os Relatórios",
+    allReportsDescription: "Aqui estão todos os relatórios que você já gerou, ordenados pelo mais recente.",
+    reportDate: "Data do Relatório",
+    loadingReports: "Carregando relatórios...",
+    noReportsFound: "Nenhum relatório gerado encontrado.",
+    deleteReportTitle: "Relatório Excluído",
+    deleteReportDescription: "O relatório foi excluído com sucesso.",
+    deleteReportError: "Não foi possível excluir o relatório.",
+    deleteReportConfirmation: "Esta ação não pode ser desfeita. Isso excluirá permanentemente o relatório.",
+    reportDetailsTitle: "Detalhes do Relatório",
+    analyzedImage: "Imagem Analisada",
+    myReportsErrorLoading: "Não foi possível carregar os relatórios.",
+
     // Página de Perfil/Configurações
     settingsTitle: "Configurações",
     settingsDescription: "Gerencie seu perfil e preferências de exibição.",
@@ -174,6 +191,7 @@ export const translations = {
     dashboard: "Dashboard",
     newAnamnesis: "New Anamnesis",
     myRecords: "My Records",
+    myReports: "My Reports",
     agenda: "Agenda",
     generateReport: "Generate Report",
     compareImages: "Compare Images",
@@ -234,6 +252,22 @@ export const translations = {
     // Report Page
     reportTitle: "Generate Wound Report",
     reportDescription: "Provide anamnesis data and an image for AI analysis.",
+
+    // My Reports Page
+    myReportsTitle: "My Generated Reports",
+    myReportsDescription: "View and manage all your AI-generated reports.",
+    allReportsTitle: "All Reports",
+    allReportsDescription: "Here are all the reports you have ever generated, sorted by the most recent.",
+    reportDate: "Report Date",
+    loadingReports: "Loading reports...",
+    noReportsFound: "No generated reports found.",
+    deleteReportTitle: "Report Deleted",
+    deleteReportDescription: "The report has been successfully deleted.",
+    deleteReportError: "Could not delete the report.",
+    deleteReportConfirmation: "This action cannot be undone. This will permanently delete the report.",
+    reportDetailsTitle: "Report Details",
+    analyzedImage: "Analyzed Image",
+    myReportsErrorLoading: "Could not load reports.",
 
     // Profile/Settings Page
     settingsTitle: "Settings",

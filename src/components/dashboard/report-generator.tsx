@@ -24,7 +24,7 @@ import autoTable from 'jspdf-autotable';
 import { ImageCapture } from "./image-capture";
 import { useAuth } from "@/hooks/use-auth";
 import { db } from "@/firebase/client-app";
-import { collection, query, getDocs, orderBy, addDoc, serverTimestamp } from "firebase/firestore";
+import { collection, query, getDocs, orderBy, addDoc, serverTimestamp, Timestamp } from "firebase/firestore";
 import { Alert, AlertDescription, AlertTitle } from "../ui/alert";
 
 type StoredAnamnesis = AnamnesisFormValues & { id: string };
@@ -108,10 +108,12 @@ export function ReportGenerator() {
       const result = await generateWoundReport({ woundImage: woundImageUri, anamnesisData: anamnesisDataString });
       setReport(result);
       
-      // Save report record for analytics
       if (user) {
         await addDoc(collection(db, "users", user.uid, "reports"), {
           anamnesisId: selectedAnamnesisId,
+          patientName: selectedRecord.nome_cliente,
+          reportContent: result.report,
+          woundImageUri: woundImageUri,
           createdAt: serverTimestamp(),
         });
       }
@@ -350,5 +352,3 @@ export function ReportGenerator() {
     </div>
   );
 }
-
-    
