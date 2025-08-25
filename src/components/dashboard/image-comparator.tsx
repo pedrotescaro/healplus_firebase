@@ -15,6 +15,10 @@ import { UploadCloud, Loader2, GitCompareArrows, Camera, AlertCircle } from "luc
 import { Separator } from "@/components/ui/separator";
 import { ImageCapture } from "./image-capture";
 import { Alert, AlertDescription, AlertTitle } from "../ui/alert";
+import { useAuth } from "@/hooks/use-auth";
+import { db } from "@/firebase/client-app";
+import { collection, addDoc, serverTimestamp } from "firebase/firestore";
+
 
 const isAIEnabled = !!process.env.NEXT_PUBLIC_GEMINI_API_KEY;
 
@@ -27,6 +31,7 @@ export function ImageComparator() {
   const [comparison, setComparison] = useState<CompareWoundImagesOutput | null>(null);
   const [loading, setLoading] = useState(false);
   const { toast } = useToast();
+  const { user } = useAuth();
 
   const handleFileSelect = (file: File, imageNumber: 1 | 2) => {
     const setFile = imageNumber === 1 ? setImage1 : setImage2;
@@ -67,6 +72,13 @@ export function ImageComparator() {
       ]);
       const result = await compareWoundImages({ image1DataUri, image2DataUri, additionalNotes });
       setComparison(result);
+
+      // Save comparison record for analytics
+      if (user) {
+        await addDoc(collection(db, "users", user.uid, "comparisons"), {
+          createdAt: serverTimestamp(),
+        });
+      }
     } catch (error) {
       console.error("Erro ao comparar imagens:", error);
       toast({
@@ -213,3 +225,5 @@ export function ImageComparator() {
     </div>
   );
 }
+
+    

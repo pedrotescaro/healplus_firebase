@@ -76,12 +76,18 @@ export default function DashboardPage() {
 
         // Fetch activity counts
         const anamnesisCol = collection(db, "users", user.uid, "anamnesis");
-        const anamnesisCountSnapshot = await getCountFromServer(anamnesisCol);
-        const anamnesisCount = anamnesisCountSnapshot.data().count;
+        const reportsCol = collection(db, "users", user.uid, "reports");
+        const comparisonsCol = collection(db, "users", user.uid, "comparisons");
 
-        // Mocking other counts as they are not stored yet
-        const reportsCount = Math.floor(anamnesisCount * 0.75);
-        const comparisonsCount = Math.floor(anamnesisCount * 0.5);
+        const [anamnesisCountSnapshot, reportsCountSnapshot, comparisonsCountSnapshot] = await Promise.all([
+          getCountFromServer(anamnesisCol),
+          getCountFromServer(reportsCol),
+          getCountFromServer(comparisonsCol),
+        ]);
+
+        const anamnesisCount = anamnesisCountSnapshot.data().count;
+        const reportsCount = reportsCountSnapshot.data().count;
+        const comparisonsCount = comparisonsCountSnapshot.data().count;
 
         setActivityData([
             { name: "completedForms", value: anamnesisCount },
@@ -344,3 +350,5 @@ export default function DashboardPage() {
     </div>
   );
 }
+
+    
