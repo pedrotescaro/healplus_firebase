@@ -1,7 +1,7 @@
 
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -56,26 +56,22 @@ export function LoginForm() {
   const [showDisclaimer, setShowDisclaimer] = useState(false);
   const [loginValues, setLoginValues] = useState<z.infer<typeof loginSchema> | null>(null);
   const [loginMethod, setLoginMethod] = useState<'email' | 'google' | 'microsoft' | null>(null);
-
-  const form = useForm<z.infer<typeof loginSchema>>({
-    resolver: zodResolver(loginSchema),
-    defaultValues: {
-      email: "",
-      password: "",
-    },
-  });
-
-  const hasAgreedToDisclaimer = () => {
+  const [disclaimerAgreed, setDisclaimerAgreed] = useState<boolean | null>(null);
+  
+  useEffect(() => {
+    // This code runs only on the client, preventing hydration errors
     try {
-      return localStorage.getItem(DISCLAIMER_AGREED_KEY) === 'true';
+      const agreed = localStorage.getItem(DISCLAIMER_AGREED_KEY) === 'true';
+      setDisclaimerAgreed(agreed);
     } catch (error) {
       console.error("Could not access localStorage", error);
-      return false;
+      setDisclaimerAgreed(false);
     }
-  };
+  }, []);
+
 
   function onSubmit(values: z.infer<typeof loginSchema>) {
-    if (hasAgreedToDisclaimer()) {
+    if (disclaimerAgreed) {
       handleEmailLogin(values);
     } else {
       setLoginValues(values);
@@ -85,7 +81,7 @@ export function LoginForm() {
   }
 
   function handleGoogleClick() {
-    if (hasAgreedToDisclaimer()) {
+    if (disclaimerAgreed) {
       handleGoogleLogin();
     } else {
       setLoginMethod('google');
@@ -94,7 +90,7 @@ export function LoginForm() {
   }
 
   function handleMicrosoftClick() {
-    if (hasAgreedToDisclaimer()) {
+    if (disclaimerAgreed) {
         handleMicrosoftLogin();
     } else {
         setLoginMethod('microsoft');
@@ -106,6 +102,7 @@ export function LoginForm() {
     setShowDisclaimer(false);
     try {
       localStorage.setItem(DISCLAIMER_AGREED_KEY, 'true');
+      setDisclaimerAgreed(true);
     } catch (error) {
       console.error("Could not set item in localStorage", error);
     }
@@ -119,6 +116,14 @@ export function LoginForm() {
     }
     setLoginMethod(null);
   }
+
+  const form = useForm<z.infer<typeof loginSchema>>({
+    resolver: zodResolver(loginSchema),
+    defaultValues: {
+      email: "",
+      password: "",
+    },
+  });
 
   async function handleEmailLogin(values: z.infer<typeof loginSchema>) {
     setLoading(true);
@@ -170,6 +175,10 @@ export function LoginForm() {
     } finally {
         setMicrosoftLoading(false);
     }
+  }
+
+  if (disclaimerAgreed === null) {
+    return null; // or a loading spinner
   }
 
   return (

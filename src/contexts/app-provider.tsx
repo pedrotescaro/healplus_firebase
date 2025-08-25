@@ -2,19 +2,13 @@
 "use client"
 
 import * as React from "react"
-import { useEffect, useState } from 'react';
+import { useEffect, useState, createContext, useContext } from 'react';
 import { translations, Translation, defaultLanguage, Language } from "@/lib/i18n";
 
 type Theme = "dark" | "light" | "system" | "high-contrast"
 
 type AppProviderProps = {
   children: React.ReactNode
-  defaultTheme?: Theme
-  storageKey?: string
-  fontSizeStorageKey?: string
-  languageStorageKey?: string
-  defaultFontSize?: number
-  defaultLanguage?: Language
 }
 
 type AppProviderState = {
@@ -35,66 +29,64 @@ const initialState: AppProviderState = {
   setLanguage: () => null,
 }
 
-const AppProviderContext = React.createContext<AppProviderState>(initialState)
+const AppProviderContext = createContext<AppProviderState>(initialState)
 
-export function AppProvider({
-  children,
-  defaultTheme = "system",
-  storageKey = "vite-ui-theme",
-  fontSizeStorageKey = "vite-ui-font-size",
-  languageStorageKey = "vite-ui-language",
-  defaultFontSize = 1,
-  defaultLanguage = "pt-br",
-  ...props
-}: AppProviderProps) {
-  const [theme, setTheme] = useState<Theme>(defaultTheme)
-  const [fontSize, setFontSize] = useState<number>(defaultFontSize)
-  const [language, setLanguage] = useState<Language>(defaultLanguage)
-  const [isMounted, setIsMounted] = useState(false)
+const storageKey = "vite-ui-theme";
+const fontSizeStorageKey = "vite-ui-font-size";
+const languageStorageKey = "vite-ui-language";
+
+export function AppProvider({ children }: AppProviderProps) {
+  const [theme, setThemeState] = useState<Theme>(initialState.theme);
+  const [fontSize, setFontSizeState] = useState<number>(initialState.fontSize);
+  const [language, setLanguageState] = useState<Language>(initialState.language);
 
   useEffect(() => {
-    setIsMounted(true)
-  }, [])
+    const storedTheme = localStorage.getItem(storageKey) as Theme || initialState.theme;
+    const storedFontSize = parseFloat(localStorage.getItem(fontSizeStorageKey) || String(initialState.fontSize));
+    const storedLanguage = localStorage.getItem(languageStorageKey) as Language || initialState.language;
 
-  useEffect(() => {
-    if (isMounted) {
-      const storedTheme = localStorage.getItem(storageKey) as Theme || defaultTheme;
-      const storedFontSize = parseFloat(localStorage.getItem(fontSizeStorageKey) || String(defaultFontSize));
-      const storedLanguage = localStorage.getItem(languageStorageKey) as Language || defaultLanguage;
+    setThemeState(storedTheme);
+    setFontSizeState(storedFontSize);
+    setLanguageState(storedLanguage);
+  }, []);
 
-      setTheme(storedTheme);
-      setFontSize(storedFontSize);
-      setLanguage(storedLanguage);
-    }
-  }, [isMounted, storageKey, fontSizeStorageKey, languageStorageKey, defaultTheme, defaultFontSize, defaultLanguage]);
+  const setTheme = (newTheme: Theme) => {
+    localStorage.setItem(storageKey, newTheme);
+    setThemeState(newTheme);
+  };
+
+  const setFontSize = (newSize: number) => {
+    localStorage.setItem(fontSizeStorageKey, String(newSize));
+    setFontSizeState(newSize);
+  };
+
+  const setLanguage = (newLanguage: Language) => {
+    localStorage.setItem(languageStorageKey, newLanguage);
+    setLanguageState(newLanguage);
+  };
   
   useEffect(() => {
-    if (isMounted) {
-      const root = window.document.documentElement;
-      root.classList.remove("light", "dark");
-      root.removeAttribute("data-theme");
+    const root = window.document.documentElement;
+    root.classList.remove("light", "dark");
+    root.removeAttribute("data-theme");
 
-      let effectiveTheme = theme;
-      if (theme === "system") {
-        effectiveTheme = window.matchMedia("(prefers-color-scheme: dark)").matches
-          ? "dark"
-          : "light";
-      }
-
-      if (effectiveTheme === 'high-contrast') {
-          root.setAttribute('data-theme', 'high-contrast');
-      } else {
-          root.classList.add(effectiveTheme);
-      }
-      
-      root.style.setProperty('--font-scale', String(fontSize));
-      root.lang = language;
-
-      localStorage.setItem(storageKey, theme)
-      localStorage.setItem(fontSizeStorageKey, String(fontSize))
-      localStorage.setItem(languageStorageKey, language)
+    let effectiveTheme = theme;
+    if (theme === "system") {
+      effectiveTheme = window.matchMedia("(prefers-color-scheme: dark)").matches
+        ? "dark"
+        : "light";
     }
-  }, [theme, fontSize, language, storageKey, fontSizeStorageKey, languageStorageKey, isMounted]);
+
+    if (effectiveTheme === 'high-contrast') {
+        root.setAttribute('data-theme', 'high-contrast');
+    } else {
+        root.classList.add(effectiveTheme);
+    }
+    
+    root.style.setProperty('--font-scale', String(fontSize));
+    root.lang = language;
+
+  }, [theme, fontSize, language]);
 
   const value = {
     theme,
@@ -105,29 +97,19 @@ export function AppProvider({
     setLanguage
   }
 
-  if (!isMounted) {
-    return null;
-  }
-
   return (
-    <AppProviderContext.Provider {...props} value={value}>
+    <AppProviderContext.Provider value={value}>
       {children}
     </AppProviderContext.Provider>
   )
 }
 
 export const useTheme = () => {
-  const context = React.useContext(AppProviderContext)
-
+  const context = useContext(AppProviderContext)
   if (context === undefined)
     throw new Error("useTheme must be used within a AppProvider")
-
   return context
 }
-
-
-// Translation Hook
-const TranslationContext = React.createContext<Translation>(translations[defaultLanguage]);
 
 export const useTranslation = () => {
     const { language } = useTheme();
