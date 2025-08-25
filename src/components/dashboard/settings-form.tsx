@@ -11,11 +11,11 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Languages, Moon, Sun, Contrast } from "lucide-react";
+import { Languages, Moon, Sun, Contrast, Text } from "lucide-react";
 import { useTheme } from "@/contexts/theme-provider";
 
 export function SettingsForm() {
-  const { theme, setTheme } = useTheme();
+  const { theme, setTheme, fontSize, setFontSize } = useTheme();
   const [language, setLanguage] = useState("pt-br");
 
   // These functions are for UI demonstration purposes.
@@ -50,6 +50,10 @@ export function SettingsForm() {
     setLanguage(value);
     // In a real app: i18n.changeLanguage(value);
   };
+  
+  const handleFontSizeChange = (value: string) => {
+    setFontSize(parseFloat(value));
+  };
 
   return (
     <div className="space-y-6">
@@ -65,6 +69,23 @@ export function SettingsForm() {
           <SelectContent>
             <SelectItem value="pt-br">Português (Brasil)</SelectItem>
             <SelectItem value="en-us">English (US)</SelectItem>
+          </SelectContent>
+        </Select>
+      </div>
+
+       <div className="flex items-center justify-between">
+        <Label htmlFor="font-size-selector" className="flex items-center gap-2">
+          <Text className="h-5 w-5 text-muted-foreground" />
+          <span>Tamanho da Fonte</span>
+        </Label>
+        <Select value={String(fontSize)} onValueChange={handleFontSizeChange}>
+          <SelectTrigger id="font-size-selector" className="w-[180px]">
+            <SelectValue placeholder="Selecione o tamanho" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="0.9">Pequeno</SelectItem>
+            <SelectItem value="1">Médio (Padrão)</SelectItem>
+            <SelectItem value="1.1">Grande</SelectItem>
           </SelectContent>
         </Select>
       </div>

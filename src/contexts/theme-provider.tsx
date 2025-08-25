@@ -9,6 +9,8 @@ type ThemeProviderProps = {
   children: React.ReactNode
   defaultTheme?: Theme
   storageKey?: string
+  fontSizeStorageKey?: string
+  defaultFontSize?: number
   attribute?: string
   enableSystem?: boolean,
   disableTransitionOnChange?: boolean
@@ -17,11 +19,15 @@ type ThemeProviderProps = {
 type ThemeProviderState = {
   theme: Theme
   setTheme: (theme: Theme) => void
+  fontSize: number
+  setFontSize: (size: number) => void
 }
 
 const initialState: ThemeProviderState = {
   theme: "system",
   setTheme: () => null,
+  fontSize: 1,
+  setFontSize: () => null,
 }
 
 const ThemeProviderContext = React.createContext<ThemeProviderState>(initialState)
@@ -30,12 +36,16 @@ export function ThemeProvider({
   children,
   defaultTheme = "system",
   storageKey = "vite-ui-theme",
+  fontSizeStorageKey = "vite-ui-font-size",
+  defaultFontSize = 1,
   attribute = "class",
-  enableSystem = true,
   ...props
 }: ThemeProviderProps) {
   const [theme, setTheme] = React.useState<Theme>(
     () => (typeof window !== 'undefined' ? localStorage.getItem(storageKey) as Theme : undefined) || defaultTheme
+  )
+  const [fontSize, setFontSize] = React.useState<number>(
+    () => (typeof window !== 'undefined' ? parseFloat(localStorage.getItem(fontSizeStorageKey) || String(defaultFontSize)) : defaultFontSize)
   )
 
   React.useEffect(() => {
@@ -64,6 +74,11 @@ export function ThemeProvider({
     setTheme: (theme: Theme) => {
       localStorage.setItem(storageKey, theme)
       setTheme(theme)
+    },
+    fontSize,
+    setFontSize: (size: number) => {
+      localStorage.setItem(fontSizeStorageKey, String(size))
+      setFontSize(size)
     },
   }
 
