@@ -63,8 +63,10 @@ export function ActivitySummaryChart({ data }: ActivitySummaryChartProps) {
                 ))}
             </Pie>
             <ChartLegend
-            content={<ChartLegendContent nameKey="label" />}
-            className="-mt-4"
+              content={<ChartLegendContent layout="vertical" align="center" nameKey="label" />}
+              wrapperStyle={{
+                paddingTop: 24,
+              }}
             />
         </PieChart>
     </ChartContainer>
