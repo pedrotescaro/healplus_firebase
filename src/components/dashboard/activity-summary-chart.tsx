@@ -18,18 +18,15 @@ interface ActivitySummaryChartProps {
   }[];
 }
 
-const CustomLegend = (props: any) => {
-  const { payload } = props;
+const CustomLegend = ({ payload }: { payload: any[] }) => {
   return (
-    <ul className="flex flex-col items-center justify-center gap-2 pt-6">
-      {payload.map((entry: any, index: number) => {
-        // 'entry.payload.payload' is where the original data object for the pie slice is
-        const { label, value, fill } = entry.payload.payload;
+    <ul className="flex flex-col items-center justify-center gap-2 pt-4">
+      {payload.map((entry, index) => {
         return (
           <li key={`item-${index}`} className="flex items-center gap-2 text-sm">
-            <span className="h-3 w-3 rounded-sm" style={{ backgroundColor: fill }} />
-            <span>{label}:</span>
-            <span className="font-bold">{value}</span>
+            <span className="h-3 w-3 rounded-sm" style={{ backgroundColor: entry.fill }} />
+            <span>{entry.label}:</span>
+            <span className="font-bold">{entry.value}</span>
           </li>
         );
       })}
@@ -63,29 +60,27 @@ export function ActivitySummaryChart({ data }: ActivitySummaryChartProps) {
   }));
 
   return (
-    <ChartContainer config={chartConfig} className="min-h-[200px] w-full aspect-square">
-        <PieChart>
-            <ChartTooltip
-            cursor={false}
-            content={<ChartTooltipContent hideLabel />}
-            />
-            <Pie
-            data={chartData}
-            dataKey="value"
-            nameKey="label"
-            innerRadius="60%"
-            strokeWidth={5}
-            legendType="square"
-            >
-                {chartData.map((entry, index) => (
-                    <Cell key={`cell-${index}`} fill={entry.fill} />
-                ))}
-            </Pie>
-            <foreignObject width="100%" height="100%">
-              {/* @ts-ignore */}
-              <CustomLegend payload={chartData.map(d => ({ payload: { payload: d }}))} />
-            </foreignObject>
-        </PieChart>
-    </ChartContainer>
+    <div className="flex flex-col items-center">
+        <ChartContainer config={chartConfig} className="min-h-[200px] w-full max-w-[250px] aspect-square">
+            <PieChart>
+                <ChartTooltip
+                cursor={false}
+                content={<ChartTooltipContent hideLabel />}
+                />
+                <Pie
+                data={chartData}
+                dataKey="value"
+                nameKey="label"
+                innerRadius="60%"
+                strokeWidth={5}
+                >
+                    {chartData.map((entry, index) => (
+                        <Cell key={`cell-${index}`} fill={entry.fill} />
+                    ))}
+                </Pie>
+            </PieChart>
+        </ChartContainer>
+        <CustomLegend payload={chartData} />
+    </div>
   )
 }
