@@ -12,22 +12,38 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Languages, Moon, Sun, Contrast } from "lucide-react";
+import { useTheme } from "@/contexts/theme-provider";
 
 export function SettingsForm() {
-  const [darkMode, setDarkMode] = useState(false);
-  const [highContrast, setHighContrast] = useState(false);
+  const { theme, setTheme } = useTheme();
   const [language, setLanguage] = useState("pt-br");
 
   // These functions are for UI demonstration purposes.
   // A full implementation would require a theme and language provider.
   const handleThemeChange = (checked: boolean) => {
-    setDarkMode(checked);
-    // In a real app: document.documentElement.classList.toggle('dark', checked);
+    if (checked) {
+      if (theme === 'high-contrast') {
+        // do nothing, keep high-contrast if it's already on
+      } else {
+        setTheme('dark');
+      }
+    } else {
+       if (theme === 'high-contrast') {
+        // do nothing
+      } else {
+        setTheme('light');
+      }
+    }
   };
 
   const handleContrastChange = (checked: boolean) => {
-    setHighContrast(checked);
-    // In a real app: document.documentElement.setAttribute('data-theme', checked ? 'high-contrast' : 'default');
+     if (checked) {
+      setTheme('high-contrast');
+    } else {
+      // Revert to light or dark based on system/previous preference
+      // for simplicity, we'll go to light. A more robust solution might store the previous theme.
+      setTheme(window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+    }
   };
 
   const handleLanguageChange = (value: string) => {
@@ -55,7 +71,7 @@ export function SettingsForm() {
 
       <div className="flex items-center justify-between">
         <Label htmlFor="dark-mode-switch" className="flex items-center gap-2">
-          {darkMode ? (
+          {theme === 'dark' || theme === 'system' ? (
             <Moon className="h-5 w-5 text-muted-foreground" />
           ) : (
             <Sun className="h-5 w-5 text-muted-foreground" />
@@ -64,8 +80,9 @@ export function SettingsForm() {
         </Label>
         <Switch
           id="dark-mode-switch"
-          checked={darkMode}
+          checked={theme === 'dark'}
           onCheckedChange={handleThemeChange}
+          disabled={theme === 'high-contrast'}
         />
       </div>
 
@@ -76,7 +93,7 @@ export function SettingsForm() {
         </Label>
         <Switch
           id="high-contrast-switch"
-          checked={highContrast}
+          checked={theme === 'high-contrast'}
           onCheckedChange={handleContrastChange}
         />
       </div>
