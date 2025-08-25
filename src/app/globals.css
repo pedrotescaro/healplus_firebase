@@ -60,6 +60,28 @@ body {
     --chart-4: 280 65% 60%;
     --chart-5: 340 75% 55%;
   }
+
+  [data-theme="high-contrast"] {
+    --background: 0 0% 0%; /* Black */
+    --foreground: 0 0% 100%; /* White */
+    --card: 0 0% 10%; /* Near black */
+    --card-foreground: 0 0% 98%; /* Near white */
+    --popover: 0 0% 10%;
+    --popover-foreground: 0 0% 98%;
+    --primary: 60 100% 50%; /* Bright Yellow */
+    --primary-foreground: 0 0% 0%; /* Black */
+    --secondary: 0 0% 80%;
+    --secondary-foreground: 0 0% 0%;
+    --muted: 0 0% 15%;
+    --muted-foreground: 0 0% 70%;
+    --accent: 0 0% 20%;
+    --accent-foreground: 0 0% 98%;
+    --destructive: 0 100% 50%; /* Bright Red */
+    --destructive-foreground: 0 0% 0%;
+    --border: 0 0% 40%;
+    --input: 0 0% 10%;
+    --ring: 60 100% 50%;
+  }
 }
 
 @layer base {
