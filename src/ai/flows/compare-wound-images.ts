@@ -133,10 +133,10 @@ Passo 2: Geração do Relatório Comparativo de Progressão
 Após analisar as imagens individualmente, gere o relatório comparativo, preenchendo a estrutura 'relatorio_comparativo'. Calcule o intervalo de tempo e todas as deltas (Δ) quantitativas entre a Imagem 1 e a Imagem 2. Forneça o resumo descritivo técnico ao final.
 
 Imagem 1: {{media url=image1DataUri}}
-Metadados Imagem 1: {{{jsonEncode image1Metadata}}}
+Metadados Imagem 1: {{{image1Metadata}}}
 
 Imagem 2: {{media url=image2DataUri}}
-Metadados Imagem 2: {{{jsonEncode image2Metadata}}}
+Metadados Imagem 2: {{{image2Metadata}}}
 `,
 });
 
