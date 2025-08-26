@@ -6,7 +6,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { FileText, GitCompareArrows, ClipboardList, PlusCircle, MoreHorizontal, Trash2, Eye, Edit, Loader2 } from "lucide-react";
+import { FileText, GitCompareArrows, ClipboardList, PlusCircle, MoreHorizontal, Trash2, Eye, Edit, Loader2, CalendarDays } from "lucide-react";
 import { useEffect, useState } from "react";
 import type { AnamnesisFormValues } from "@/lib/anamnesis-schema";
 import { Badge } from "@/components/ui/badge";
@@ -139,7 +139,7 @@ export default function DashboardPage() {
         <p className="text-muted-foreground">{t.dashboardGreeting}</p>
       </div>
       
-      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+      <div className="grid gap-6 md:grid-cols-2 xl:grid-cols-4">
         <Card className="flex flex-col">
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
@@ -187,6 +187,23 @@ export default function DashboardPage() {
           <CardContent className="mt-auto">
             <Link href="/dashboard/compare" passHref>
               <Button className="w-full">{t.compareImagesBtn}</Button>
+            </Link>
+          </CardContent>
+        </Card>
+
+        <Card className="flex flex-col">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <CalendarDays className="h-5 w-5 text-primary" />
+              {t.agendaCardTitle}
+            </CardTitle>
+            <CardDescription>
+              {t.agendaCardDescription}
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="mt-auto">
+            <Link href="/dashboard/agenda" passHref>
+              <Button className="w-full">{t.agendaCardBtn}</Button>
             </Link>
           </CardContent>
         </Card>
