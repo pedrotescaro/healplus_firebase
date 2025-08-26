@@ -10,7 +10,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { fileToDataUri } from "@/lib/file-to-data-uri";
-import { UploadCloud, Loader2, FileText, Download, Camera, AlertCircle } from "lucide-react";
+import { UploadCloud, Loader2, FileText, Camera, AlertCircle, FileDown } from "lucide-react";
 import { AnamnesisFormValues } from "@/lib/anamnesis-schema";
 import {
   Select,
@@ -332,7 +332,7 @@ export function ReportGenerator() {
               Relatório da Ferida Gerado
             </CardTitle>
              <Button onClick={handleSavePdf} disabled={pdfLoading} variant="outline" size="sm">
-              {pdfLoading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Download className="mr-2 h-4 w-4" />}
+              {pdfLoading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <FileDown className="mr-2 h-4 w-4" />}
               Salvar em PDF
             </Button>
           </CardHeader>

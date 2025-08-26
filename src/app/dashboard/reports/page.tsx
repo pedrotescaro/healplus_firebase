@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import Image from "next/image";
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { MoreHorizontal, Trash2, Eye, Loader2 } from "lucide-react";
+import { MoreHorizontal, Trash2, Eye, Loader2, FileDown } from "lucide-react";
 import { useEffect, useState } from "react";
 import { Badge } from "@/components/ui/badge";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
@@ -39,8 +39,11 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/use-auth";
 import { db } from "@/firebase/client-app";
-import { collection, query, getDocs, orderBy, doc, deleteDoc, Timestamp } from "firebase/firestore";
+import { collection, query, getDocs, orderBy, doc, deleteDoc, Timestamp, getDoc } from "firebase/firestore";
 import { useTranslation } from "@/contexts/app-provider";
+import jsPDF from "jspdf";
+import autoTable from 'jspdf-autotable';
+import type { AnamnesisFormValues } from "@/lib/anamnesis-schema";
 
 interface StoredReport {
   id: string;
@@ -58,6 +61,7 @@ export default function ReportsPage() {
   const { user } = useAuth();
   const [reports, setReports] = useState<StoredReport[]>([]);
   const [loading, setLoading] = useState(true);
+  const [pdfLoading, setPdfLoading] = useState(false);
   const [reportToDelete, setReportToDelete] = useState<string | null>(null);
   const [reportToView, setReportToView] = useState<StoredReport | null>(null);
 
@@ -105,6 +109,104 @@ export default function ReportsPage() {
       setReportToDelete(null);
     }
   };
+
+  const handleSavePdf = async () => {
+    if (!reportToView || !user) return;
+    setPdfLoading(true);
+
+    try {
+        const anamnesisDocRef = doc(db, "users", user.uid, "anamnesis", reportToView.anamnesisId);
+        const anamnesisSnap = await getDoc(anamnesisDocRef);
+        if (!anamnesisSnap.exists()) {
+          toast({ title: "Erro", description: "Ficha de anamnese associada não encontrada.", variant: "destructive" });
+          setPdfLoading(false);
+          return;
+        }
+        const anamnesisRecord = anamnesisSnap.data() as AnamnesisFormValues;
+        
+        const doc_ = new jsPDF('p', 'mm', 'a4');
+        const margin = 15;
+        const pageWidth = doc_.internal.pageSize.getWidth();
+        
+        const addFooter = () => {
+            const pageCount = (doc_ as any).internal.getNumberOfPages();
+            for (let i = 1; i <= pageCount; i++) {
+                doc_.setPage(i);
+                doc_.setFontSize(8);
+                doc_.setTextColor(150);
+                const footerText = `Gerado por Heal+ em ${new Date().toLocaleDateString('pt-BR')} | Página ${i} de ${pageCount}`;
+                doc_.text(footerText, pageWidth / 2, doc_.internal.pageSize.getHeight() - 10, { align: 'center' });
+            }
+        };
+
+        doc_.setFont('helvetica', 'bold');
+        doc_.setFontSize(16);
+        doc_.text("Relatório de Avaliação e Plano de Tratamento de Ferida", pageWidth / 2, 20, { align: 'center' });
+
+        doc_.setFontSize(12);
+        const evaluationDate = new Date(anamnesisRecord.data_consulta + 'T' + anamnesisRecord.hora_consulta);
+        const formattedDate = evaluationDate.toLocaleDateString('pt-BR', { day: '2-digit', month: 'long', year: 'numeric' });
+        const formattedTime = evaluationDate.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
+        
+        autoTable(doc_, {
+            startY: 30,
+            head: [['Identificação do Paciente']],
+            body: [
+                [{ content: `Paciente: ${anamnesisRecord.nome_cliente}`, styles: { fontStyle: 'bold' } }],
+                [`Data da Avaliação: ${formattedDate}, ${formattedTime}`],
+            ],
+            theme: 'striped',
+            headStyles: { fontStyle: 'bold', fillColor: [22, 160, 133] },
+        });
+        
+        let finalY = (doc_ as any).lastAutoTable.finalY;
+
+        if (doc_.internal.pageSize.getHeight() - finalY < 80) {
+            doc_.addPage();
+            finalY = margin;
+        }
+
+        doc_.setFont('helvetica', 'bold');
+        doc_.setFontSize(12);
+        doc_.text("Imagem da Ferida Analisada", margin, finalY + 10);
+        
+        const img = new (window as any).Image();
+        img.src = reportToView.woundImageUri;
+        await new Promise(resolve => { img.onload = resolve; });
+
+        const imgProps = doc_.getImageProperties(reportToView.woundImageUri);
+        const imgWidth = 80;
+        const imgHeight = (imgProps.height * imgWidth) / imgProps.width;
+        const imgX = (pageWidth - imgWidth) / 2;
+        doc_.addImage(reportToView.woundImageUri, 'PNG', imgX, finalY + 15, imgWidth, imgHeight);
+        finalY += imgHeight + 20;
+
+        const cleanReportText = reportToView.reportContent.replace(/\*\*/g, '');
+        autoTable(doc_, {
+            startY: finalY + 5,
+            head: [['Avaliação da Ferida (Análise por IA)']],
+            body: [[cleanReportText]],
+            theme: 'grid',
+            headStyles: { fontStyle: 'bold', fillColor: [22, 160, 133] },
+            didDrawPage: () => addFooter(),
+        });
+
+        addFooter();
+
+        const fileName = `Relatorio_${anamnesisRecord.nome_cliente.replace(/\s/g, '_')}_${new Date().toLocaleDateString('pt-BR').replace(/\//g, '-')}.pdf`;
+        doc_.save(fileName);
+
+    } catch (error) {
+        console.error("Error generating PDF:", error);
+        toast({
+            title: "Erro ao Gerar PDF",
+            description: "Não foi possível salvar o relatório em PDF. Tente novamente.",
+            variant: "destructive",
+        });
+    } finally {
+        setPdfLoading(false);
+    }
+};
 
   return (
     <div className="space-y-6">
@@ -192,11 +294,17 @@ export default function ReportsPage() {
 
       <Dialog open={!!reportToView} onOpenChange={(open) => !open && setReportToView(null)}>
         <DialogContent className="max-w-3xl">
-          <DialogHeader>
-            <DialogTitle>{t.reportDetailsTitle}</DialogTitle>
-            <DialogDescription>
-              {t.patient}: {reportToView?.patientName} | {t.date}: {reportToView && reportToView.createdAt.toDate().toLocaleDateString(t.locale, { timeZone: 'UTC' })}
-            </DialogDescription>
+          <DialogHeader className="flex flex-row items-center justify-between pr-8">
+            <div className="space-y-1.5">
+                <DialogTitle>{t.reportDetailsTitle}</DialogTitle>
+                <DialogDescription>
+                  {t.patient}: {reportToView?.patientName} | {t.date}: {reportToView && reportToView.createdAt.toDate().toLocaleDateString(t.locale, { timeZone: 'UTC' })}
+                </DialogDescription>
+            </div>
+            <Button onClick={handleSavePdf} disabled={pdfLoading} variant="outline" size="sm">
+              {pdfLoading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <FileDown className="mr-2 h-4 w-4" />}
+              Salvar em PDF
+            </Button>
           </DialogHeader>
           <ScrollArea className="max-h-[70vh] p-4 border rounded-md">
             {reportToView && (
