@@ -12,6 +12,7 @@ import {
   ClipboardList,
   Archive,
   CalendarDays,
+  CopyCheck,
 } from "lucide-react";
 import { useAuth } from "@/hooks/use-auth";
 import { Button } from "@/components/ui/button";
@@ -54,6 +55,7 @@ export default function AppSidebar({ className, onLinkClick }: AppSidebarProps) 
     { href: "/dashboard/report", icon: FileText, label: t.generateReport },
     { href: "/dashboard/reports", icon: Archive, label: t.myReports },
     { href: "/dashboard/compare", icon: GitCompareArrows, label: t.compareImages },
+    { href: "/dashboard/compare-reports", icon: CopyCheck, label: t.compareReports },
     { href: "/dashboard/profile", icon: User, label: t.profile },
   ];
 

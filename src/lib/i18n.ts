@@ -56,6 +56,7 @@ export const translations = {
     agenda: "Agenda",
     generateReport: "Gerar Relatório",
     compareImages: "Comparar Imagens",
+    compareReports: "Comparar Relatórios",
     profile: "Perfil",
     logout: "Sair",
 
@@ -110,9 +111,13 @@ export const translations = {
     anamnesisTitle: "Ficha de Anamnese",
     anamnesisDescription: "Preencha os dados do paciente e da ferida para uma avaliação completa.",
 
-    // Página de Comparação
+    // Página de Comparação de Imagens
     compareTitle: "Comparar Imagens de Feridas",
     compareDescription: "Envie duas imagens para analisar o progresso da cicatrização com IA.",
+
+    // Página de Comparação de Relatórios
+    compareReportsTitle: "Comparar Relatórios",
+    compareReportsDescription: "Selecione dois relatórios para que a IA analise a evolução do caso.",
 
     // Página de Relatório
     reportTitle: "Gerar Relatório da Ferida",
@@ -198,6 +203,7 @@ export const translations = {
     agenda: "Agenda",
     generateReport: "Generate Report",
     compareImages: "Compare Images",
+    compareReports: "Compare Reports",
     profile: "Profile",
     logout: "Logout",
 
@@ -251,9 +257,13 @@ export const translations = {
     anamnesisTitle: "Anamnesis Form",
     anamnesisDescription: "Fill in the patient and wound data for a complete evaluation.",
 
-    // Compare Page
+    // Compare Images Page
     compareTitle: "Compare Wound Images",
     compareDescription: "Upload two images to analyze healing progress with AI.",
+
+    // Compare Reports Page
+    compareReportsTitle: "Compare Reports",
+    compareReportsDescription: "Select two reports for the AI to analyze the case evolution.",
 
     // Report Page
     reportTitle: "Generate Wound Report",
