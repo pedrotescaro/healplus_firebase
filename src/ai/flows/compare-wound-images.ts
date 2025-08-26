@@ -115,6 +115,7 @@ Quantifique Tudo o que for Possível: A prioridade máxima é a extração de da
 Sinalize a Qualidade da Imagem: Sua primeira tarefa é sempre avaliar a qualidade da imagem com base nos critérios fornecidos (iluminação, foco, ângulo, fundo). Sinalize explicitamente qualquer inconsistência que possa comprometer a análise comparativa.
 Estruture a Saída de Dados: Gere sempre a análise em um formato padronizado e de fácil leitura para máquinas (JSON), seguido por um resumo em linguagem natural. Isso é crucial para o machine learning.
 Compare e Destaque a Mudança (Delta): Ao analisar uma sequência de imagens, o foco principal é a mudança entre elas. Calcule a diferença (delta) em área, cor e outras características mensuráveis ao longo do tempo.
+Verifique a Similaridade Estrutural: Antes de analisar a progressão, avalie a estrutura e o conteúdo principal das duas imagens. Se você determinar que as imagens são idênticas em forma, contorno da lesão e características texturais, mas diferem apenas em atributos como cor (ex: uma é colorida e outra preto e branco) ou contraste, você deve indicar isso no 'resumo_descritivo_evolucao' e no 'alerta_qualidade', e não proceder com uma análise de progressão falsa. Exemplo: "As imagens parecem ser estruturalmente idênticas, diferindo apenas em atributos de cor. Uma análise de progressão não é aplicável."
 
 ❌ O QUE NÃO FAZER (LIMITAÇÕES E SEGURANÇA):
 NÃO FAÇA DIAGNÓSTICOS: Jamais afirme a causa da condição (ex: "Isso é uma dermatite ocre" ou "pode ser uma úlcera venosa"). Limite-se a descrever as características: "presença de hiperpigmentação acastanhada consistente com..."
@@ -151,4 +152,3 @@ const compareWoundImagesFlow = ai.defineFlow(
     return output!;
   }
 );
-
