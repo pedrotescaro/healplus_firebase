@@ -114,6 +114,8 @@ export const translations = {
     // Página de Comparação de Imagens
     compareTitle: "Comparar Imagens de Feridas",
     compareDescription: "Envie duas imagens para analisar o progresso da cicatrização com IA.",
+    imageQualityAlertTitle: "Qualidade da Imagem Insuficiente",
+    imageQualityAlertDescription: "A IA detectou problemas de foco ou iluminação em uma das imagens. Por favor, tire novas fotos em um ambiente bem iluminado e com a imagem nítida para garantir uma análise precisa.",
 
     // Página de Comparação de Relatórios
     compareReportsTitle: "Comparar Relatórios",
@@ -260,6 +262,8 @@ export const translations = {
     // Compare Images Page
     compareTitle: "Compare Wound Images",
     compareDescription: "Upload two images to analyze healing progress with AI.",
+    imageQualityAlertTitle: "Insufficient Image Quality",
+    imageQualityAlertDescription: "The AI detected focus or lighting issues in one of the images. Please take new photos in a well-lit environment with a clear image to ensure an accurate analysis.",
 
     // Compare Reports Page
     compareReportsTitle: "Compare Reports",
@@ -298,3 +302,5 @@ export const translations = {
 export type Language = keyof typeof translations;
 export type Translation = typeof translations['pt-br'];
 export const defaultLanguage: Language = "pt-br";
+
+    

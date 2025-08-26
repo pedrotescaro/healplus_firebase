@@ -20,6 +20,7 @@ import { collection, addDoc, serverTimestamp } from "firebase/firestore";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
+import { useTranslation } from "@/contexts/app-provider";
 
 
 const isAIEnabled = !!process.env.NEXT_PUBLIC_GEMINI_API_KEY;
@@ -38,6 +39,7 @@ export function ImageComparator() {
   const [loading, setLoading] = useState(false);
   const { toast } = useToast();
   const { user } = useAuth();
+  const { t } = useTranslation();
 
   const handleFileSelect = (file: File, imageNumber: 1 | 2) => {
     const reader = new FileReader();
@@ -90,12 +92,28 @@ export function ImageComparator() {
         image1Metadata: { id: image1.id, datetime: image1.datetime },
         image2Metadata: { id: image2.id, datetime: image2.datetime },
        });
-      setComparison(result);
 
-      if (user) {
-        await addDoc(collection(db, "users", user.uid, "comparisons"), {
-          createdAt: serverTimestamp(),
+      const quality1 = result.analise_imagem_1.avaliacao_qualidade;
+      const quality2 = result.analise_imagem_2.avaliacao_qualidade;
+
+      const isQualityGood = quality1.iluminacao === "Adequada" && quality1.foco === "Nítido" &&
+                            quality2.iluminacao === "Adequada" && quality2.foco === "Nítido";
+
+      if (!isQualityGood) {
+        setComparison(null);
+        toast({
+            title: t.imageQualityAlertTitle,
+            description: t.imageQualityAlertDescription,
+            variant: "destructive",
+            duration: 8000
         });
+      } else {
+        setComparison(result);
+        if (user) {
+          await addDoc(collection(db, "users", user.uid, "comparisons"), {
+            createdAt: serverTimestamp(),
+          });
+        }
       }
     } catch (error) {
       console.error("Erro ao comparar imagens:", error);
@@ -328,3 +346,5 @@ export function ImageComparator() {
     </div>
   );
 }
+
+    
