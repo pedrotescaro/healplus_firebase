@@ -64,6 +64,7 @@ export default function ReportsPage() {
   const [pdfLoading, setPdfLoading] = useState(false);
   const [reportToDelete, setReportToDelete] = useState<string | null>(null);
   const [reportToView, setReportToView] = useState<StoredReport | null>(null);
+  const [currentReportForPdf, setCurrentReportForPdf] = useState<StoredReport | null>(null);
 
   useEffect(() => {
     const fetchReports = async () => {
@@ -110,12 +111,13 @@ export default function ReportsPage() {
     }
   };
 
-  const handleSavePdf = async () => {
-    if (!reportToView || !user) return;
+  const handleSavePdf = async (report: StoredReport | null) => {
+    if (!report || !user) return;
+    setCurrentReportForPdf(report); // Track which report is generating PDF
     setPdfLoading(true);
 
     try {
-        const anamnesisDocRef = doc(db, "users", user.uid, "anamnesis", reportToView.anamnesisId);
+        const anamnesisDocRef = doc(db, "users", user.uid, "anamnesis", report.anamnesisId);
         const anamnesisSnap = await getDoc(anamnesisDocRef);
         if (!anamnesisSnap.exists()) {
           toast({ title: "Erro", description: "Ficha de anamnese associada não encontrada.", variant: "destructive" });
@@ -171,17 +173,17 @@ export default function ReportsPage() {
         doc_.text("Imagem da Ferida Analisada", margin, finalY + 10);
         
         const img = new (window as any).Image();
-        img.src = reportToView.woundImageUri;
+        img.src = report.woundImageUri;
         await new Promise(resolve => { img.onload = resolve; });
 
-        const imgProps = doc_.getImageProperties(reportToView.woundImageUri);
+        const imgProps = doc_.getImageProperties(report.woundImageUri);
         const imgWidth = 80;
         const imgHeight = (imgProps.height * imgWidth) / imgProps.width;
         const imgX = (pageWidth - imgWidth) / 2;
-        doc_.addImage(reportToView.woundImageUri, 'PNG', imgX, finalY + 15, imgWidth, imgHeight);
+        doc_.addImage(report.woundImageUri, 'PNG', imgX, finalY + 15, imgWidth, imgHeight);
         finalY += imgHeight + 20;
 
-        const cleanReportText = reportToView.reportContent.replace(/\*\*/g, '');
+        const cleanReportText = report.reportContent.replace(/\*\*/g, '');
         autoTable(doc_, {
             startY: finalY + 5,
             head: [['Avaliação da Ferida (Análise por IA)']],
@@ -205,6 +207,7 @@ export default function ReportsPage() {
         });
     } finally {
         setPdfLoading(false);
+        setCurrentReportForPdf(null);
     }
 };
 
@@ -247,9 +250,9 @@ export default function ReportsPage() {
                       <TableCell className="text-right">
                         <DropdownMenu>
                           <DropdownMenuTrigger asChild>
-                            <Button aria-haspopup="true" size="icon" variant="ghost">
-                              <MoreHorizontal className="h-4 w-4" />
-                              <span className="sr-only">Toggle menu</span>
+                            <Button aria-haspopup="true" size="icon" variant="ghost" disabled={pdfLoading && currentReportForPdf?.id === report.id}>
+                               {pdfLoading && currentReportForPdf?.id === report.id ? <Loader2 className="h-4 w-4 animate-spin" /> : <MoreHorizontal className="h-4 w-4" />}
+                               <span className="sr-only">Toggle menu</span>
                             </Button>
                           </DropdownMenuTrigger>
                           <DropdownMenuContent align="end">
@@ -258,6 +261,10 @@ export default function ReportsPage() {
                             <DropdownMenuItem onSelect={() => setReportToView(report)}>
                               <Eye className="mr-2 h-4 w-4" /> {t.viewDetails}
                             </DropdownMenuItem>
+                             <DropdownMenuItem onSelect={() => handleSavePdf(report)}>
+                              <FileDown className="mr-2 h-4 w-4" /> Salvar em PDF
+                            </DropdownMenuItem>
+                            <DropdownMenuSeparator />
                             <DropdownMenuItem onSelect={() => setReportToDelete(report.id)} className="text-destructive focus:text-destructive">
                               <Trash2 className="mr-2 h-4 w-4" /> {t.delete}
                             </DropdownMenuItem>
@@ -301,7 +308,7 @@ export default function ReportsPage() {
                   {t.patient}: {reportToView?.patientName} | {t.date}: {reportToView && reportToView.createdAt.toDate().toLocaleDateString(t.locale, { timeZone: 'UTC' })}
                 </DialogDescription>
             </div>
-            <Button onClick={handleSavePdf} disabled={pdfLoading} variant="outline" size="sm">
+            <Button onClick={() => handleSavePdf(reportToView)} disabled={pdfLoading} variant="outline" size="sm">
               {pdfLoading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <FileDown className="mr-2 h-4 w-4" />}
               Salvar em PDF
             </Button>
@@ -339,3 +346,4 @@ export default function ReportsPage() {
     </div>
   );
 }
+
