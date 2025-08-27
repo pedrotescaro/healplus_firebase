@@ -41,6 +41,7 @@ import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/use-auth";
 import { db } from "@/firebase/client-app";
 import { collection, query, getDocs, orderBy, doc, deleteDoc } from "firebase/firestore";
+import { AnamnesisDetailsView } from "@/components/dashboard/anamnesis-details-view";
 
 type StoredAnamnesis = AnamnesisFormValues & { id: string };
 const ANAMNESIS_RECORDS_KEY = 'anamnesisRecords';
@@ -204,31 +205,15 @@ export default function AnamnesisRecordsPage() {
         
         {/* Dialog for Viewing Details */}
         <Dialog open={!!recordToView} onOpenChange={(open) => !open && setRecordToView(null)}>
-            <DialogContent className="max-w-2xl">
+            <DialogContent className="max-w-3xl">
               <DialogHeader>
                   <DialogTitle>Detalhes da Anamnese</DialogTitle>
                   <DialogDescription>
                   Paciente: {recordToView?.nome_cliente} | Data: {recordToView && new Date(recordToView.data_consulta).toLocaleDateString('pt-BR', { timeZone: 'UTC' })}
                   </DialogDescription>
               </DialogHeader>
-              <ScrollArea className="max-h-[60vh] p-4 border rounded-md">
-                  {recordToView && (
-                  <div className="space-y-4 text-sm">
-                      {Object.entries(recordToView).map(([key, value]) => {
-                      if (typeof value === 'boolean' || (value && typeof value !== 'object')) {
-                          const formattedKey = key.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
-                          const formattedValue = typeof value === 'boolean' ? (value ? 'Sim' : 'Não') : String(value);
-                          return (
-                          <div key={key} className="grid grid-cols-2 gap-2">
-                              <strong className="text-muted-foreground">{formattedKey}:</strong>
-                              <span>{formattedValue}</span>
-                          </div>
-                          );
-                      }
-                      return null;
-                      })}
-                  </div>
-                  )}
+              <ScrollArea className="max-h-[70vh] p-1">
+                {recordToView && <AnamnesisDetailsView record={recordToView} />}
               </ScrollArea>
               <DialogClose asChild>
                   <Button type="button" variant="secondary">
