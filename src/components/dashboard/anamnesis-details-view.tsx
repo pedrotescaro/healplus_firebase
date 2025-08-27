@@ -1,4 +1,5 @@
 
+import * as React from "react";
 import type { AnamnesisFormValues } from "@/lib/anamnesis-schema";
 import { Card, CardContent, CardHeader, CardTitle } from "../ui/card";
 import { Separator } from "../ui/separator";
