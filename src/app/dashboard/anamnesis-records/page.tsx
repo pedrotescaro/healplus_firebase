@@ -44,8 +44,6 @@ import { collection, query, getDocs, orderBy, doc, deleteDoc } from "firebase/fi
 import { AnamnesisDetailsView } from "@/components/dashboard/anamnesis-details-view";
 
 type StoredAnamnesis = AnamnesisFormValues & { id: string };
-const ANAMNESIS_RECORDS_KEY = 'anamnesisRecords';
-
 
 export default function AnamnesisRecordsPage() {
   const router = useRouter();
@@ -69,7 +67,7 @@ export default function AnamnesisRecordsPage() {
         setAnamneses(records);
       } catch (error) {
         console.error("Error fetching anamnesis records from Firestore: ", error);
-        toast({ title: "Erro", description: "Não foi possível carregar as fichas.", variant: "destructive" });
+        toast({ title: "Erro", description: "Não foi possível carregar as fichas dos pacientes.", variant: "destructive" });
       } finally {
         setLoading(false);
       }
@@ -87,12 +85,12 @@ export default function AnamnesisRecordsPage() {
       setAnamneses(anamneses.filter(record => record.id !== recordToDelete));
       toast({
         title: "Registro Excluído",
-        description: "A ficha de anamnese foi excluída com sucesso.",
+        description: "A ficha do paciente foi excluída com sucesso.",
       });
     } catch (error) {
       toast({
         title: "Erro",
-        description: "Não foi possível excluir a ficha de anamnese.",
+        description: "Não foi possível excluir a ficha do paciente.",
         variant: "destructive",
       });
       console.error("Failed to delete anamnesis record from Firestore", error);
@@ -108,14 +106,14 @@ export default function AnamnesisRecordsPage() {
   return (
     <div className="space-y-6">
         <div>
-            <h1 className="text-3xl font-bold tracking-tight">Minhas Fichas de Anamnese</h1>
+            <h1 className="text-3xl font-bold tracking-tight">Meus Pacientes</h1>
             <p className="text-muted-foreground">Visualize e gerencie todos os seus registros de pacientes.</p>
         </div>
         <Card>
             <CardHeader>
                 <CardTitle>Todos os Registros</CardTitle>
                 <CardDescription>
-                    Aqui estão todas as fichas de anamnese que você já criou, ordenadas pela data mais recente.
+                    Aqui estão todas as fichas de pacientes que você já criou, ordenadas pela data mais recente.
                 </CardDescription>
             </CardHeader>
             <CardContent>
@@ -175,7 +173,7 @@ export default function AnamnesisRecordsPage() {
                   </div>
                 ) : (
                     <div className="text-center py-8">
-                    <p className="text-muted-foreground mb-4">Nenhuma ficha de anamnese encontrada.</p>
+                    <p className="text-muted-foreground mb-4">Nenhuma ficha de paciente encontrada.</p>
                     <Link href="/dashboard/anamnesis" passHref>
                         <Button variant="outline">
                         <PlusCircle className="mr-2" />
@@ -193,7 +191,7 @@ export default function AnamnesisRecordsPage() {
             <AlertDialogHeader>
                 <AlertDialogTitle>Você tem certeza?</AlertDialogTitle>
                 <AlertDialogDescription>
-                Esta ação não pode ser desfeita. Isso excluirá permanentemente a ficha de anamnese do paciente.
+                Esta ação não pode ser desfeita. Isso excluirá permanentemente a ficha do paciente.
                 </AlertDialogDescription>
             </AlertDialogHeader>
             <AlertDialogFooter>

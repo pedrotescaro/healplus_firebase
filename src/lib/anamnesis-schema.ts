@@ -1,7 +1,7 @@
 import { z } from "zod";
 
-export const anamnesisFormSchema = z.object({
-  // Dados Pessoais
+// S - Social/Self-Care
+export const socialSchema = z.object({
   nome_cliente: z.string().min(1, "Nome é obrigatório"),
   data_nascimento: z.string().optional(),
   telefone: z.string().optional(),
@@ -11,33 +11,27 @@ export const anamnesisFormSchema = z.object({
   nivel_atividade: z.string().optional(),
   suporte_social: z.string().optional(),
   compreensao_adesao: z.string().optional(),
-
-  // Dados Clínicos
-  objetivo_tratamento: z.string().optional(),
-  historico_cicrizacao: z.string().optional(),
-  estado_nutricional: z.string().optional(),
-  usa_medicacao: z.boolean().default(false),
-  qual_medicacao: z.string().optional(),
-  possui_doenca: z.boolean().default(false),
-  qual_doenca: z.string().optional(),
-  possui_alergia: z.boolean().default(false),
-  qual_alergia: z.string().optional(),
+  fumante: z.boolean().default(false),
+  ingestao_alcool: z.boolean().default(false),
+  frequencia_alcool: z.string().optional(),
   pratica_atividade_fisica: z.boolean().default(false),
   qual_atividade: z.string().optional(),
   frequencia_atividade: z.string().optional(),
+  estado_nutricional: z.string().optional(),
   ingestao_agua_dia: z.string().optional(),
-  ingestao_alcool: z.boolean().default(false),
-  frequencia_alcool: z.string().optional(),
-  tem_filhos: z.boolean().default(false),
-  quantos_filhos: z.coerce.number().optional(),
+});
+
+// Clinical History & Comorbidities (part of S and I)
+export const clinicalHistorySchema = z.object({
+  objetivo_tratamento: z.string().optional(),
+  historico_cicrizacao: z.string().optional(),
+  possui_alergia: z.boolean().default(false),
+  qual_alergia: z.string().optional(),
   realizou_cirurgias: z.boolean().default(false),
   quais_cirurgias: z.string().optional(),
   claudicacao_intermitente: z.boolean().default(false),
   dor_repouso: z.boolean().default(false),
   pulsos_perifericos: z.string().optional(),
-  fumante: z.boolean().default(false),
-
-  // HPP e Comorbidades
   dmi: z.boolean().default(false),
   dmii: z.boolean().default(false),
   has: z.boolean().default(false),
@@ -54,8 +48,6 @@ export const anamnesisFormSchema = z.object({
   insuficiencia_hepatica: z.boolean().default(false),
   doenca_autoimune: z.boolean().default(false),
   outros_hpp: z.string().optional(),
-
-  // Medicamento em uso
   anti_hipertensivo: z.boolean().default(false),
   anti_hipertensivo_nome: z.string().optional(),
   anti_hipertensivo_dose: z.string().optional(),
@@ -87,33 +79,32 @@ export const anamnesisFormSchema = z.object({
   antirretroviral_nome: z.string().optional(),
   antirretroviral_dose: z.string().optional(),
   outros_medicamento: z.string().optional(),
+});
 
-  // Tamanho e Características da Ferida
+// T - Tissue
+export const tissueSchema = z.object({
   ferida_largura: z.coerce.number().min(0, "Largura não pode ser negativa"),
   ferida_comprimento: z.coerce.number().min(0, "Comprimento não pode ser negativo"),
   ferida_profundidade: z.coerce.number().min(0, "Profundidade não pode ser negativa"),
-
-  // Avaliação da Ferida (TIMERS) - Parte 1
   localizacao_ferida: z.string().min(1, "Localização é obrigatória"),
   etiologia_ferida: z.string().optional(),
   etiologia_outra: z.string().optional(),
   tempo_evolucao: z.string().min(1, "Tempo de evolução é obrigatório"),
-  dor_escala: z.coerce.number().min(0).max(10).optional(),
-  dor_fatores: z.string().optional(),
-  
-  // Avaliação da Ferida (TIMERS) - Tecido e Inflamação
   percentual_granulacao_leito: z.coerce.number().min(0).max(100),
   percentual_epitelizacao_leito: z.coerce.number().min(0).max(100),
   percentual_esfacelo_leito: z.coerce.number().min(0).max(100),
   percentual_necrose_seca_leito: z.coerce.number().min(0).max(100),
-  
+});
+
+// I - Infection/Inflammation
+export const infectionSchema = z.object({
+  dor_escala: z.coerce.number().min(0).max(10).optional(),
+  dor_fatores: z.string().optional(),
   inflamacao_rubor: z.boolean().default(false),
   inflamacao_calor: z.boolean().default(false),
   inflamacao_edema: z.boolean().default(false),
   inflamacao_dor_local: z.boolean().default(false),
   inflamacao_perda_funcao: z.boolean().default(false),
-  
-  // Avaliação da Ferida (TIMERS) - Infecção e Exsudato
   infeccao_eritema_perilesional: z.boolean().default(false),
   infeccao_calor_local: z.boolean().default(false),
   infeccao_edema: z.boolean().default(false),
@@ -123,21 +114,24 @@ export const anamnesisFormSchema = z.object({
   infeccao_retardo_cicatrizacao: z.boolean().default(false),
   cultura_realizada: z.boolean().default(false),
   resultado_cultura: z.string().optional(),
-  
-  // Avaliação da Ferida (TIMERS) - Exsudato e Pele Perilesional
+});
+
+// M - Moisture
+export const moistureSchema = z.object({
   quantidade_exsudato: z.string().optional(),
   tipo_exsudato: z.string().optional(),
   consistencia_exsudato: z.string().optional(),
-  pele_perilesional_umidade: z.string().optional(),
-  pele_perilesional_extensao: z.string().optional(),
-  
-  // Avaliação da Ferida (TIMERS) - Bordas e Cicatrização
+});
+
+// E - Edge
+export const edgeSchema = z.object({
   bordas_caracteristicas: z.string().optional(),
   fixacao_bordas: z.string().optional(),
   tunel_cavidade: z.boolean().default(false),
   localizacao_tunel_cavidade: z.string().optional(),
   velocidade_cicatrizacao: z.string().optional(),
-  
+  pele_perilesional_umidade: z.string().optional(),
+  pele_perilesional_extensao: z.string().optional(),
   pele_perilesional_integra: z.boolean().default(false),
   pele_perilesional_eritematosa: z.boolean().default(false),
   pele_perilesional_macerada: z.boolean().default(false),
@@ -148,8 +142,10 @@ export const anamnesisFormSchema = z.object({
   pele_perilesional_indurada: z.boolean().default(false),
   pele_perilesional_sensivel: z.boolean().default(false),
   pele_perilesional_edema: z.boolean().default(false),
-  
-  // Informações Adicionais
+});
+
+// R - Repair/Regeneration/Refer
+export const repairSchema = z.object({
   observacoes: z.string().optional(),
   data_consulta: z.string().min(1, "Data da consulta é obrigatória"),
   hora_consulta: z.string().min(1, "Hora da consulta é obrigatória"),
@@ -157,5 +153,24 @@ export const anamnesisFormSchema = z.object({
   coren: z.string().optional(),
   data_retorno: z.string().optional(),
 });
+
+
+// Unifying schema with all parts of TIMERS
+export const anamnesisFormSchema = socialSchema
+  .merge(clinicalHistorySchema)
+  .merge(tissueSchema)
+  .merge(infectionSchema)
+  .merge(moistureSchema)
+  .merge(edgeSchema)
+  .merge(repairSchema)
+  // Deprecated fields that are not part of TIMERS explicitly but were in the old schema
+  .merge(z.object({
+    usa_medicacao: z.boolean().default(false),
+    qual_medicacao: z.string().optional(),
+    possui_doenca: z.boolean().default(false),
+    qual_doenca: z.string().optional(),
+    tem_filhos: z.boolean().default(false),
+    quantos_filhos: z.coerce.number().optional(),
+  }));
 
 export type AnamnesisFormValues = z.infer<typeof anamnesisFormSchema>;

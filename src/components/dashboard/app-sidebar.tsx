@@ -13,6 +13,7 @@ import {
   Archive,
   CalendarDays,
   CopyCheck,
+  Users,
 } from "lucide-react";
 import { useAuth } from "@/hooks/use-auth";
 import { Button } from "@/components/ui/button";
@@ -50,7 +51,7 @@ export default function AppSidebar({ className, onLinkClick }: AppSidebarProps) 
   const navItems = [
     { href: "/dashboard", icon: LayoutDashboard, label: t.dashboard },
     { href: "/dashboard/anamnesis", icon: ClipboardList, label: t.newAnamnesis },
-    { href: "/dashboard/anamnesis-records", icon: Archive, label: t.myRecords },
+    { href: "/dashboard/anamnesis-records", icon: Users, label: t.myPatients },
     { href: "/dashboard/agenda", icon: CalendarDays, label: t.agenda },
     { href: "/dashboard/report", icon: FileText, label: t.generateReport },
     { href: "/dashboard/reports", icon: Archive, label: t.myReports },

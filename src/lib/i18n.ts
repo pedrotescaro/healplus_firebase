@@ -50,8 +50,8 @@ export const translations = {
     
     // Sidebar & Navegação
     dashboard: "Dashboard",
-    newAnamnesis: "Nova Anamnese",
-    myRecords: "Minhas Fichas",
+    newAnamnesis: "Nova Avaliação",
+    myPatients: "Meus Pacientes",
     myReports: "Meus Relatórios",
     agenda: "Agenda",
     generateReport: "Gerar Relatório",
@@ -63,9 +63,9 @@ export const translations = {
     // Página do Dashboard
     welcomeMessage: "Bem-vindo(a), {name}",
     dashboardGreeting: "Aqui está um resumo rápido do que você pode fazer.",
-    newAnamnesisCardTitle: "Nova Ficha de Anamnese",
-    newAnamnesisCardDescription: "Crie uma nova ficha de anamnese detalhada para avaliar o paciente e a ferida.",
-    createForm: "Criar Ficha",
+    newAnamnesisCardTitle: "Nova Avaliação de Ferida",
+    newAnamnesisCardDescription: "Crie uma nova ficha de avaliação guiada pelo framework TIMERS.",
+    createForm: "Criar Avaliação",
     generateReportCardTitle: "Gerar Relatório da Ferida",
     generateReportCardDescription: "Carregue uma imagem e dados da anamnese para gerar um relatório com IA.",
     createReport: "Criar Relatório",
@@ -75,16 +75,16 @@ export const translations = {
     agendaCardTitle: "Agenda de Retornos",
     agendaCardDescription: "Visualize seus próximos agendamentos e retornos de pacientes.",
     agendaCardBtn: "Ver Agenda",
-    recentAnamnesisTitle: "Fichas de Anamnese Recentes",
-    recentAnamnesisDescription: "Veja as últimas fichas de anamnese que você preencheu.",
+    recentAnamnesisTitle: "Avaliações Recentes",
+    recentAnamnesisDescription: "Veja as últimas fichas de avaliação que você preencheu.",
     loadingRecords: "Carregando fichas...",
     woundLocation: "Localização da Ferida",
     consultationDate: "Data da Consulta",
     viewDetails: "Ver Detalhes",
     edit: "Editar",
     delete: "Excluir",
-    noRecordsFound: "Nenhuma ficha de anamnese encontrada.",
-    createFirstRecord: "Criar Primeira Ficha",
+    noRecordsFound: "Nenhuma ficha de avaliação encontrada.",
+    createFirstRecord: "Criar Primeira Avaliação",
     viewAllRecords: "Ver todas as fichas",
     activitySummaryTitle: "Resumo das Atividades",
     activitySummaryDescription: "Sua atividade recente na plataforma.",
@@ -108,8 +108,8 @@ export const translations = {
     agendaDescription: "Visualize os próximos agendamentos de reavaliação de feridas.",
 
     // Página de Anamnese
-    anamnesisTitle: "Ficha de Anamnese",
-    anamnesisDescription: "Preencha os dados do paciente e da ferida para uma avaliação completa.",
+    anamnesisTitle: "Avaliação de Ferida - TIMERS",
+    anamnesisDescription: "Preencha os dados do paciente e da ferida seguindo o framework clínico TIMERS.",
 
     // Página de Comparação de Imagens
     compareTitle: "Comparar Imagens de Feridas",
@@ -199,8 +199,8 @@ export const translations = {
 
     // Sidebar & Navigation
     dashboard: "Dashboard",
-    newAnamnesis: "New Anamnesis",
-    myRecords: "My Records",
+    newAnamnesis: "New Assessment",
+    myPatients: "My Patients",
     myReports: "My Reports",
     agenda: "Agenda",
     generateReport: "Generate Report",
@@ -212,9 +212,9 @@ export const translations = {
     // Dashboard Page
     welcomeMessage: "Welcome, {name}",
     dashboardGreeting: "Here's a quick summary of what you can do.",
-    newAnamnesisCardTitle: "New Anamnesis Form",
-    newAnamnesisCardDescription: "Create a new detailed anamnesis form to evaluate the patient and the wound.",
-    createForm: "Create Form",
+    newAnamnesisCardTitle: "New Wound Assessment",
+    newAnamnesisCardDescription: "Create a new assessment form guided by the TIMERS framework.",
+    createForm: "Create Assessment",
     generateReportCardTitle: "Generate Wound Report",
     generateReportCardDescription: "Upload an image and anamnesis data to generate a report with AI.",
     createReport: "Create Report",
@@ -224,16 +224,16 @@ export const translations = {
     agendaCardTitle: "Return Schedule",
     agendaCardDescription: "View your upcoming appointments and patient returns.",
     agendaCardBtn: "View Agenda",
-    recentAnamnesisTitle: "Recent Anamnesis Forms",
-    recentAnamnesisDescription: "View the latest anamnesis forms you have filled out.",
+    recentAnamnesisTitle: "Recent Assessments",
+    recentAnamnesisDescription: "View the latest assessment forms you have filled out.",
     loadingRecords: "Loading records...",
     woundLocation: "Wound Location",
     consultationDate: "Consultation Date",
     viewDetails: "View Details",
     edit: "Edit",
     delete: "Delete",
-    noRecordsFound: "No anamnesis forms found.",
-    createFirstRecord: "Create First Form",
+    noRecordsFound: "No assessment forms found.",
+    createFirstRecord: "Create First Assessment",
     viewAllRecords: "View all forms",
     activitySummaryTitle: "Activity Summary",
     activitySummaryDescription: "Your recent activity on the platform.",
@@ -256,8 +256,8 @@ export const translations = {
     agendaDescription: "View upcoming appointments for wound reassessment.",
 
     // Anamnesis Page
-    anamnesisTitle: "Anamnesis Form",
-    anamnesisDescription: "Fill in the patient and wound data for a complete evaluation.",
+    anamnesisTitle: "Wound Assessment - TIMERS",
+    anamnesisDescription: "Fill in patient and wound data following the TIMERS clinical framework.",
 
     // Compare Images Page
     compareTitle: "Compare Wound Images",
@@ -302,5 +302,3 @@ export const translations = {
 export type Language = keyof typeof translations;
 export type Translation = typeof translations['pt-br'];
 export const defaultLanguage: Language = "pt-br";
-
-    
