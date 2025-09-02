@@ -6,7 +6,6 @@ import { usePathname, useRouter } from "next/navigation";
 import {
   LayoutDashboard,
   FileText,
-  GitCompareArrows,
   User,
   LogOut,
   ClipboardList,
@@ -55,7 +54,6 @@ export default function AppSidebar({ className, onLinkClick }: AppSidebarProps) 
     { href: "/dashboard/agenda", icon: CalendarDays, label: t.agenda },
     { href: "/dashboard/report", icon: FileText, label: t.generateReport },
     { href: "/dashboard/reports", icon: Archive, label: t.myReports },
-    { href: "/dashboard/compare", icon: GitCompareArrows, label: t.compareImages },
     { href: "/dashboard/compare-reports", icon: CopyCheck, label: t.compareReports },
     { href: "/dashboard/profile", icon: User, label: t.profile },
   ];

@@ -2,6 +2,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import Image from "next/image";
 import { compareWoundReports, CompareWoundReportsOutput } from "@/ai/flows/compare-wound-reports";
 import { useToast } from "@/hooks/use-toast";
 import { Button } from "@/components/ui/button";
@@ -14,18 +15,22 @@ import {
 } from "@/components/ui/select";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import { Loader2, Sparkles, AlertCircle, TrendingUp, TrendingDown, Minus, PencilLine } from "lucide-react";
+import { Loader2, Sparkles, AlertCircle, TrendingUp, TrendingDown, Minus, PencilLine, GitCompareArrows, FileImage, ClipboardCheck, ImageOff } from "lucide-react";
 import { useAuth } from "@/hooks/use-auth";
 import { db } from "@/firebase/client-app";
 import { collection, query, getDocs, orderBy, Timestamp } from "firebase/firestore";
 import { Alert, AlertDescription, AlertTitle } from "../ui/alert";
 import { ScrollArea } from "../ui/scroll-area";
 import { Badge } from "../ui/badge";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { Separator } from "../ui/separator";
 
 interface StoredReport {
   id: string;
   patientName: string;
   reportContent: string;
+  woundImageUri: string;
   createdAt: Timestamp;
 }
 
@@ -72,8 +77,8 @@ export function ReportComparator() {
     const report1 = reports.find(r => r.id === selectedReport1Id);
     const report2 = reports.find(r => r.id === selectedReport2Id);
 
-    if (!report1 || !report2) {
-      toast({ title: "Erro", description: "Não foi possível encontrar os relatórios selecionados.", variant: "destructive" });
+    if (!report1 || !report2 || !report1.woundImageUri || !report2.woundImageUri) {
+      toast({ title: "Dados Incompletos", description: "Ambos os relatórios selecionados devem conter uma imagem para comparação.", variant: "destructive" });
       return;
     }
 
@@ -83,8 +88,10 @@ export function ReportComparator() {
       const result = await compareWoundReports({
         report1Content: report1.reportContent,
         report2Content: report2.reportContent,
-        report1Date: report1.createdAt.toDate().toLocaleDateString('pt-BR'),
-        report2Date: report2.createdAt.toDate().toLocaleDateString('pt-BR'),
+        image1DataUri: report1.woundImageUri,
+        image2DataUri: report2.woundImageUri,
+        report1Date: report1.createdAt.toDate().toISOString(),
+        report2Date: report2.createdAt.toDate().toISOString(),
       });
       setComparisonResult(result);
     } catch (error) {
@@ -95,16 +102,6 @@ export function ReportComparator() {
     }
   };
   
-  const getEvolutionIcon = (evolution: string) => {
-    switch (evolution) {
-      case "Melhora": return <TrendingUp className="h-4 w-4 text-green-500" />;
-      case "Piora": return <TrendingDown className="h-4 w-4 text-red-500" />;
-      case "Estável": return <Minus className="h-4 w-4 text-yellow-500" />;
-      case "Alteração": return <PencilLine className="h-4 w-4 text-blue-500" />;
-      default: return null;
-    }
-  };
-
   const selectedReport1 = reports.find(r => r.id === selectedReport1Id);
   const selectedReport2 = reports.find(r => r.id === selectedReport2Id);
 
@@ -151,7 +148,7 @@ export function ReportComparator() {
         </div>
         <Button type="submit" disabled={loading || !selectedReport1Id || !selectedReport2Id} className="w-full md:w-auto">
           {loading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Sparkles className="mr-2 h-4 w-4" />}
-          Comparar Relatórios
+          Analisar Progressão
         </Button>
       </form>
 
@@ -165,40 +162,58 @@ export function ReportComparator() {
       {loading && (
         <div className="flex items-center justify-center flex-col text-center p-8">
           <Loader2 className="h-8 w-8 animate-spin text-primary" />
-          <p className="mt-4 text-muted-foreground">A IA está analisando a evolução entre os relatórios...</p>
+          <p className="mt-4 text-muted-foreground">A IA está analisando a evolução entre os relatórios e imagens...</p>
         </div>
       )}
 
       {comparisonResult && (
-        <Card>
-          <CardHeader>
-            <CardTitle>Análise Comparativa da IA</CardTitle>
-            <CardDescription>Resumo da evolução do caso entre os dois relatórios selecionados.</CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div>
-                <h3 className="font-semibold text-lg mb-2">Resumo da Evolução</h3>
-                <p className="prose prose-sm max-w-none dark:prose-invert whitespace-pre-wrap">{comparisonResult.evolutionSummary}</p>
-            </div>
-             <div>
-                <h3 className="font-semibold text-lg mb-2">Principais Mudanças</h3>
-                <div className="space-y-3">
-                    {comparisonResult.keyChanges.map((change, index) => (
-                        <div key={index} className="p-3 border rounded-md bg-muted/50">
-                            <div className="flex items-center justify-between mb-1">
-                                <h4 className="font-semibold text-sm">{change.area}</h4>
-                                <Badge variant="outline" className="flex items-center gap-1">
-                                    {getEvolutionIcon(change.evolution)}
-                                    {change.evolution}
-                                </Badge>
-                            </div>
-                            <p className="text-sm text-muted-foreground">{change.changeDescription}</p>
+         <Tabs defaultValue="comparativo" className="w-full">
+            <TabsList className="grid w-full grid-cols-3">
+                <TabsTrigger value="comparativo"><GitCompareArrows className="mr-2" />Comparativo</TabsTrigger>
+                <TabsTrigger value="imagem1"><FileImage className="mr-2" />Análise Imagem 1</TabsTrigger>
+                <TabsTrigger value="imagem2"><FileImage className="mr-2" />Análise Imagem 2</TabsTrigger>
+            </TabsList>
+            <TabsContent value="comparativo" className="mt-4">
+                <Card>
+                    <CardHeader>
+                        <CardTitle className="flex items-center gap-2"><ClipboardCheck /> Relatório Comparativo de Progressão</CardTitle>
+                        <CardDescription>Análise da evolução entre {comparisonResult.relatorio_comparativo.intervalo_tempo}.</CardDescription>
+                    </CardHeader>
+                    <CardContent className="space-y-4">
+                        {comparisonResult.relatorio_comparativo.consistencia_dados.alerta_qualidade && (
+                            <Alert variant="destructive">
+                                <AlertCircle className="h-4 w-4" />
+                                <AlertTitle>Alerta de Qualidade</AlertTitle>
+                                <AlertDescription>{comparisonResult.relatorio_comparativo.consistencia_dados.alerta_qualidade}</AlertDescription>
+                            </Alert>
+                        )}
+                        <div>
+                            <h3 className="font-semibold text-lg mb-2">Resumo Descritivo da Evolução</h3>
+                            <p className="prose prose-sm max-w-none dark:prose-invert whitespace-pre-wrap">{comparisonResult.relatorio_comparativo.resumo_descritivo_evolucao}</p>
                         </div>
-                    ))}
-                </div>
-            </div>
-          </CardContent>
-        </Card>
+                        <Separator />
+                        <div>
+                            <h3 className="font-semibold text-lg mb-2">Análise Quantitativa (Delta Δ)</h3>
+                            <Table>
+                                <TableBody>
+                                    <TableRow><TableCell className="font-medium">Δ Área Total Afetada</TableCell><TableCell>{comparisonResult.relatorio_comparativo.analise_quantitativa_progressao.delta_area_total_afetada}</TableCell></TableRow>
+                                    <TableRow><TableCell className="font-medium">Δ Hiperpigmentação</TableCell><TableCell>{comparisonResult.relatorio_comparativo.analise_quantitativa_progressao.delta_coloracao.mudanca_area_hiperpigmentacao}</TableCell></TableRow>
+                                    <TableRow><TableCell className="font-medium">Δ Eritema/Rubor</TableCell><TableCell>{comparisonResult.relatorio_comparativo.analise_quantitativa_progressao.delta_coloracao.mudanca_area_eritema_rubor}</TableCell></TableRow>
+                                    <TableRow><TableCell className="font-medium">Δ Edema</TableCell><TableCell>{comparisonResult.relatorio_comparativo.analise_quantitativa_progressao.delta_edema}</TableCell></TableRow>
+                                    <TableRow><TableCell className="font-medium">Δ Textura</TableCell><TableCell>{comparisonResult.relatorio_comparativo.analise_quantitativa_progressao.delta_textura}</TableCell></TableRow>
+                                </TableBody>
+                            </Table>
+                        </div>
+                    </CardContent>
+                </Card>
+            </TabsContent>
+            <TabsContent value="imagem1" className="mt-4">
+                 <IndividualAnalysisCard analysis={comparisonResult.analise_imagem_1} />
+            </TabsContent>
+            <TabsContent value="imagem2" className="mt-4">
+                <IndividualAnalysisCard analysis={comparisonResult.analise_imagem_2} />
+            </TabsContent>
+        </Tabs>
       )}
     </div>
   );
@@ -223,8 +238,20 @@ const ReportDisplay = ({ report, title }: { report: StoredReport | undefined, ti
                 <CardTitle>{title}</CardTitle>
                 <CardDescription>{report.patientName} - {report.createdAt.toDate().toLocaleDateString('pt-BR')}</CardDescription>
             </CardHeader>
-            <CardContent>
-                <ScrollArea className="h-64 p-4 border rounded-md">
+            <CardContent className="space-y-4">
+                <div className="relative flex h-48 w-full flex-col items-center justify-center rounded-lg border-2 border-dashed bg-card p-2">
+                    {report.woundImageUri ? (
+                        <div className="relative h-full w-full">
+                            <Image src={report.woundImageUri} alt={`Wound for ${report.patientName}`} layout="fill" className="object-contain" data-ai-hint="wound" />
+                        </div>
+                    ) : (
+                        <div className="text-center text-muted-foreground">
+                            <ImageOff className="mx-auto h-10 w-10" />
+                            <p className="mt-2 text-sm">Sem imagem</p>
+                        </div>
+                    )}
+                </div>
+                <ScrollArea className="h-48 p-4 border rounded-md">
                     <div className="prose prose-sm max-w-none dark:prose-invert whitespace-pre-wrap">
                         {report.reportContent}
                     </div>
@@ -233,3 +260,72 @@ const ReportDisplay = ({ report, title }: { report: StoredReport | undefined, ti
         </Card>
     );
 };
+
+const QualityBadge = ({ label, value }: { label: string, value: string }) => {
+    const variant = (value: string) => {
+        switch (value) {
+            case 'Adequada':
+            case 'Nítido':
+            case 'Sim':
+            case 'Neutro':
+                return 'default';
+            default:
+                return 'destructive';
+        }
+    };
+    return <Badge variant={variant(value)}>{label}: {value}</Badge>;
+  };
+
+const IndividualAnalysisCard = ({ analysis }: { analysis: CompareWoundReportsOutput['analise_imagem_1'] }) => {
+      const { avaliacao_qualidade, analise_dimensional, analise_colorimetrica, analise_textura_e_caracteristicas } = analysis;
+      return (
+          <div className="space-y-4">
+              <Card>
+                  <CardHeader>
+                      <CardTitle className="text-base">Qualidade da Imagem</CardTitle>
+                  </CardHeader>
+                  <CardContent className="flex flex-wrap gap-2">
+                      <QualityBadge label="Iluminação" value={avaliacao_qualidade.iluminacao} />
+                      <QualityBadge label="Foco" value={avaliacao_qualidade.foco} />
+                      <QualityBadge label="Fundo" value={avaliacao_qualidade.fundo} />
+                      <QualityBadge label="Escala" value={avaliacao_qualidade.escala_referencia_presente} />
+                  </CardContent>
+              </Card>
+              <Card>
+                  <CardHeader>
+                      <CardTitle className="text-base">Análise Dimensional e Textura</CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                      <Table>
+                          <TableBody>
+                              <TableRow><TableCell className="font-medium">Área Afetada</TableCell><TableCell>{analise_dimensional.area_total_afetada} {analise_dimensional.unidade_medida}</TableCell></TableRow>
+                              <TableRow><TableCell className="font-medium">Edema</TableCell><TableCell>{analise_textura_e_caracteristicas.edema}</TableCell></TableRow>
+                              <TableRow><TableCell className="font-medium">Descamação</TableCell><TableCell>{analise_textura_e_caracteristicas.descamacao}</TableCell></TableRow>
+                              <TableRow><TableCell className="font-medium">Brilho</TableCell><TableCell>{analise_textura_e_caracteristicas.brilho_superficial}</TableCell></TableRow>
+                              <TableRow><TableCell className="font-medium">Bordas</TableCell><TableCell>{analise_textura_e_caracteristicas.bordas_lesao}</TableCell></TableRow>
+                          </TableBody>
+                      </Table>
+                  </CardContent>
+              </Card>
+              <Card>
+                  <CardHeader>
+                      <CardTitle className="text-base">Análise Colorimétrica</CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                       <Table>
+                          <TableHeader><TableRow><TableHead>Cor</TableHead><TableHead>Hex</TableHead><TableHead className="text-right">% Área</TableHead></TableRow></TableHeader>
+                          <TableBody>
+                              {analise_colorimetrica.cores_dominantes.map(c => (
+                                  <TableRow key={c.hex_aproximado}>
+                                      <TableCell className="font-medium flex items-center gap-2"><div className="w-4 h-4 rounded-full border" style={{ backgroundColor: c.hex_aproximado }}></div> {c.cor}</TableCell>
+                                      <TableCell>{c.hex_aproximado}</TableCell>
+                                      <TableCell className="text-right">{c.area_percentual}%</TableCell>
+                                  </TableRow>
+                              ))}
+                          </TableBody>
+                      </Table>
+                  </CardContent>
+              </Card>
+          </div>
+      )
+  };

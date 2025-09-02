@@ -2,7 +2,7 @@
 'use server';
 
 /**
- * @fileOverview An AI agent to compare two wound reports and assess healing progress.
+ * @fileOverview An AI agent to compare two wound reports (text and images) and assess healing progress.
  *
  * - compareWoundReports - A function that handles the comparison of two reports.
  * - CompareWoundReportsInput - The input type for the compareWoundReports function.
@@ -11,24 +11,28 @@
 
 import {ai} from '@/ai/genkit';
 import {z} from 'genkit';
+import { CompareWoundImagesOutput } from './compare-wound-images';
+
 
 const CompareWoundReportsInputSchema = z.object({
   report1Content: z.string().describe("The content of the first (older) wound report in Markdown format."),
   report2Content: z.string().describe("The content of the second (newer) wound report in Markdown format."),
+  image1DataUri: z
+    .string()
+    .describe(
+      "The first wound image as a data URI that must include a MIME type and use Base64 encoding. Expected format: 'data:<mimetype>;base64,<encoded_data>'."
+    ),
+  image2DataUri: z
+    .string()
+    .describe(
+      "The second wound image as a data URI that must include a MIME type and use Base64 encoding. Expected format: 'data:<mimetype>;base64,<encoded_data>'."
+    ),
   report1Date: z.string().describe("The creation date of the first report."),
   report2Date: z.string().describe("The creation date of the second report."),
 });
 export type CompareWoundReportsInput = z.infer<typeof CompareWoundReportsInputSchema>;
 
-const CompareWoundReportsOutputSchema = z.object({
-  evolutionSummary: z.string().describe("A concise, technical summary of the observed evolution between the two reports."),
-  keyChanges: z.array(z.object({
-    area: z.string().describe("The area of change (e.g., 'Leito da Ferida', 'Pele Perilesional', 'Plano de Tratamento')."),
-    changeDescription: z.string().describe("A description of the specific change observed in this area."),
-    evolution: z.enum(["Melhora", "Piora", "Estável", "Alteração"]).describe("The classification of the change (Improvement, Worsening, Stable, Alteration).")
-  })).describe("A list of key changes identified between the reports."),
-});
-export type CompareWoundReportsOutput = z.infer<typeof CompareWoundReportsOutputSchema>;
+export type CompareWoundReportsOutput = CompareWoundImagesOutput;
 
 
 export async function compareWoundReports(input: CompareWoundReportsInput): Promise<CompareWoundReportsOutput> {
@@ -38,54 +42,50 @@ export async function compareWoundReports(input: CompareWoundReportsInput): Prom
 const prompt = ai.definePrompt({
   name: 'compareWoundReportsPrompt',
   input: {schema: CompareWoundReportsInputSchema},
-  output: {schema: CompareWoundReportsOutputSchema},
+  output: {schema: z.custom<CompareWoundReportsOutput>()},
   prompt: `
 Persona e Objetivo Primário:
-"Você é um assistente de IA especialista em Estomaterapia, com foco na análise de relatórios de feridas. Seu objetivo é comparar dois relatórios de um mesmo paciente, feitos em datas diferentes, e extrair as principais mudanças e a evolução do quadro clínico. Você NUNCA deve inventar informações não contidas nos relatórios. Sua função é sintetizar e estruturar a progressão do caso para auxiliar na avaliação de profissionais de saúde."
+"Você é um assistente de IA especialista em Estomaterapia, com foco na análise de relatórios e imagens de feridas para avaliar a progressão. Seu objetivo é comparar dois conjuntos de dados (Relatório 1 + Imagem 1 vs. Relatório 2 + Imagem 2) e produzir uma análise técnica, objetiva e quantitativa da evolução. Você NUNCA deve fornecer um diagnóstico médico. Sua função é sintetizar e estruturar a progressão do caso para auxiliar profissionais de saúde."
 
 Regras Essenciais de Execução:
 ✅ O QUE FAZER (PRINCÍPIOS DE ANÁLISE):
-Seja Factual: Baseie sua análise estritamente nas informações fornecidas nos dois relatórios.
-Identifique a Evolução: O foco principal é a mudança entre o Relatório 1 (mais antigo) e o Relatório 2 (mais recente). Destaque melhoras, pioras, ou estabilidade.
-Analise Todas as Seções: Compare as seções equivalentes dos relatórios (Avaliação da Ferida, Hipótese Diagnóstica, Plano de Tratamento, etc.).
-Estruture a Saída: Gere sempre a análise no formato JSON solicitado, identificando a área da mudança (ex: Leito da Ferida), a descrição da mudança e a classificação (Melhora, Piora, Estável, Alteração).
-Faça um Resumo Técnico: No final, crie um parágrafo conciso que resuma a evolução geral do caso.
+- Análise Integrada: Use o conteúdo dos relatórios para dar contexto à análise visual das imagens. A análise das imagens é a fonte primária para os dados quantitativos.
+- Seja Objetivo e Quantitativo: A prioridade máxima é a extração de dados numéricos e descrições técnicas a partir das IMAGENS.
+- Sinalize a Qualidade da Imagem: Sua primeira tarefa é sempre avaliar a qualidade das imagens (iluminação, foco, etc.).
+- Verifique a Similaridade Estrutural: Antes de analisar a progressão, avalie se as imagens são estruturalmente idênticas (ex: uma colorida e outra P&B). Se forem, indique no 'resumo_descritivo_evolucao' e no 'alerta_qualidade' que uma análise de progressão não é aplicável.
+- Estruture a Saída: Gere sempre a análise no formato JSON solicitado, preenchendo todas as seções para cada imagem e para o relatório comparativo.
 
 ❌ O QUE NÃO FAZER (LIMITAÇÕES E SEGURANÇA):
-NÃO FAÇA DIAGNÓSTICOS NOVOS: Não introduza novas hipóteses diagnósticas que não estejam sugeridas nos relatórios.
-NÃO SUGIRA TRATAMENTOS NOVOS: Não recomende tratamentos que não foram mencionados nos planos dos relatórios.
-NÃO USE LINGUAGEM SUBJETIVA: Evite termos como "parece bem melhor". Substitua por dados extraídos dos relatórios: "Houve uma alteração no tipo de tecido predominante de esfacelo para tecido de granulação."
-NÃO FAÇA SUPOSIÇÕES: Se uma informação não está clara ou está ausente em um dos relatórios, não a invente.
+- NÃO FAÇA DIAGNÓSTICOS: Jamais afirme a causa da condição.
+- NÃO SUGIRA TRATAMENTOS: Nunca recomende intervenções.
+- NÃO USE LINGUAGEM SUBJETIVA: Evite "melhorou". Use dados: "Houve uma redução de 10% na área de eritema".
+- NÃO FAÇA SUPOSIÇÕES: Se uma característica não estiver clara, declare isso.
 
-Protocolo de Análise Comparativa de Relatórios:
-Você receberá o conteúdo de dois relatórios. Siga estes passos:
+Protocolo de Análise Comparativa de Relatórios e Imagens:
+Você receberá o conteúdo e a imagem de dois relatórios. Siga estes passos:
 
-Passo 1: Leitura e Compreensão
-Leia atentamente o Relatório 1 (de {{report1Date}}) e o Relatório 2 (de {{report2Date}}).
+Passo 1: Análise Individual de cada Conjunto (Relatório + Imagem)
+- Para cada conjunto (1 e 2), analise a IMAGEM para preencher a estrutura de dados JSON correspondente (analise_imagem_1, analise_imagem_2). Use o texto do relatório correspondente como contexto auxiliar.
 
-Passo 2: Análise Comparativa e Extração de Mudanças
-Identifique as principais diferenças entre os relatórios nas seguintes áreas:
-- Avaliação da Ferida: Mudanças no tamanho, tipo de tecido (granulação, necrose), exsudato, bordas, pele perilesional.
-- Hipótese Diagnóstica: Houve alguma mudança na hipótese?
-- Plano de Tratamento: O tratamento proposto foi alterado? Quais curativos ou intervenções foram modificados?
-- Fatores de Risco: Algum novo fator de risco foi identificado ou algum antigo foi resolvido?
+Passo 2: Geração do Relatório Comparativo de Progressão
+- Após analisar os conjuntos individualmente, gere o relatório comparativo ('relatorio_comparativo').
+- Calcule o intervalo de tempo e todas as deltas (Δ) quantitativas entre a Imagem 1 e a Imagem 2.
+- No 'resumo_descritivo_evolucao', sintetize as mudanças observadas tanto nas imagens quanto nos relatórios. Por exemplo, "A análise visual indica uma redução na área de esfacelo, o que é corroborado pela mudança no plano de tratamento do Relatório 2, que agora foca em...".
 
-Passo 3: Geração da Saída Estruturada
-Preencha a estrutura JSON 'CompareWoundReportsOutputSchema' com base na sua análise. Para cada mudança chave, crie um objeto no array 'keyChanges'.
+Dados para Análise:
 
-Passo 4: Geração do Resumo
-Escreva o 'evolutionSummary' com um parágrafo técnico resumindo a progressão geral do caso.
-
-Conteúdo para Análise:
-
-Relatório 1 (Data: {{report1Date}}):
+Conjunto 1 (Data: {{report1Date}}):
 ---
-{{{report1Content}}}
+Relatório 1: {{{report1Content}}}
+---
+Imagem 1: {{media url=image1DataUri}}
 ---
 
-Relatório 2 (Data: {{report2Date}}):
+Conjunto 2 (Data: {{report2Date}}):
 ---
-{{{report2Content}}}
+Relatório 2: {{{report2Content}}}
+---
+Imagem 2: {{media url=image2DataUri}}
 ---
 `,
 });
@@ -94,10 +94,11 @@ const compareWoundReportsFlow = ai.defineFlow(
   {
     name: 'compareWoundReportsFlow',
     inputSchema: CompareWoundReportsInputSchema,
-    outputSchema: CompareWoundReportsOutputSchema,
+    outputSchema: z.custom<CompareWoundReportsOutput>(),
   },
   async input => {
     const {output} = await prompt(input);
     return output!;
   }
 );
+

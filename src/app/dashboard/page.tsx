@@ -6,7 +6,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { FileText, GitCompareArrows, ClipboardList, PlusCircle, MoreHorizontal, Trash2, Eye, Edit, Loader2, CalendarDays, Users } from "lucide-react";
+import { FileText, GitCompareArrows, ClipboardList, PlusCircle, MoreHorizontal, Trash2, Eye, Edit, Loader2, CalendarDays, Users, CopyCheck } from "lucide-react";
 import { useEffect, useState } from "react";
 import type { AnamnesisFormValues } from "@/lib/anamnesis-schema";
 import { Badge } from "@/components/ui/badge";
@@ -178,16 +178,16 @@ export default function DashboardPage() {
         <Card className="flex flex-col">
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
-              <GitCompareArrows className="h-5 w-5 text-primary" />
-              {t.compareImagesCardTitle}
+              <CopyCheck className="h-5 w-5 text-primary" />
+              {t.compareReportsCardTitle}
             </CardTitle>
             <CardDescription>
-              {t.compareImagesCardDescription}
+              {t.compareReportsCardDescription}
             </CardDescription>
           </CardHeader>
           <CardContent className="mt-auto">
-            <Link href="/dashboard/compare" passHref>
-              <Button className="w-full">{t.compareImagesBtn}</Button>
+            <Link href="/dashboard/compare-reports" passHref>
+              <Button className="w-full">{t.compareReportsBtn}</Button>
             </Link>
           </CardContent>
         </Card>

@@ -55,7 +55,6 @@ export const translations = {
     myReports: "Meus Relatórios",
     agenda: "Agenda",
     generateReport: "Gerar Relatório",
-    compareImages: "Comparar Imagens",
     compareReports: "Comparar Relatórios",
     profile: "Perfil",
     logout: "Sair",
@@ -69,9 +68,9 @@ export const translations = {
     generateReportCardTitle: "Gerar Relatório da Ferida",
     generateReportCardDescription: "Carregue uma imagem e dados da anamnese para gerar um relatório com IA.",
     createReport: "Criar Relatório",
-    compareImagesCardTitle: "Comparar Imagens da Ferida",
-    compareImagesCardDescription: "Analise o progresso da cicatrização comparando duas imagens com IA.",
-    compareImagesBtn: "Comparar Imagens",
+    compareReportsCardTitle: "Comparar Relatórios",
+    compareReportsCardDescription: "Analise a progressão da cicatrização comparando relatórios com IA.",
+    compareReportsBtn: "Comparar Relatórios",
     agendaCardTitle: "Agenda de Retornos",
     agendaCardDescription: "Visualize seus próximos agendamentos e retornos de pacientes.",
     agendaCardBtn: "Ver Agenda",
@@ -110,12 +109,6 @@ export const translations = {
     // Página de Anamnese
     anamnesisTitle: "Avaliação de Ferida - TIMERS",
     anamnesisDescription: "Preencha os dados do paciente e da ferida seguindo o framework clínico TIMERS.",
-
-    // Página de Comparação de Imagens
-    compareTitle: "Comparar Imagens de Feridas",
-    compareDescription: "Envie duas imagens para analisar o progresso da cicatrização com IA.",
-    imageQualityAlertTitle: "Qualidade da Imagem Insuficiente",
-    imageQualityAlertDescription: "A IA detectou problemas de foco ou iluminação em uma das imagens. Por favor, tire novas fotos em um ambiente bem iluminado e com a imagem nítida para garantir uma análise precisa.",
 
     // Página de Comparação de Relatórios
     compareReportsTitle: "Comparar Relatórios",
@@ -204,7 +197,6 @@ export const translations = {
     myReports: "My Reports",
     agenda: "Agenda",
     generateReport: "Generate Report",
-    compareImages: "Compare Images",
     compareReports: "Compare Reports",
     profile: "Profile",
     logout: "Logout",
@@ -218,9 +210,9 @@ export const translations = {
     generateReportCardTitle: "Generate Wound Report",
     generateReportCardDescription: "Upload an image and anamnesis data to generate a report with AI.",
     createReport: "Create Report",
-    compareImagesCardTitle: "Compare Wound Images",
-    compareImagesCardDescription: "Analyze healing progress by comparing two images with AI.",
-    compareImagesBtn: "Compare Images",
+    compareReportsCardTitle: "Compare Reports",
+    compareReportsCardDescription: "Analyze healing progress by comparing reports with AI.",
+    compareReportsBtn: "Compare Reports",
     agendaCardTitle: "Return Schedule",
     agendaCardDescription: "View your upcoming appointments and patient returns.",
     agendaCardBtn: "View Agenda",
@@ -258,12 +250,6 @@ export const translations = {
     // Anamnesis Page
     anamnesisTitle: "Wound Assessment - TIMERS",
     anamnesisDescription: "Fill in patient and wound data following the TIMERS clinical framework.",
-
-    // Compare Images Page
-    compareTitle: "Compare Wound Images",
-    compareDescription: "Upload two images to analyze healing progress with AI.",
-    imageQualityAlertTitle: "Insufficient Image Quality",
-    imageQualityAlertDescription: "The AI detected focus or lighting issues in one of the images. Please take new photos in a well-lit environment with a clear image to ensure an accurate analysis.",
 
     // Compare Reports Page
     compareReportsTitle: "Compare Reports",
