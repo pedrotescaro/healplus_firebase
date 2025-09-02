@@ -56,12 +56,14 @@ export const translations = {
     agenda: "Agenda",
     generateReport: "Gerar Relatório",
     compareReports: "Comparar Relatórios",
+    chat: "Chat",
     profile: "Perfil",
     logout: "Sair",
 
     // Página do Dashboard
     welcomeMessage: "Bem-vindo(a), {name}",
     dashboardGreeting: "Aqui está um resumo rápido do que você pode fazer.",
+    patientDashboardGreeting: "Acesse seus relatórios e converse com seu profissional de saúde.",
     newAnamnesisCardTitle: "Nova Avaliação de Ferida",
     newAnamnesisCardDescription: "Crie uma nova ficha de avaliação guiada pelo framework TIMERS.",
     createForm: "Criar Avaliação",
@@ -74,6 +76,16 @@ export const translations = {
     agendaCardTitle: "Agenda de Retornos",
     agendaCardDescription: "Visualize seus próximos agendamentos e retornos de pacientes.",
     agendaCardBtn: "Ver Agenda",
+    chatCardTitle: "Chat",
+    chatCardDescriptionProfessional: "Converse diretamente com seus pacientes para acompanhamento.",
+    chatCardDescriptionPatient: "Converse com seu profissional de saúde para tirar dúvidas.",
+    chatCardBtn: "Abrir Chat",
+    myReportsCardTitle: "Meus Relatórios",
+    myReportsCardDescriptionPatient: "Acesse e visualize os relatórios de avaliação de suas feridas.",
+    viewReportsBtn: "Ver Relatórios",
+    profileCardTitle: "Meu Perfil",
+    profileCardDescriptionPatient: "Visualize e gerencie suas informações de perfil e preferências.",
+    profileCardBtn: "Acessar Perfil",
     recentAnamnesisTitle: "Avaliações Recentes",
     recentAnamnesisDescription: "Veja as últimas fichas de avaliação que você preencheu.",
     loadingRecords: "Carregando fichas...",
@@ -133,6 +145,10 @@ export const translations = {
     reportDetailsTitle: "Detalhes do Relatório",
     analyzedImage: "Imagem Analisada",
     myReportsErrorLoading: "Não foi possível carregar os relatórios.",
+
+    // Página de Chat
+    chatTitle: "Chat",
+    chatDescription: "Converse com seus contatos.",
 
     // Página de Perfil/Configurações
     settingsTitle: "Configurações",
@@ -198,12 +214,14 @@ export const translations = {
     agenda: "Agenda",
     generateReport: "Generate Report",
     compareReports: "Compare Reports",
+    chat: "Chat",
     profile: "Profile",
     logout: "Logout",
 
     // Dashboard Page
     welcomeMessage: "Welcome, {name}",
     dashboardGreeting: "Here's a quick summary of what you can do.",
+    patientDashboardGreeting: "Access your reports and chat with your healthcare provider.",
     newAnamnesisCardTitle: "New Wound Assessment",
     newAnamnesisCardDescription: "Create a new assessment form guided by the TIMERS framework.",
     createForm: "Create Assessment",
@@ -216,6 +234,16 @@ export const translations = {
     agendaCardTitle: "Return Schedule",
     agendaCardDescription: "View your upcoming appointments and patient returns.",
     agendaCardBtn: "View Agenda",
+    chatCardTitle: "Chat",
+    chatCardDescriptionProfessional: "Chat directly with your patients for follow-up.",
+    chatCardDescriptionPatient: "Chat with your healthcare provider to ask questions.",
+    chatCardBtn: "Open Chat",
+    myReportsCardTitle: "My Reports",
+    myReportsCardDescriptionPatient: "Access and view your wound assessment reports.",
+    viewReportsBtn: "View Reports",
+    profileCardTitle: "My Profile",
+    profileCardDescriptionPatient: "View and manage your profile information and preferences.",
+    profileCardBtn: "Access Profile",
     recentAnamnesisTitle: "Recent Assessments",
     recentAnamnesisDescription: "View the latest assessment forms you have filled out.",
     loadingRecords: "Loading records...",
@@ -274,6 +302,10 @@ export const translations = {
     reportDetailsTitle: "Report Details",
     analyzedImage: "Analyzed Image",
     myReportsErrorLoading: "Could not load reports.",
+    
+    // Chat Page
+    chatTitle: "Chat",
+    chatDescription: "Chat with your contacts.",
 
     // Profile/Settings Page
     settingsTitle: "Settings",

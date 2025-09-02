@@ -21,16 +21,19 @@ import jsPDF from "jspdf";
 import autoTable from 'jspdf-autotable';
 import { useAuth } from "@/hooks/use-auth";
 import { db } from "@/firebase/client-app";
-import { collection, query, getDocs, orderBy, addDoc, serverTimestamp } from "firebase/firestore";
+import { collection, query, getDocs, orderBy, addDoc, serverTimestamp, where, getDoc } from "firebase/firestore";
 import { Alert, AlertDescription, AlertTitle } from "../ui/alert";
 import Link from "next/link";
+import { Input } from "../ui/input";
 
-type StoredAnamnesis = AnamnesisFormValues & { id: string };
+type StoredAnamnesis = AnamnesisFormValues & { id: string, patientId: string };
 const isAIEnabled = !!process.env.NEXT_PUBLIC_GEMINI_API_KEY;
 
 export function ReportGenerator() {
   const [selectedAnamnesisId, setSelectedAnamnesisId] = useState<string>("");
   const [anamnesisRecords, setAnamnesisRecords] = useState<StoredAnamnesis[]>([]);
+  const [patientEmail, setPatientEmail] = useState("");
+  const [patientId, setPatientId] = useState<string | null>(null);
   const [report, setReport] = useState<GenerateWoundReportOutput | null>(null);
   const [loading, setLoading] = useState(false);
   const [pdfLoading, setPdfLoading] = useState(false);
@@ -73,21 +76,45 @@ export function ReportGenerator() {
       return;
     }
 
+    if (!patientEmail) {
+        toast({ title: "Email do Paciente Necessário", description: "Por favor, insira o email do paciente para associar o relatório.", variant: "destructive" });
+        return;
+    }
+
     setLoading(true);
     setReport(null);
+    
     try {
+        // Find patient by email
+        const usersRef = collection(db, "users");
+        const q = query(usersRef, where("email", "==", patientEmail));
+        const querySnapshot = await getDocs(q);
+
+        let foundPatientId: string | null = null;
+        if (!querySnapshot.empty) {
+            foundPatientId = querySnapshot.docs[0].id;
+            setPatientId(foundPatientId);
+        } else {
+             toast({ title: "Paciente não encontrado", description: "Nenhum usuário paciente com este email foi encontrado.", variant: "destructive" });
+             setLoading(false);
+             return;
+        }
+
       const anamnesisDataString = JSON.stringify(selectedRecord, null, 2);
       const result = await generateWoundReport({ woundImage: selectedRecord.woundImageUri, anamnesisData: anamnesisDataString });
       setReport(result);
       
-      if (user) {
-        await addDoc(collection(db, "users", user.uid, "reports"), {
+      if (user && foundPatientId) {
+        await addDoc(collection(db, "reports"), {
           anamnesisId: selectedAnamnesisId,
           patientName: selectedRecord.nome_cliente,
           reportContent: result.report,
           woundImageUri: selectedRecord.woundImageUri,
+          professionalId: user.uid,
+          patientId: foundPatientId,
           createdAt: serverTimestamp(),
         });
+        toast({ title: "Relatório Gerado e Salvo", description: "O relatório foi gerado e associado ao paciente com sucesso." });
       }
     } catch (error) {
       console.error("Error generating report:", error);
@@ -102,7 +129,7 @@ export function ReportGenerator() {
   };
 
  const handleSavePdf = async () => {
-    if (!report || !selectedRecord || !selectedRecord.woundImageUri) return;
+    if (!report || !selectedRecord || !selectedRecord.woundImageUri || !user) return;
     setPdfLoading(true);
 
     try {
@@ -141,12 +168,21 @@ export function ReportGenerator() {
             headStyles: { fontStyle: 'bold', fillColor: [22, 160, 133] },
         });
 
+        const anamnesisDocRef = doc(db, "users", user.uid, "anamnesis", selectedRecord.id);
+        const anamnesisSnap = await getDoc(anamnesisDocRef);
+        if (!anamnesisSnap.exists()) {
+          toast({ title: "Erro", description: "Ficha de anamnese associada não encontrada.", variant: "destructive" });
+          setPdfLoading(false);
+          return;
+        }
+        const anamnesisRecord = anamnesisSnap.data() as AnamnesisFormValues;
+
         const anamnesisBody = [
-            ['Histórico Médico', selectedRecord.historico_cicrizacao || 'Nenhum relatado'],
-            ['Alergias', selectedRecord.possui_alergia ? selectedRecord.qual_alergia : 'Nenhuma relatada'],
-            ['Medicamentos em Uso', selectedRecord.usa_medicacao ? selectedRecord.qual_medicacao : 'Nenhum'],
-            ['Hábitos', `Atividade Física: ${selectedRecord.pratica_atividade_fisica ? 'Sim' : 'Não'}\nÁlcool: ${selectedRecord.ingestao_alcool ? 'Sim' : 'Não'}\nFumante: ${selectedRecord.fumante ? 'Sim' : 'Não'}`],
-            ['Queixa Principal', `Ferida em ${selectedRecord.localizacao_ferida} com ${selectedRecord.tempo_evolucao} de evolução.`],
+            ['Histórico Médico', anamnesisRecord.historico_cicrizacao || 'Nenhum relatado'],
+            ['Alergias', anamnesisRecord.possui_alergia ? anamnesisRecord.qual_alergia : 'Nenhuma relatada'],
+            ['Medicamentos em Uso', anamnesisRecord.usa_medicacao ? anamnesisRecord.qual_medicacao : 'Nenhum'],
+            ['Hábitos', `Atividade Física: ${anamnesisRecord.pratica_atividade_fisica ? 'Sim' : 'Não'}\nÁlcool: ${anamnesisRecord.ingestao_alcool ? 'Sim' : 'Não'}\nFumante: ${anamnesisRecord.fumante ? 'Sim' : 'Não'}`],
+            ['Queixa Principal', `Ferida em ${anamnesisRecord.localizacao_ferida} com ${anamnesisRecord.tempo_evolucao} de evolução.`],
         ];
 
         autoTable(doc, {
@@ -242,9 +278,16 @@ export function ReportGenerator() {
                 )}
               </SelectContent>
             </Select>
-            <p className="text-sm text-muted-foreground pt-2">
-                A IA usará a imagem e os dados salvos nesta avaliação para gerar o relatório.
-            </p>
+             <div className="space-y-2 pt-4">
+                <Label htmlFor="patient-email">Email do Paciente</Label>
+                <Input
+                    id="patient-email"
+                    type="email"
+                    value={patientEmail}
+                    onChange={(e) => setPatientEmail(e.target.value)}
+                    placeholder="email.paciente@exemplo.com"
+                />
+            </div>
           </div>
           <div className="space-y-2">
             <Label>Imagem da Ferida (da avaliação selecionada)</Label>
@@ -272,7 +315,7 @@ export function ReportGenerator() {
             </div>
           </div>
         </div>
-        <Button type="submit" disabled={loading || !selectedRecord?.woundImageUri} className="w-full md:w-auto">
+        <Button type="submit" disabled={loading || !selectedRecord?.woundImageUri || !patientEmail} className="w-full md:w-auto">
           {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
           Gerar Relatório
         </Button>

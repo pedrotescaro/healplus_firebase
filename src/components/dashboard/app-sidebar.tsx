@@ -13,6 +13,7 @@ import {
   CalendarDays,
   CopyCheck,
   Users,
+  MessageSquare,
 } from "lucide-react";
 import { useAuth } from "@/hooks/use-auth";
 import { Button } from "@/components/ui/button";
@@ -47,7 +48,7 @@ export default function AppSidebar({ className, onLinkClick }: AppSidebarProps) 
   const { user, logout } = useAuth();
   const { t } = useTranslation();
 
-  const navItems = [
+  const professionalNavItems = [
     { href: "/dashboard", icon: LayoutDashboard, label: t.dashboard },
     { href: "/dashboard/anamnesis", icon: ClipboardList, label: t.newAnamnesis },
     { href: "/dashboard/anamnesis-records", icon: Users, label: t.myPatients },
@@ -55,8 +56,18 @@ export default function AppSidebar({ className, onLinkClick }: AppSidebarProps) 
     { href: "/dashboard/report", icon: FileText, label: t.generateReport },
     { href: "/dashboard/reports", icon: Archive, label: t.myReports },
     { href: "/dashboard/compare-reports", icon: CopyCheck, label: t.compareReports },
+    { href: "/dashboard/chat", icon: MessageSquare, label: t.chat },
     { href: "/dashboard/profile", icon: User, label: t.profile },
   ];
+
+  const patientNavItems = [
+    { href: "/dashboard", icon: LayoutDashboard, label: t.dashboard },
+    { href: "/dashboard/reports", icon: Archive, label: t.myReports },
+    { href: "/dashboard/chat", icon: MessageSquare, label: t.chat },
+    { href: "/dashboard/profile", icon: User, label: t.profile },
+  ];
+
+  const navItems = user?.role === 'professional' ? professionalNavItems : patientNavItems;
 
   const handleLogout = async () => {
     if (onLinkClick) onLinkClick();

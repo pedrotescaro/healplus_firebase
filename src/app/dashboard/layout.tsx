@@ -43,14 +43,14 @@ export default function DashboardLayout({
       <div className="hidden border-r bg-card md:block">
         <AppSidebar />
       </div>
-      <div className="flex flex-col">
+      <div className="flex flex-col h-screen">
         <header className="flex h-14 items-center gap-4 border-b bg-card px-4 lg:h-[60px] lg:px-6 md:hidden">
           <MobileNav />
         </header>
         <main className="flex-1 overflow-auto bg-background/95 p-4 sm:p-6 lg:p-8">
           {children}
         </main>
-        <CatSupport currentPage={pathname} />
+        {user.role === 'professional' && <CatSupport currentPage={pathname} />}
       </div>
     </div>
   );

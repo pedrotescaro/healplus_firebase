@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import Image from "next/image";
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { MoreHorizontal, Trash2, Eye, Loader2, FileDown } from "lucide-react";
+import { MoreHorizontal, Trash2, Eye, Loader2, FileDown, MessageSquare } from "lucide-react";
 import { useEffect, useState } from "react";
 import { Badge } from "@/components/ui/badge";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
@@ -39,7 +39,7 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/use-auth";
 import { db } from "@/firebase/client-app";
-import { collection, query, getDocs, orderBy, doc, deleteDoc, Timestamp, getDoc } from "firebase/firestore";
+import { collection, query, getDocs, orderBy, doc, deleteDoc, Timestamp, getDoc, where } from "firebase/firestore";
 import { useTranslation } from "@/contexts/app-provider";
 import jsPDF from "jspdf";
 import autoTable from 'jspdf-autotable';
@@ -51,6 +51,8 @@ interface StoredReport {
   reportContent: string;
   woundImageUri: string;
   anamnesisId: string;
+  patientId: string;
+  professionalId: string;
   createdAt: Timestamp;
 }
 
@@ -73,7 +75,8 @@ export default function ReportsPage() {
         return;
       }
       try {
-        const q = query(collection(db, "users", user.uid, "reports"), orderBy("createdAt", "desc"));
+        const professionalIdField = user.role === 'professional' ? 'professionalId' : 'patientId';
+        const q = query(collection(db, "reports"), where(professionalIdField, "==", user.uid), orderBy("createdAt", "desc"));
         const querySnapshot = await getDocs(q);
         const fetchedReports = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as StoredReport));
         setReports(fetchedReports);
@@ -93,7 +96,7 @@ export default function ReportsPage() {
   const handleDelete = async () => {
     if (!reportToDelete || !user) return;
     try {
-      await deleteDoc(doc(db, "users", user.uid, "reports", reportToDelete));
+      await deleteDoc(doc(db, "reports", reportToDelete));
       setReports(reports.filter(report => report.id !== reportToDelete));
       toast({
         title: t.deleteReportTitle,
@@ -111,13 +114,18 @@ export default function ReportsPage() {
     }
   };
 
+  const handleStartChat = (patientId: string) => {
+    router.push(`/dashboard/chat?patientId=${patientId}`);
+  };
+
   const handleSavePdf = async (report: StoredReport | null) => {
     if (!report || !user) return;
     setCurrentReportForPdf(report); // Track which report is generating PDF
     setPdfLoading(true);
 
     try {
-        const anamnesisDocRef = doc(db, "users", user.uid, "anamnesis", report.anamnesisId);
+        // The anamnesis record is stored by the professional who created it
+        const anamnesisDocRef = doc(db, "users", report.professionalId, "anamnesis", report.anamnesisId);
         const anamnesisSnap = await getDoc(anamnesisDocRef);
         if (!anamnesisSnap.exists()) {
           toast({ title: "Erro", description: "Ficha de anamnese associada não encontrada.", variant: "destructive" });
@@ -264,10 +272,17 @@ export default function ReportsPage() {
                              <DropdownMenuItem onSelect={() => handleSavePdf(report)}>
                               <FileDown className="mr-2 h-4 w-4" /> Salvar em PDF
                             </DropdownMenuItem>
+                            {user?.role === 'professional' && (
+                                <DropdownMenuItem onSelect={() => handleStartChat(report.patientId)}>
+                                  <MessageSquare className="mr-2 h-4 w-4" /> Conversar
+                                </DropdownMenuItem>
+                            )}
                             <DropdownMenuSeparator />
-                            <DropdownMenuItem onSelect={() => setReportToDelete(report.id)} className="text-destructive focus:text-destructive">
-                              <Trash2 className="mr-2 h-4 w-4" /> {t.delete}
-                            </DropdownMenuItem>
+                             {user?.role === 'professional' && (
+                                <DropdownMenuItem onSelect={() => setReportToDelete(report.id)} className="text-destructive focus:text-destructive">
+                                <Trash2 className="mr-2 h-4 w-4" /> {t.delete}
+                                </DropdownMenuItem>
+                             )}
                           </DropdownMenuContent>
                         </DropdownMenu>
                       </TableCell>
@@ -346,4 +361,3 @@ export default function ReportsPage() {
     </div>
   );
 }
-

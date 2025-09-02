@@ -12,9 +12,13 @@ import {
   updateProfile,
   GoogleAuthProvider,
   OAuthProvider,
-  signInWithPopup
+  signInWithPopup,
+  UserCredential
 } from "firebase/auth";
-import { auth } from "@/firebase/client-app";
+import { auth, db } from "@/firebase/client-app";
+import { doc, setDoc, getDoc } from "firebase/firestore";
+
+type UserRole = 'professional' | 'patient';
 
 interface User {
   uid: string;
@@ -22,31 +26,38 @@ interface User {
   email: string | null;
   emailVerified: boolean;
   photoURL: string | null;
+  role: UserRole | null;
 }
 
 interface AuthContextType {
   user: User | null;
   loading: boolean;
-  login: (email: string, pass: string) => Promise<any>;
+  login: (email: string, pass: string) => Promise<UserCredential>;
   signup: (name: string, email: string, pass: string) => Promise<any>;
   logout: () => Promise<void>;
-  loginWithGoogle: () => Promise<any>;
-  loginWithMicrosoft: () => Promise<any>;
+  loginWithGoogle: () => Promise<UserCredential>;
+  loginWithMicrosoft: () => Promise<UserCredential>;
   refreshUser: () => Promise<void>;
+  setUserRole: (role: UserRole) => Promise<void>;
 }
 
 export const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
-const mapFirebaseUserToUser = (firebaseUser: FirebaseUser | null): User | null => {
+const mapFirebaseUserToUser = async (firebaseUser: FirebaseUser | null): Promise<User | null> => {
   if (!firebaseUser) {
     return null;
   }
+  const userDocRef = doc(db, "users", firebaseUser.uid);
+  const userDoc = await getDoc(userDocRef);
+  const role = userDoc.exists() ? userDoc.data().role : 'patient'; // Default to patient if not set
+
   return {
     uid: firebaseUser.uid,
     name: firebaseUser.displayName,
     email: firebaseUser.email,
     emailVerified: firebaseUser.emailVerified,
-    photoURL: firebaseUser.photoURL
+    photoURL: firebaseUser.photoURL,
+    role: role
   };
 };
 
@@ -55,8 +66,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, (firebaseUser: FirebaseUser | null) => {
-      setUser(mapFirebaseUserToUser(firebaseUser));
+    const unsubscribe = onAuthStateChanged(auth, async (firebaseUser: FirebaseUser | null) => {
+      const appUser = await mapFirebaseUserToUser(firebaseUser);
+      setUser(appUser);
       setLoading(false);
     });
 
@@ -64,29 +76,65 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const refreshUser = async () => {
-    await auth.currentUser?.reload();
-    setUser(mapFirebaseUserToUser(auth.currentUser));
+    if (auth.currentUser) {
+      await auth.currentUser.reload();
+      const appUser = await mapFirebaseUserToUser(auth.currentUser);
+      setUser(appUser);
+    }
   };
   
-  const login = async (email: string, password: string): Promise<any> => {
-    return signInWithEmailAndPassword(auth, email, password);
+  const setUserRole = async (role: UserRole) => {
+    if (auth.currentUser) {
+      const userDocRef = doc(db, "users", auth.currentUser.uid);
+      await setDoc(userDocRef, { role: role }, { merge: true });
+      await refreshUser();
+    } else {
+        throw new Error("No authenticated user found to set role.");
+    }
+  };
+
+  const handleAuthSuccess = async (userCredential: UserCredential) => {
+    const firebaseUser = userCredential.user;
+    const userDocRef = doc(db, "users", firebaseUser.uid);
+    const userDoc = await getDoc(userDocRef);
+
+    if (!userDoc.exists()) {
+      // New user, set default role to 'patient' until they confirm in disclaimer
+      await setDoc(userDocRef, {
+        uid: firebaseUser.uid,
+        email: firebaseUser.email,
+        name: firebaseUser.displayName,
+        photoURL: firebaseUser.photoURL,
+        role: 'patient' // Default role
+      }, { merge: true });
+    }
+     await refreshUser();
+     return userCredential;
+  };
+  
+  const login = async (email: string, password: string): Promise<UserCredential> => {
+    const userCredential = await signInWithEmailAndPassword(auth, email, password);
+    return handleAuthSuccess(userCredential);
   };
   
   const signup = async (name: string, email: string, password: string): Promise<any> => {
       const userCredential = await createUserWithEmailAndPassword(auth, email, password);
       await updateProfile(userCredential.user, { displayName: name });
+      await handleAuthSuccess(userCredential);
       await sendEmailVerification(userCredential.user);
       return userCredential;
   };
 
-  const loginWithGoogle = async (): Promise<any> => {
+  const loginWithGoogle = async (): Promise<UserCredential> => {
     const provider = new GoogleAuthProvider();
-    return signInWithPopup(auth, provider);
+    const userCredential = await signInWithPopup(auth, provider);
+    return handleAuthSuccess(userCredential);
   };
   
-  const loginWithMicrosoft = async (): Promise<any> => {
+  const loginWithMicrosoft = async (): Promise<UserCredential> => {
     const provider = new OAuthProvider('microsoft.com');
-    return signInWithPopup(auth, provider);
+    const userCredential = await signInWithPopup(auth, provider);
+    return handleAuthSuccess(userCredential);
   };
 
   const logout = async () => {
@@ -94,7 +142,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   return (
-    <AuthContext.Provider value={{ user, loading, login, signup, logout, loginWithGoogle, loginWithMicrosoft, refreshUser }}>
+    <AuthContext.Provider value={{ user, loading, login, signup, logout, loginWithGoogle, loginWithMicrosoft, refreshUser, setUserRole }}>
       {children}
     </AuthContext.Provider>
   );

@@ -46,7 +46,7 @@ const DISCLAIMER_AGREED_KEY = 'heal-plus-disclaimer-agreed';
 
 export function LoginForm() {
   const router = useRouter();
-  const { login, loginWithGoogle, loginWithMicrosoft } = useAuth();
+  const { login, loginWithGoogle, loginWithMicrosoft, setUserRole } = useAuth();
   const { t } = useTranslation();
   const { toast } = useToast();
   const [loading, setLoading] = useState(false);
@@ -71,48 +71,33 @@ export function LoginForm() {
 
 
   function onSubmit(values: z.infer<typeof loginSchema>) {
-    if (disclaimerAgreed) {
-      handleEmailLogin(values);
-    } else {
-      setLoginValues(values);
-      setLoginMethod('email');
-      setShowDisclaimer(true);
-    }
+    handleEmailLogin(values);
   }
 
   function handleGoogleClick() {
-    if (disclaimerAgreed) {
-      handleGoogleLogin();
-    } else {
-      setLoginMethod('google');
-      setShowDisclaimer(true);
-    }
+    handleGoogleLogin();
   }
 
   function handleMicrosoftClick() {
-    if (disclaimerAgreed) {
-        handleMicrosoftLogin();
-    } else {
-        setLoginMethod('microsoft');
-        setShowDisclaimer(true);
-    }
+    handleMicrosoftLogin();
   }
 
-  async function handleDisclaimerAgree() {
+  async function handleDisclaimerAgree(isProfessional: boolean) {
     setShowDisclaimer(false);
     try {
       localStorage.setItem(DISCLAIMER_AGREED_KEY, 'true');
       setDisclaimerAgreed(true);
+      await setUserRole(isProfessional ? 'professional' : 'patient');
     } catch (error) {
       console.error("Could not set item in localStorage", error);
     }
 
     if (loginMethod === 'email' && loginValues) {
-        await handleEmailLogin(loginValues);
+        await handleEmailLogin(loginValues, true);
     } else if (loginMethod === 'google') {
-        await handleGoogleLogin();
+        await handleGoogleLogin(true);
     } else if (loginMethod === 'microsoft') {
-        await handleMicrosoftLogin();
+        await handleMicrosoftLogin(true);
     }
     setLoginMethod(null);
   }
@@ -125,10 +110,17 @@ export function LoginForm() {
     },
   });
 
-  async function handleEmailLogin(values: z.infer<typeof loginSchema>) {
+  async function handleEmailLogin(values: z.infer<typeof loginSchema>, fromDisclaimer = false) {
     setLoading(true);
     try {
-      await login(values.email, values.password);
+      const userCredential = await login(values.email, values.password);
+      if (userCredential.user && !fromDisclaimer && disclaimerAgreed === false) {
+          setLoginValues(values);
+          setLoginMethod('email');
+          setShowDisclaimer(true);
+          setLoading(false);
+          return;
+      }
       router.push("/dashboard");
     } catch (error: any) {
        toast({
@@ -141,10 +133,16 @@ export function LoginForm() {
     }
   }
 
-  async function handleGoogleLogin() {
+  async function handleGoogleLogin(fromDisclaimer = false) {
     setGoogleLoading(true);
     try {
-        await loginWithGoogle();
+        const userCredential = await loginWithGoogle();
+         if (userCredential.user && !fromDisclaimer && disclaimerAgreed === false) {
+            setLoginMethod('google');
+            setShowDisclaimer(true);
+            setGoogleLoading(false);
+            return;
+        }
         router.push("/dashboard");
     } catch (error: any) {
         toast({
@@ -159,10 +157,16 @@ export function LoginForm() {
     }
   }
 
-  async function handleMicrosoftLogin() {
+  async function handleMicrosoftLogin(fromDisclaimer = false) {
     setMicrosoftLoading(true);
     try {
-        await loginWithMicrosoft();
+        const userCredential = await loginWithMicrosoft();
+         if (userCredential.user && !fromDisclaimer && disclaimerAgreed === false) {
+            setLoginMethod('microsoft');
+            setShowDisclaimer(true);
+            setMicrosoftLoading(false);
+            return;
+        }
         router.push("/dashboard");
     } catch (error: any) {
         toast({

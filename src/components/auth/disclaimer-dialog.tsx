@@ -18,7 +18,7 @@ import { ScrollArea } from '../ui/scroll-area';
 interface DisclaimerDialogProps {
   isOpen: boolean;
   onOpenChange: (open: boolean) => void;
-  onAgree: () => void;
+  onAgree: (isProfessional: boolean) => void;
 }
 
 export function DisclaimerDialog({ isOpen, onOpenChange, onAgree }: DisclaimerDialogProps) {
@@ -26,6 +26,10 @@ export function DisclaimerDialog({ isOpen, onOpenChange, onAgree }: DisclaimerDi
   const [isAgreed, setIsAgreed] = useState(false);
 
   const canContinue = isProfessional && isAgreed;
+
+  const handleContinue = () => {
+    onAgree(isProfessional);
+  };
 
   return (
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
@@ -64,7 +68,7 @@ export function DisclaimerDialog({ isOpen, onOpenChange, onAgree }: DisclaimerDi
           </div>
         </ScrollArea>
         <DialogFooter>
-          <Button onClick={onAgree} disabled={!canContinue} className="w-full">
+          <Button onClick={handleContinue} disabled={!canContinue} className="w-full">
             Continuar
           </Button>
         </DialogFooter>
