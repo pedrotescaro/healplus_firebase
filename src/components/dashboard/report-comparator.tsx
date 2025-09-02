@@ -180,7 +180,7 @@ export function ReportComparator() {
                         <CardDescription>Análise da evolução entre {comparisonResult.relatorio_comparativo.intervalo_tempo}.</CardDescription>
                     </CardHeader>
                     <CardContent className="space-y-4">
-                        {comparisonResult.relatorio_comparativo.consistencia_dados.alerta_qualidade && (
+                        {comparisonResult.relatorio_comparativo.consistencia_dados?.alerta_qualidade && (
                             <Alert variant="destructive">
                                 <AlertCircle className="h-4 w-4" />
                                 <AlertTitle>Alerta de Qualidade</AlertTitle>
