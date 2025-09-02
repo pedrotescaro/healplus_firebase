@@ -10,7 +10,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { fileToDataUri } from "@/lib/file-to-data-uri";
-import { UploadCloud, Loader2, GitCompareArrows, Camera, AlertCircle, Sparkles, FileImage, ClipboardCheck } from "lucide-react";
+import { UploadCloud, Loader2, GitCompareArrows, Camera, AlertCircle, Sparkles, FileImage, ClipboardCheck, FileDown } from "lucide-react";
 import { Separator } from "@/components/ui/separator";
 import { ImageCapture } from "./image-capture";
 import { Alert, AlertDescription, AlertTitle } from "../ui/alert";
@@ -21,6 +21,8 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { useTranslation } from "@/contexts/app-provider";
+import jsPDF from "jspdf";
+import autoTable from 'jspdf-autotable';
 
 
 const isAIEnabled = !!process.env.NEXT_PUBLIC_GEMINI_API_KEY;
@@ -37,6 +39,7 @@ export function ImageComparator() {
   const [image2, setImage2] = useState<ImageFileState>({ file: null, preview: null, id: '', datetime: '' });
   const [comparison, setComparison] = useState<CompareWoundImagesOutput | null>(null);
   const [loading, setLoading] = useState(false);
+  const [pdfLoading, setPdfLoading] = useState(false);
   const { toast } = useToast();
   const { user } = useAuth();
   const { t } = useTranslation();
@@ -99,21 +102,27 @@ export function ImageComparator() {
       const isQualityGood = quality1.iluminacao === "Adequada" && quality1.foco === "Nítido" &&
                             quality2.iluminacao === "Adequada" && quality2.foco === "Nítido";
 
-      if (!isQualityGood) {
-        setComparison(null);
+      setComparison(result);
+      if (user) {
+        await addDoc(collection(db, "users", user.uid, "comparisons"), {
+          ...result,
+          image1Metadata: { id: image1.id, datetime: image1.datetime, url: image1DataUri },
+          image2Metadata: { id: image2.id, datetime: image2.datetime, url: image2DataUri },
+          createdAt: serverTimestamp(),
+        });
         toast({
-            title: t.imageQualityAlertTitle,
-            description: t.imageQualityAlertDescription,
+          title: "Comparação Salva",
+          description: "O resultado da análise foi salvo no seu histórico.",
+        });
+      }
+
+      if (!isQualityGood) {
+        toast({
+            title: t.imageQualityAlertTitle || "Alerta de Qualidade da Imagem",
+            description: t.imageQualityAlertDescription || "Uma ou ambas as imagens têm baixa qualidade (iluminação ou foco), o que pode afetar a precisão da análise. Recomenda-se usar imagens mais nítidas e bem iluminadas.",
             variant: "destructive",
             duration: 8000
         });
-      } else {
-        setComparison(result);
-        if (user) {
-          await addDoc(collection(db, "users", user.uid, "comparisons"), {
-            createdAt: serverTimestamp(),
-          });
-        }
       }
     } catch (error) {
       console.error("Erro ao comparar imagens:", error);
@@ -124,6 +133,93 @@ export function ImageComparator() {
       });
     } finally {
       setLoading(false);
+    }
+  };
+  
+  const handleSavePdf = async () => {
+    if (!comparison || !image1.preview || !image2.preview) return;
+    setPdfLoading(true);
+    
+    try {
+        const doc = new jsPDF('p', 'mm', 'a4');
+        const margin = 15;
+        const pageWidth = doc.internal.pageSize.getWidth();
+        
+        doc.setFont('helvetica', 'bold');
+        doc.setFontSize(16);
+        doc.text("Relatório Comparativo de Progressão de Ferida", pageWidth / 2, 20, { align: 'center' });
+
+        doc.setFont('helvetica', 'normal');
+        doc.setFontSize(10);
+        const analysisPeriod = comparison.relatorio_comparativo.periodo_analise || `De ${image1.datetime} a ${image2.datetime}`;
+        doc.text(`Período de Análise: ${analysisPeriod}`, pageWidth / 2, 28, { align: 'center' });
+        
+        let finalY = 35;
+        
+        // Add images side by side
+        doc.setFontSize(12);
+        doc.setFont('helvetica', 'bold');
+        doc.text("Imagens Comparadas", margin, finalY);
+        finalY += 8;
+
+        const imgWidth = (pageWidth - margin * 3) / 2;
+        const img1Props = doc.getImageProperties(image1.preview);
+        const img2Props = doc.getImageProperties(image2.preview);
+        const img1Height = (img1Props.height * imgWidth) / img1Props.width;
+        const img2Height = (img2Props.height * imgWidth) / img2Props.width;
+        const maxHeight = Math.max(img1Height, img2Height);
+
+        doc.addImage(image1.preview, 'PNG', margin, finalY, imgWidth, img1Height);
+        doc.addImage(image2.preview, 'PNG', margin + imgWidth + margin, finalY, imgWidth, img2Height);
+        
+        doc.setFontSize(8);
+        doc.setFont('helvetica', 'normal');
+        doc.text(`Imagem 1 (${image1.id})`, margin, finalY + maxHeight + 4);
+        doc.text(`Imagem 2 (${image2.id})`, margin + imgWidth + margin, finalY + maxHeight + 4);
+        
+        finalY += maxHeight + 10;
+        
+        const summaryText = doc.splitTextToSize(comparison.relatorio_comparativo.resumo_descritivo_evolucao, pageWidth - margin * 2);
+        
+        autoTable(doc, {
+            startY: finalY,
+            head: [['Resumo Descritivo da Evolução']],
+            body: [[summaryText]],
+            theme: 'grid',
+            headStyles: { fontStyle: 'bold', fillColor: [22, 160, 133] },
+        });
+        
+        finalY = (doc as any).lastAutoTable.finalY + 10;
+
+        const delta = comparison.relatorio_comparativo.analise_quantitativa_progressao;
+        const tableBody = [
+            ["Δ Área Total Afetada", delta.delta_area_total_afetada],
+            ["Δ Coloração (Hiperpigmentação)", delta.delta_coloracao.mudanca_area_hiperpigmentacao],
+            ["Δ Coloração (Eritema/Rubor)", delta.delta_coloracao.mudanca_area_eritema_rubor],
+            ["Δ Edema", delta.delta_edema],
+            ["Δ Textura", delta.delta_textura],
+        ];
+
+        autoTable(doc, {
+            startY: finalY,
+            head: [['Análise Quantitativa (Delta Δ)', 'Variação']],
+            body: tableBody,
+            theme: 'striped',
+            headStyles: { fontStyle: 'bold', fillColor: [22, 160, 133] },
+        });
+
+        const fileName = `Comparativo_${image1.id}_vs_${image2.id}.pdf`;
+        doc.save(fileName);
+
+    } catch (error) {
+      console.error("Erro ao gerar PDF:", error);
+      toast({
+          title: "Erro ao Gerar PDF",
+          description: "Não foi possível criar o arquivo PDF. Tente novamente.",
+          variant: "destructive",
+      });
+    } finally {
+      setPdfLoading(false);
     }
   };
 
@@ -296,6 +392,12 @@ export function ImageComparator() {
 
       {comparison && (
         <Tabs defaultValue="comparativo" className="w-full">
+            <div className="flex justify-end mb-2">
+                <Button onClick={handleSavePdf} disabled={pdfLoading} variant="outline" size="sm">
+                    {pdfLoading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <FileDown className="mr-2 h-4 w-4" />}
+                    Salvar em PDF
+                </Button>
+            </div>
             <TabsList className="grid w-full grid-cols-3">
                 <TabsTrigger value="comparativo"><GitCompareArrows className="mr-2" />Comparativo</TabsTrigger>
                 <TabsTrigger value="imagem1"><FileImage className="mr-2" />Análise Imagem 1</TabsTrigger>
@@ -346,5 +448,3 @@ export function ImageComparator() {
     </div>
   );
 }
-
-    

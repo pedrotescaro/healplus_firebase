@@ -68,7 +68,7 @@ export const translations = {
     newAnamnesisCardDescription: "Crie uma nova ficha de avaliação guiada pelo framework TIMERS.",
     createForm: "Criar Avaliação",
     generateReportCardTitle: "Gerar Relatório da Ferida",
-    generateReportCardDescription: "Carregue uma imagem e dados da anamnese para gerar um relatório com IA.",
+    generateReportCardDescription: "Compile um relatório em PDF a partir de uma ficha de anamnese salva.",
     createReport: "Criar Relatório",
     compareReportsCardTitle: "Comparar Relatórios",
     compareReportsCardDescription: "Analise a progressão da cicatrização comparando relatórios com IA.",
@@ -113,7 +113,6 @@ export const translations = {
     activityChartGeneratedReportsBilingual: "Relatórios Gerados / Reports Generated",
     activityChartComparisonsBilingual: "Comparações / Comparisons",
 
-
     // Página da Agenda
     agendaTitle: "Agenda de Retornos",
     agendaDescription: "Visualize os próximos agendamentos de reavaliação de feridas.",
@@ -122,17 +121,24 @@ export const translations = {
     anamnesisTitle: "Avaliação de Ferida - TIMERS",
     anamnesisDescription: "Preencha os dados do paciente e da ferida seguindo o framework clínico TIMERS.",
 
+    // Página de Comparação
+    compareTitle: "Comparar Imagens da Ferida",
+    compareDescription: "Envie duas imagens de uma ferida para que a IA analise a progressão da cicatrização.",
+    imageQualityAlertTitle: "Alerta de Qualidade da Imagem",
+    imageQualityAlertDescription: "Uma ou ambas as imagens têm baixa qualidade (iluminação ou foco), o que pode afetar a precisão da análise. Recomenda-se usar imagens mais nítidas e bem iluminadas.",
+
+
     // Página de Comparação de Relatórios
     compareReportsTitle: "Comparar Relatórios",
     compareReportsDescription: "Selecione dois relatórios para que a IA analise a evolução do caso.",
 
     // Página de Relatório
     reportTitle: "Gerar Relatório da Ferida",
-    reportDescription: "Forneça os dados da anamnese e uma imagem para análise da IA.",
+    reportDescription: "Selecione uma ficha de anamnese para gerar e baixar um relatório em PDF.",
 
     // Página de Meus Relatórios
     myReportsTitle: "Meus Relatórios Gerados",
-    myReportsDescription: "Visualize e gerencie todos os seus relatórios gerados por IA.",
+    myReportsDescription: "Visualize e gerencie todos os seus relatórios gerados.",
     allReportsTitle: "Todos os Relatórios",
     allReportsDescription: "Aqui estão todos os relatórios que você já gerou, ordenados pelo mais recente.",
     reportDate: "Data do Relatório",
@@ -226,7 +232,7 @@ export const translations = {
     newAnamnesisCardDescription: "Create a new assessment form guided by the TIMERS framework.",
     createForm: "Create Assessment",
     generateReportCardTitle: "Generate Wound Report",
-    generateReportCardDescription: "Upload an image and anamnesis data to generate a report with AI.",
+    generateReportCardDescription: "Compile a PDF report from a saved anamnesis form.",
     createReport: "Create Report",
     compareReportsCardTitle: "Compare Reports",
     compareReportsCardDescription: "Analyze healing progress by comparing reports with AI.",
@@ -279,17 +285,23 @@ export const translations = {
     anamnesisTitle: "Wound Assessment - TIMERS",
     anamnesisDescription: "Fill in patient and wound data following the TIMERS clinical framework.",
 
+    // Compare Page
+    compareTitle: "Compare Wound Images",
+    compareDescription: "Upload two images of a wound for the AI to analyze healing progression.",
+    imageQualityAlertTitle: "Image Quality Alert",
+    imageQualityAlertDescription: "One or both images have low quality (lighting or focus), which may affect the analysis accuracy. It is recommended to use sharper, well-lit images.",
+
     // Compare Reports Page
     compareReportsTitle: "Compare Reports",
     compareReportsDescription: "Select two reports for the AI to analyze the case evolution.",
 
     // Report Page
     reportTitle: "Generate Wound Report",
-    reportDescription: "Provide anamnesis data and an image for AI analysis.",
+    reportDescription: "Select an anamnesis form to generate and download a PDF report.",
 
     // My Reports Page
     myReportsTitle: "My Generated Reports",
-    myReportsDescription: "View and manage all your AI-generated reports.",
+    myReportsDescription: "View and manage all your generated reports.",
     allReportsTitle: "All Reports",
     allReportsDescription: "Here are all the reports you have ever generated, sorted by the most recent.",
     reportDate: "Report Date",
