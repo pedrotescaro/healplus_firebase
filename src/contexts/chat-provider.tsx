@@ -38,7 +38,7 @@ export function ChatProvider({ children }: { children: ReactNode }) {
   const [loadingContacts, setLoadingContacts] = useState(true);
 
   useEffect(() => {
-    if (!user) {
+    if (!user || !user.role) {
       setLoadingContacts(false);
       return;
     };
@@ -46,50 +46,39 @@ export function ChatProvider({ children }: { children: ReactNode }) {
     const fetchContacts = async () => {
       setLoadingContacts(true);
       try {
-        let contactIds: string[] = [];
-        let reportsQuery;
-
-        if (user.role === 'professional') {
-          // Professional: fetch all reports they created
-          reportsQuery = query(collection(db, 'users', user.uid, 'reports'));
-        } else {
-          // Patient: fetch all reports where they are the patient (across all professionals)
-          reportsQuery = query(collectionGroup(db, 'reports'), where('patientId', '==', user.uid));
-        }
-
-        const reportsSnapshot = await getDocs(reportsQuery);
-        const ids = new Set(reportsSnapshot.docs.map(doc => {
-            const data = doc.data();
-            return user.role === 'professional' ? data.patientId : data.professionalId;
-        }));
-        contactIds = Array.from(ids);
+        const usersRef = collection(db, 'users');
+        let contactsQuery;
         
-        if (contactIds.length > 0) {
-            const usersQuery = query(collection(db, 'users'), where('uid', 'in', contactIds));
-            const usersSnapshot = await getDocs(usersQuery);
-            const fetchedContacts = usersSnapshot.docs.map(doc => ({ id: doc.data().uid, name: doc.data().name, photoURL: doc.data().photoURL } as ChatUser));
-            
-            // Add Zelo to the top of the list
-            setContacts([zeloContact, ...fetchedContacts]);
-
-            const preselectedId = searchParams.get('patientId') || searchParams.get('professionalId');
-            if (preselectedId) {
-              const contactToSelect = fetchedContacts.find(c => c.id === preselectedId);
-              if (contactToSelect) {
-                setSelectedContact(contactToSelect);
-                // Clean up URL params
-                const newParams = new URLSearchParams(searchParams.toString());
-                newParams.delete('patientId');
-                newParams.delete('professionalId');
-                router.replace(`?${newParams.toString()}`);
-              }
-            } else if (fetchedContacts.length > 0 && !selectedContact) {
-                // Do not automatically select the first contact
-            }
-        } else {
-            setContacts([zeloContact]);
-            setSelectedContact(null);
+        // Professionals see all patients, and patients see all professionals
+        if (user.role === 'professional') {
+          contactsQuery = query(usersRef, where('role', '==', 'patient'));
+        } else { // patient
+          contactsQuery = query(usersRef, where('role', '==', 'professional'));
         }
+
+        const usersSnapshot = await getDocs(contactsQuery);
+        const fetchedContacts = usersSnapshot.docs.map(doc => ({ 
+          id: doc.data().uid, 
+          name: doc.data().name, 
+          photoURL: doc.data().photoURL 
+        } as ChatUser));
+        
+        // Add Zelo to the top of the list
+        setContacts([zeloContact, ...fetchedContacts]);
+
+        const preselectedId = searchParams.get('patientId') || searchParams.get('professionalId');
+        if (preselectedId) {
+          const contactToSelect = fetchedContacts.find(c => c.id === preselectedId);
+          if (contactToSelect) {
+            setSelectedContact(contactToSelect);
+            // Clean up URL params
+            const newParams = new URLSearchParams(searchParams.toString());
+            newParams.delete('patientId');
+            newParams.delete('professionalId');
+            router.replace(`?${newParams.toString()}`);
+          }
+        }
+
       } catch (error) {
         console.error("Error fetching contacts:", error);
       } finally {
