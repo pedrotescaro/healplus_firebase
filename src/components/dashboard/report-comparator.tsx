@@ -276,56 +276,66 @@ const QualityBadge = ({ label, value }: { label: string, value: string }) => {
     return <Badge variant={variant(value)}>{label}: {value}</Badge>;
   };
 
-const IndividualAnalysisCard = ({ analysis }: { analysis: CompareWoundReportsOutput['analise_imagem_1'] }) => {
+const IndividualAnalysisCard = ({ analysis }: { analysis?: CompareWoundReportsOutput['analise_imagem_1'] }) => {
+      if (!analysis) {
+        return null;
+      }
       const { avaliacao_qualidade, analise_dimensional, analise_colorimetrica, analise_textura_e_caracteristicas } = analysis;
       return (
           <div className="space-y-4">
-              <Card>
-                  <CardHeader>
-                      <CardTitle className="text-base">Qualidade da Imagem</CardTitle>
-                  </CardHeader>
-                  <CardContent className="flex flex-wrap gap-2">
-                      <QualityBadge label="Iluminação" value={avaliacao_qualidade.iluminacao} />
-                      <QualityBadge label="Foco" value={avaliacao_qualidade.foco} />
-                      <QualityBadge label="Fundo" value={avaliacao_qualidade.fundo} />
-                      <QualityBadge label="Escala" value={avaliacao_qualidade.escala_referencia_presente} />
-                  </CardContent>
-              </Card>
-              <Card>
-                  <CardHeader>
-                      <CardTitle className="text-base">Análise Dimensional e Textura</CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                      <Table>
-                          <TableBody>
-                              <TableRow><TableCell className="font-medium">Área Afetada</TableCell><TableCell>{analise_dimensional.area_total_afetada} {analise_dimensional.unidade_medida}</TableCell></TableRow>
-                              <TableRow><TableCell className="font-medium">Edema</TableCell><TableCell>{analise_textura_e_caracteristicas.edema}</TableCell></TableRow>
-                              <TableRow><TableCell className="font-medium">Descamação</TableCell><TableCell>{analise_textura_e_caracteristicas.descamacao}</TableCell></TableRow>
-                              <TableRow><TableCell className="font-medium">Brilho</TableCell><TableCell>{analise_textura_e_caracteristicas.brilho_superficial}</TableCell></TableRow>
-                              <TableRow><TableCell className="font-medium">Bordas</TableCell><TableCell>{analise_textura_e_caracteristicas.bordas_lesao}</TableCell></TableRow>
-                          </TableBody>
-                      </Table>
-                  </CardContent>
-              </Card>
-              <Card>
-                  <CardHeader>
-                      <CardTitle className="text-base">Análise Colorimétrica</CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                       <Table>
-                          <TableHeader><TableRow><TableHead>Cor</TableHead><TableHead>Hex</TableHead><TableHead className="text-right">% Área</TableHead></TableRow></TableHeader>
-                          <TableBody>
-                              {analise_colorimetrica.cores_dominantes.map(c => (
-                                  <TableRow key={c.hex_aproximado}>
-                                      <TableCell className="font-medium flex items-center gap-2"><div className="w-4 h-4 rounded-full border" style={{ backgroundColor: c.hex_aproximado }}></div> {c.cor}</TableCell>
-                                      <TableCell>{c.hex_aproximado}</TableCell>
-                                      <TableCell className="text-right">{c.area_percentual}%</TableCell>
-                                  </TableRow>
-                              ))}
-                          </TableBody>
-                      </Table>
-                  </CardContent>
-              </Card>
+              {avaliacao_qualidade && (
+                <Card>
+                    <CardHeader>
+                        <CardTitle className="text-base">Qualidade da Imagem</CardTitle>
+                    </CardHeader>
+                    <CardContent className="flex flex-wrap gap-2">
+                        <QualityBadge label="Iluminação" value={avaliacao_qualidade.iluminacao} />
+                        <QualityBadge label="Foco" value={avaliacao_qualidade.foco} />
+                        <QualityBadge label="Fundo" value={avaliacao_qualidade.fundo} />
+                        <QualityBadge label="Escala" value={avaliacao_qualidade.escala_referencia_presente} />
+                    </CardContent>
+                </Card>
+              )}
+              {analise_dimensional && analise_textura_e_caracteristicas && (
+                <Card>
+                    <CardHeader>
+                        <CardTitle className="text-base">Análise Dimensional e Textura</CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                        <Table>
+                            <TableBody>
+                                <TableRow><TableCell className="font-medium">Área Afetada</TableCell><TableCell>{analise_dimensional.area_total_afetada} {analise_dimensional.unidade_medida}</TableCell></TableRow>
+                                <TableRow><TableCell className="font-medium">Edema</TableCell><TableCell>{analise_textura_e_caracteristicas.edema}</TableCell></TableRow>
+                                <TableRow><TableCell className="font-medium">Descamação</TableCell><TableCell>{analise_textura_e_caracteristicas.descamacao}</TableCell></TableRow>
+                                <TableRow><TableCell className="font-medium">Brilho</TableCell><TableCell>{analise_textura_e_caracteristicas.brilho_superficial}</TableCell></TableRow>
+                                <TableRow><TableCell className="font-medium">Bordas</TableCell><TableCell>{analise_textura_e_caracteristicas.bordas_lesao}</TableCell></TableRow>
+                            </TableBody>
+                        </Table>
+                    </CardContent>
+                </Card>
+              )}
+              {analise_colorimetrica && (
+                <Card>
+                    <CardHeader>
+                        <CardTitle className="text-base">Análise Colorimétrica</CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                        <Table>
+                            <TableHeader><TableRow><TableHead>Cor</TableHead><TableHead>Hex</TableHead><TableHead className="text-right">% Área</TableHead></TableRow></TableHeader>
+                            <TableBody>
+                                {analise_colorimetrica.cores_dominantes.map(c => (
+                                    <TableRow key={c.hex_aproximado}>
+                                        <TableCell className="font-medium flex items-center gap-2"><div className="w-4 h-4 rounded-full border" style={{ backgroundColor: c.hex_aproximado }}></div> {c.cor}</TableCell>
+                                        <TableCell>{c.hex_aproximado}</TableCell>
+                                        <TableCell className="text-right">{c.area_percentual}%</TableCell>
+                                    </TableRow>
+                                ))}
+                            </TableBody>
+                        </Table>
+                    </CardContent>
+                </Card>
+              )}
           </div>
       )
   };
+
