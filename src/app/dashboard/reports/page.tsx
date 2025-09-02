@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import Image from "next/image";
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { MoreHorizontal, Trash2, Eye, Loader2, FileDown, MessageSquare } from "lucide-react";
+import { MoreHorizontal, Trash2, Eye, Loader2, FileDown } from "lucide-react";
 import { useEffect, useState } from "react";
 import { Badge } from "@/components/ui/badge";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
@@ -57,7 +57,6 @@ interface StoredReport {
 }
 
 export default function ReportsPage() {
-  const router = useRouter();
   const { toast } = useToast();
   const { t } = useTranslation();
   const { user } = useAuth();
@@ -124,11 +123,6 @@ export default function ReportsPage() {
     } finally {
       setReportToDelete(null);
     }
-  };
-
-  const handleStartChat = (contactId: string) => {
-    const queryParam = user?.role === 'professional' ? 'patientId' : 'professionalId';
-    router.push(`/dashboard/chat?${queryParam}=${contactId}`);
   };
 
   const handleSavePdf = async (report: StoredReport | null) => {
@@ -284,9 +278,6 @@ export default function ReportsPage() {
                             </DropdownMenuItem>
                              <DropdownMenuItem onSelect={() => handleSavePdf(report)}>
                               <FileDown className="mr-2 h-4 w-4" /> Salvar em PDF
-                            </DropdownMenuItem>
-                            <DropdownMenuItem onSelect={() => handleStartChat(user?.role === 'professional' ? report.patientId : report.professionalId)}>
-                              <MessageSquare className="mr-2 h-4 w-4" /> Conversar
                             </DropdownMenuItem>
                             {user?.role === 'professional' && (
                               <>
