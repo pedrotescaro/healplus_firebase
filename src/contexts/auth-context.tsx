@@ -13,10 +13,11 @@ import {
   GoogleAuthProvider,
   OAuthProvider,
   signInWithPopup,
-  UserCredential
+  UserCredential,
+  deleteUser
 } from "firebase/auth";
 import { auth, db } from "@/firebase/client-app";
-import { doc, setDoc, getDoc } from "firebase/firestore";
+import { doc, setDoc, getDoc, deleteDoc } from "firebase/firestore";
 
 type UserRole = 'professional' | 'patient';
 
@@ -39,6 +40,7 @@ interface AuthContextType {
   loginWithMicrosoft: () => Promise<UserCredential>;
   refreshUser: () => Promise<void>;
   setUserRoleAndRefresh: (firebaseUser: FirebaseUser, role: UserRole) => Promise<void>;
+  deleteAccount: () => Promise<void>;
 }
 
 export const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -147,9 +149,23 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const logout = async () => {
     await signOut(auth);
   };
+  
+  const deleteAccount = async () => {
+    const currentUser = auth.currentUser;
+    if (currentUser) {
+      const userDocRef = doc(db, "users", currentUser.uid);
+      // NOTE: This does not delete subcollections. For a production app,
+      // a Cloud Function would be needed to recursively delete user data.
+      await deleteDoc(userDocRef);
+      await deleteUser(currentUser);
+      setUser(null);
+    } else {
+      throw new Error("Nenhum usuário autenticado para excluir.");
+    }
+  };
 
   return (
-    <AuthContext.Provider value={{ user, loading, login, signup, logout, loginWithGoogle, loginWithMicrosoft, refreshUser, setUserRoleAndRefresh }}>
+    <AuthContext.Provider value={{ user, loading, login, signup, logout, loginWithGoogle, loginWithMicrosoft, refreshUser, setUserRoleAndRefresh, deleteAccount }}>
       {children}
     </AuthContext.Provider>
   );
