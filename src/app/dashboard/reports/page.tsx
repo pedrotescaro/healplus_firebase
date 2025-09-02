@@ -81,7 +81,7 @@ export default function ReportsPage() {
           reportsQuery = query(collection(db, "users", user.uid, "reports"), orderBy("createdAt", "desc"));
         } else {
           // Patient: Fetch all reports where they are the patient
-          reportsQuery = query(collectionGroup(db, "reports"), where("patientId", "==", user.uid), orderBy("createdAt", "desc"));
+          reportsQuery = query(collectionGroup(db, "reports"), where("patientId", "==", user.uid));
         }
         
         const querySnapshot = await getDocs(reportsQuery);
