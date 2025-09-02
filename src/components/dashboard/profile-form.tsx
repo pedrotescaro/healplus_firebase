@@ -251,35 +251,39 @@ export function ProfileForm() {
                   <Input type="email" value={user?.email || ""} disabled />
               </FormControl>
           </FormItem>
-          <FormField
-            control={form.control}
-            name="specialty"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Especialidade</FormLabel>
-                <FormControl>
-                  <Input placeholder="ex: Dermatologia, Enfermagem" {...field} />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-          <FormField
-            control={form.control}
-            name="crm_coren"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>CRM/COREN</FormLabel>
-                <FormControl>
-                  <Input
-                    placeholder="ex: 123456-SP"
-                    {...field}
-                  />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
+          {user?.role === 'professional' && (
+            <>
+              <FormField
+                control={form.control}
+                name="specialty"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Especialidade</FormLabel>
+                    <FormControl>
+                      <Input placeholder="ex: Dermatologia, Enfermagem" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="crm_coren"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>CRM/COREN</FormLabel>
+                    <FormControl>
+                      <Input
+                        placeholder="ex: 123456-SP"
+                        {...field}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </>
+          )}
           <Button type="submit" disabled={loading}>
             {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
             Salvar Alterações
