@@ -32,8 +32,6 @@ const isAIEnabled = !!process.env.NEXT_PUBLIC_GEMINI_API_KEY;
 export function ReportGenerator() {
   const [selectedAnamnesisId, setSelectedAnamnesisId] = useState<string>("");
   const [anamnesisRecords, setAnamnesisRecords] = useState<StoredAnamnesis[]>([]);
-  const [patientEmail, setPatientEmail] = useState("");
-  const [patientId, setPatientId] = useState<string | null>(null);
   const [report, setReport] = useState<GenerateWoundReportOutput | null>(null);
   const [loading, setLoading] = useState(false);
   const [pdfLoading, setPdfLoading] = useState(false);
@@ -76,35 +74,30 @@ export function ReportGenerator() {
       return;
     }
 
-    if (!patientEmail) {
-        toast({ title: "Email do Paciente Necessário", description: "Por favor, insira o email do paciente para associar o relatório.", variant: "destructive" });
-        return;
-    }
-
     setLoading(true);
     setReport(null);
     
     try {
-        // Find patient by email
+        // Find patient by name from the anamnesis record to associate the report
         const usersRef = collection(db, "users");
-        const q = query(usersRef, where("email", "==", patientEmail));
+        const q = query(usersRef, where("name", "==", selectedRecord.nome_cliente));
         const querySnapshot = await getDocs(q);
 
         let foundPatientId: string | null = null;
         if (!querySnapshot.empty) {
+            // Assuming the first match is the correct one. 
+            // A more robust system might handle multiple users with the same name.
             foundPatientId = querySnapshot.docs[0].id;
-            setPatientId(foundPatientId);
         } else {
-             toast({ title: "Paciente não encontrado", description: "Nenhum usuário paciente com este email foi encontrado.", variant: "destructive" });
-             setLoading(false);
-             return;
+             // For now, we'll allow generating reports even if a patient user account doesn't exist.
+             // The report will be associated with the professional.
         }
 
       const anamnesisDataString = JSON.stringify(selectedRecord, null, 2);
       const result = await generateWoundReport({ woundImage: selectedRecord.woundImageUri, anamnesisData: anamnesisDataString });
       setReport(result);
       
-      if (user && foundPatientId) {
+      if (user) {
         // Save the report in the professional's subcollection
         await addDoc(collection(db, "users", user.uid, "reports"), {
           anamnesisId: selectedAnamnesisId,
@@ -112,10 +105,10 @@ export function ReportGenerator() {
           reportContent: result.report,
           woundImageUri: selectedRecord.woundImageUri,
           professionalId: user.uid,
-          patientId: foundPatientId,
+          patientId: foundPatientId, // This can be null if no matching patient account is found
           createdAt: serverTimestamp(),
         });
-        toast({ title: "Relatório Gerado e Salvo", description: "O relatório foi gerado e associado ao paciente com sucesso." });
+        toast({ title: "Relatório Gerado e Salvo", description: "O relatório foi gerado com sucesso." });
       }
     } catch (error) {
       console.error("Error generating report:", error);
@@ -278,16 +271,6 @@ export function ReportGenerator() {
                 )}
               </SelectContent>
             </Select>
-             <div className="space-y-2 pt-4">
-                <Label htmlFor="patient-email">Email do Paciente</Label>
-                <Input
-                    id="patient-email"
-                    type="email"
-                    value={patientEmail}
-                    onChange={(e) => setPatientEmail(e.target.value)}
-                    placeholder="email.paciente@exemplo.com"
-                />
-            </div>
           </div>
           <div className="space-y-2">
             <Label>Imagem da Ferida (da avaliação selecionada)</Label>
@@ -315,7 +298,7 @@ export function ReportGenerator() {
             </div>
           </div>
         </div>
-        <Button type="submit" disabled={loading || !selectedRecord?.woundImageUri || !patientEmail} className="w-full md:w-auto">
+        <Button type="submit" disabled={loading || !selectedRecord?.woundImageUri} className="w-full md:w-auto">
           {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
           Gerar Relatório
         </Button>
