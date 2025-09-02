@@ -136,7 +136,7 @@ export function ReportGenerator() {
           reportContent: result.report,
           woundImageUri: selectedRecord.woundImageUri,
           professionalId: user.uid,
-          patientId: selectedRecord.patientId || "", // Ensure patientId is not undefined
+          patientId: selectedRecord.patientId || "", 
           createdAt: serverTimestamp(),
         });
         toast({ title: "Relatório Gerado e Salvo", description: "O relatório foi gerado com sucesso." });
@@ -158,31 +158,31 @@ export function ReportGenerator() {
     setPdfLoading(true);
 
     try {
-        const doc = new jsPDF('p', 'mm', 'a4');
+        const doc_ = new jsPDF('p', 'mm', 'a4');
         const margin = 15;
-        const pageWidth = doc.internal.pageSize.getWidth();
+        const pageWidth = doc_.internal.pageSize.getWidth();
         
         const addFooter = () => {
-            const pageCount = (doc as any).internal.getNumberOfPages();
+            const pageCount = (doc_ as any).internal.getNumberOfPages();
             for (let i = 1; i <= pageCount; i++) {
-                doc.setPage(i);
-                doc.setFontSize(8);
-                doc.setTextColor(150);
+                doc_.setPage(i);
+                doc_.setFontSize(8);
+                doc_.setTextColor(150);
                 const footerText = `Gerado por Heal+ em ${new Date().toLocaleDateString('pt-BR')} | Página ${i} de ${pageCount}`;
-                doc.text(footerText, pageWidth / 2, doc.internal.pageSize.getHeight() - 10, { align: 'center' });
+                doc_.text(footerText, pageWidth / 2, doc_.internal.pageSize.getHeight() - 10, { align: 'center' });
             }
         };
 
-        doc.setFont('helvetica', 'bold');
-        doc.setFontSize(16);
-        doc.text("Relatório de Avaliação e Plano de Tratamento de Ferida", pageWidth / 2, 20, { align: 'center' });
+        doc_.setFont('helvetica', 'bold');
+        doc_.setFontSize(16);
+        doc_.text("Relatório de Avaliação e Plano de Tratamento de Ferida", pageWidth / 2, 20, { align: 'center' });
 
-        doc.setFontSize(12);
+        doc_.setFontSize(12);
         const evaluationDate = new Date(selectedRecord.data_consulta + 'T' + selectedRecord.hora_consulta);
         const formattedDate = evaluationDate.toLocaleDateString('pt-BR', { day: '2-digit', month: 'long', year: 'numeric' });
         const formattedTime = evaluationDate.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
         
-        autoTable(doc, {
+        autoTable(doc_, {
             startY: 30,
             head: [['Identificação do Paciente']],
             body: [
@@ -209,7 +209,7 @@ export function ReportGenerator() {
             ['Queixa Principal', `Ferida em ${anamnesisRecord.localizacao_ferida} com ${anamnesisRecord.tempo_evolucao} de evolução.`],
         ];
 
-        autoTable(doc, {
+        autoTable(doc_, {
             head: [['Anamnese']],
             body: anamnesisBody,
             theme: 'grid',
@@ -217,30 +217,30 @@ export function ReportGenerator() {
             didDrawPage: () => addFooter(),
         });
         
-        let finalY = (doc as any).lastAutoTable.finalY;
+        let finalY = (doc_ as any).lastAutoTable.finalY;
 
-         if (doc.internal.pageSize.getHeight() - finalY < 80) {
-            doc.addPage();
+         if (doc_.internal.pageSize.getHeight() - finalY < 80) {
+            doc_.addPage();
             finalY = margin;
         }
 
-        doc.setFont('helvetica', 'bold');
-        doc.setFontSize(12);
-        doc.text("Imagem da Ferida Analisada", margin, finalY + 10);
+        doc_.setFont('helvetica', 'bold');
+        doc_.setFontSize(12);
+        doc_.text("Imagem da Ferida Analisada", margin, finalY + 10);
         
         const img = new (window as any).Image();
         img.src = selectedRecord.woundImageUri;
         await new Promise(resolve => { img.onload = resolve; });
 
-        const imgProps = doc.getImageProperties(selectedRecord.woundImageUri);
+        const imgProps = doc_.getImageProperties(selectedRecord.woundImageUri);
         const imgWidth = 80;
         const imgHeight = (imgProps.height * imgWidth) / imgProps.width;
         const imgX = (pageWidth - imgWidth) / 2;
-        doc.addImage(selectedRecord.woundImageUri, 'PNG', imgX, finalY + 15, imgWidth, imgHeight);
+        doc_.addImage(selectedRecord.woundImageUri, 'PNG', imgX, finalY + 15, imgWidth, imgHeight);
         finalY += imgHeight + 20;
 
         const cleanReportText = report.report.replace(/\*\*/g, '').replace(/###/g, '').replace(/##/g, '');
-        autoTable(doc, {
+        autoTable(doc_, {
             startY: finalY + 5,
             head: [['Avaliação da Ferida']],
             body: [[cleanReportText]],
@@ -252,7 +252,7 @@ export function ReportGenerator() {
         addFooter();
 
         const fileName = `Relatorio_${selectedRecord.nome_cliente.replace(/\s/g, '_')}_${new Date().toLocaleDateString('pt-BR').replace(/\//g, '-')}.pdf`;
-        doc.save(fileName);
+        doc_.save(fileName);
 
     } catch (error) {
         console.error("Error generating PDF:", error);
