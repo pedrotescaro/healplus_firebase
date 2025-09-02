@@ -166,7 +166,7 @@ export function ReportComparator() {
         </div>
       )}
 
-      {comparisonResult && (
+      {comparisonResult && comparisonResult.relatorio_comparativo && (
          <Tabs defaultValue="comparativo" className="w-full">
             <TabsList className="grid w-full grid-cols-3">
                 <TabsTrigger value="comparativo"><GitCompareArrows className="mr-2" />Comparativo</TabsTrigger>
