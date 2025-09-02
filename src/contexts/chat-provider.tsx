@@ -4,7 +4,7 @@
 import { createContext, useState, useEffect, ReactNode, useContext } from "react";
 import { useAuth } from '@/hooks/use-auth';
 import { db } from '@/firebase/client-app';
-import { collection, query, where, getDocs, onSnapshot, orderBy } from 'firebase/firestore';
+import { collection, query, where, onSnapshot, orderBy } from 'firebase/firestore';
 import { useSearchParams, useRouter } from 'next/navigation';
 
 interface ChatUser {
