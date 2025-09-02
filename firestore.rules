@@ -3,10 +3,35 @@ rules_version = '2';
 
 service cloud.firestore {
   match /databases/{database}/documents {
-    // Permite que um usuário leia e escreva apenas em seus próprios documentos.
-    // A coleção 'users' armazena subcoleções para cada usuário, usando o UID como ID do documento.
-    match /users/{userId}/{documents=**} {
-      allow read, write: if request.auth != null && request.auth.uid == userId;
+  
+    // Users can read their own profile and update it.
+    // Other authenticated users can read public profile info.
+    match /users/{userId} {
+      allow read: if request.auth != null;
+      allow create, update: if request.auth.uid == userId;
+    }
+
+    // A professional can manage their own anamnesis records.
+    match /users/{userId}/anamnesis/{anamnesisId} {
+        allow read, write, delete: if request.auth.uid == userId;
+    }
+
+    // A professional can manage their own comparison records.
+    match /users/{userId}/comparisons/{comparisonId} {
+        allow read, write, delete: if request.auth.uid == userId;
+    }
+    
+    // Reports can be read by the professional who created them or the patient they belong to.
+    // Only professionals can create reports.
+    match /reports/{reportId} {
+      allow read: if request.auth.uid == resource.data.professionalId || request.auth.uid == resource.data.patientId;
+      allow create: if request.auth.token.role == 'professional';
+      allow update, delete: if request.auth.uid == resource.data.professionalId;
+    }
+
+    // Chat messages can only be read/written by participants in the chat.
+    match /chats/{chatId}/messages/{messageId} {
+      allow read, write: if request.auth.uid in chatId.split('_');
     }
   }
 }
