@@ -80,12 +80,16 @@ export default function ReportsPage() {
           // Professional: Fetch reports they created from their own subcollection
           reportsQuery = query(collection(db, "users", user.uid, "reports"), orderBy("createdAt", "desc"));
         } else {
-          // Patient: Fetch all reports where they are the patient across all professionals
+          // Patient: Fetch all reports where they are the patient across all professionals using a collectionGroup query
           reportsQuery = query(collectionGroup(db, "reports"), where("patientId", "==", user.uid));
         }
         
         const querySnapshot = await getDocs(reportsQuery);
+        // Sort patient reports by date client-side as collectionGroup queries don't support compound indexes well here
         const fetchedReports = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as StoredReport));
+        if (user.role === 'patient') {
+            fetchedReports.sort((a, b) => b.createdAt.toMillis() - a.createdAt.toMillis());
+        }
         setReports(fetchedReports);
       } catch (error) {
         console.error("Error fetching reports from Firestore: ", error);
