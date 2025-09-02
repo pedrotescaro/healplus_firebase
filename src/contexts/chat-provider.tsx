@@ -4,7 +4,7 @@
 import { createContext, useState, useEffect, ReactNode, useContext } from "react";
 import { useAuth } from '@/hooks/use-auth';
 import { db } from '@/firebase/client-app';
-import { collection, query, where, getDocs } from 'firebase/firestore';
+import { collection, query, where, getDocs, collectionGroup } from 'firebase/firestore';
 import { useSearchParams, useRouter } from 'next/navigation';
 
 interface ChatUser {
@@ -40,10 +40,16 @@ export function ChatProvider({ children }: { children: ReactNode }) {
       setLoadingContacts(true);
       try {
         let contactIds: string[] = [];
-        const reportsQuery = query(
-            collection(db, 'reports'), 
-            where(user.role === 'professional' ? 'professionalId' : 'patientId', '==', user.uid)
-        );
+        let reportsQuery;
+
+        if (user.role === 'professional') {
+          // Professional: fetch all reports they created
+          reportsQuery = query(collection(db, 'users', user.uid, 'reports'));
+        } else {
+          // Patient: fetch all reports where they are the patient (across all professionals)
+          reportsQuery = query(collectionGroup(db, 'reports'), where('patientId', '==', user.uid));
+        }
+
         const reportsSnapshot = await getDocs(reportsQuery);
         const ids = new Set(reportsSnapshot.docs.map(doc => {
             const data = doc.data();

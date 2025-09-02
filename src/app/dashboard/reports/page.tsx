@@ -39,7 +39,7 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/use-auth";
 import { db } from "@/firebase/client-app";
-import { collection, query, getDocs, orderBy, doc, deleteDoc, Timestamp, getDoc, where } from "firebase/firestore";
+import { collection, query, getDocs, orderBy, doc, deleteDoc, Timestamp, getDoc, where, collectionGroup } from "firebase/firestore";
 import { useTranslation } from "@/contexts/app-provider";
 import jsPDF from "jspdf";
 import autoTable from 'jspdf-autotable';
@@ -75,9 +75,16 @@ export default function ReportsPage() {
         return;
       }
       try {
-        const idField = user.role === 'professional' ? 'professionalId' : 'patientId';
-        const q = query(collection(db, "reports"), where(idField, "==", user.uid), orderBy("createdAt", "desc"));
-        const querySnapshot = await getDocs(q);
+        let reportsQuery;
+        if (user.role === 'professional') {
+          // Professional: Fetch reports they created from their own subcollection
+          reportsQuery = query(collection(db, "users", user.uid, "reports"), orderBy("createdAt", "desc"));
+        } else {
+          // Patient: Fetch all reports where they are the patient
+          reportsQuery = query(collectionGroup(db, "reports"), where("patientId", "==", user.uid), orderBy("createdAt", "desc"));
+        }
+        
+        const querySnapshot = await getDocs(reportsQuery);
         const fetchedReports = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as StoredReport));
         setReports(fetchedReports);
       } catch (error) {
@@ -94,9 +101,10 @@ export default function ReportsPage() {
   }, [user, toast, t]);
 
   const handleDelete = async () => {
-    if (!reportToDelete || !user) return;
+    if (!reportToDelete || !user || user.role !== 'professional') return;
     try {
-      await deleteDoc(doc(db, "reports", reportToDelete));
+      // Professionals delete from their own subcollection
+      await deleteDoc(doc(db, "users", user.uid, "reports", reportToDelete));
       setReports(reports.filter(report => report.id !== reportToDelete));
       toast({
         title: t.deleteReportTitle,

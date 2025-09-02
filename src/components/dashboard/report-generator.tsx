@@ -21,7 +21,7 @@ import jsPDF from "jspdf";
 import autoTable from 'jspdf-autotable';
 import { useAuth } from "@/hooks/use-auth";
 import { db } from "@/firebase/client-app";
-import { collection, query, getDocs, orderBy, addDoc, serverTimestamp, where, getDoc } from "firebase/firestore";
+import { collection, query, getDocs, orderBy, addDoc, serverTimestamp, where, getDoc, doc } from "firebase/firestore";
 import { Alert, AlertDescription, AlertTitle } from "../ui/alert";
 import Link from "next/link";
 import { Input } from "../ui/input";
@@ -105,7 +105,8 @@ export function ReportGenerator() {
       setReport(result);
       
       if (user && foundPatientId) {
-        await addDoc(collection(db, "reports"), {
+        // Save the report in the professional's subcollection
+        await addDoc(collection(db, "users", user.uid, "reports"), {
           anamnesisId: selectedAnamnesisId,
           patientName: selectedRecord.nome_cliente,
           reportContent: result.report,
