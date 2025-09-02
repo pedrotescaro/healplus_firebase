@@ -41,9 +41,17 @@ export function ChatSidebar() {
                     <div className="relative mr-3">
                         <Avatar className="h-10 w-10">
                             <AvatarImage src={contact.photoURL ?? undefined} />
-                            <AvatarFallback>{getInitials(contact.name)}</AvatarFallback>
+                            <AvatarFallback>
+                               {contact.id === 'zelo-assistant' ? (
+                                    <Cat className="h-6 w-6 text-primary" />
+                               ) : (
+                                    getInitials(contact.name)
+                               )}
+                            </AvatarFallback>
                         </Avatar>
-                        <span className="absolute bottom-0 right-0 block h-2.5 w-2.5 rounded-full bg-green-500 ring-2 ring-card" />
+                        {contact.id !== 'zelo-assistant' && (
+                           <span className="absolute bottom-0 right-0 block h-2.5 w-2.5 rounded-full bg-green-500 ring-2 ring-card" />
+                        )}
                     </div>
                     <span className="truncate">{contact.name}</span>
                     </Button>

@@ -22,11 +22,18 @@ interface ChatContextType {
 
 export const ChatContext = createContext<ChatContextType | undefined>(undefined);
 
+const zeloContact: ChatUser = {
+  id: 'zelo-assistant',
+  name: 'Zelo',
+  photoURL: null, // We'll use a fallback icon
+};
+
+
 export function ChatProvider({ children }: { children: ReactNode }) {
   const { user } = useAuth();
   const searchParams = useSearchParams();
   const router = useRouter();
-  const [contacts, setContacts] = useState<ChatUser[]>([]);
+  const [contacts, setContacts] = useState<ChatUser[]>([zeloContact]);
   const [selectedContact, setSelectedContact] = useState<ChatUser | null>(null);
   const [loadingContacts, setLoadingContacts] = useState(true);
 
@@ -61,7 +68,9 @@ export function ChatProvider({ children }: { children: ReactNode }) {
             const usersQuery = query(collection(db, 'users'), where('uid', 'in', contactIds));
             const usersSnapshot = await getDocs(usersQuery);
             const fetchedContacts = usersSnapshot.docs.map(doc => ({ id: doc.data().uid, name: doc.data().name, photoURL: doc.data().photoURL } as ChatUser));
-            setContacts(fetchedContacts);
+            
+            // Add Zelo to the top of the list
+            setContacts([zeloContact, ...fetchedContacts]);
 
             const preselectedId = searchParams.get('patientId') || searchParams.get('professionalId');
             if (preselectedId) {
@@ -78,7 +87,7 @@ export function ChatProvider({ children }: { children: ReactNode }) {
                 // Do not automatically select the first contact
             }
         } else {
-            setContacts([]);
+            setContacts([zeloContact]);
             setSelectedContact(null);
         }
       } catch (error) {
