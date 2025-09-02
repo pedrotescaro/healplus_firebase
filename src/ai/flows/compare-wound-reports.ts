@@ -11,7 +11,7 @@
 
 import {ai} from '@/ai/genkit';
 import {z} from 'genkit';
-import { CompareWoundImagesOutput } from './compare-wound-images';
+import { CompareWoundImagesOutput, CompareWoundImagesOutputSchema } from './compare-wound-images';
 
 
 const CompareWoundReportsInputSchema = z.object({
@@ -42,7 +42,7 @@ export async function compareWoundReports(input: CompareWoundReportsInput): Prom
 const prompt = ai.definePrompt({
   name: 'compareWoundReportsPrompt',
   input: {schema: CompareWoundReportsInputSchema},
-  output: {schema: z.custom<CompareWoundReportsOutput>()},
+  output: {schema: CompareWoundImagesOutputSchema},
   prompt: `
 Persona e Objetivo Primário:
 "Você é um assistente de IA especialista em Estomaterapia, com foco na análise de relatórios e imagens de feridas para avaliar a progressão. Seu objetivo é comparar dois conjuntos de dados (Relatório 1 + Imagem 1 vs. Relatório 2 + Imagem 2) e produzir uma análise técnica, objetiva e quantitativa da evolução. Você NUNCA deve fornecer um diagnóstico médico. Sua função é sintetizar e estruturar a progressão do caso para auxiliar profissionais de saúde."
@@ -94,11 +94,10 @@ const compareWoundReportsFlow = ai.defineFlow(
   {
     name: 'compareWoundReportsFlow',
     inputSchema: CompareWoundReportsInputSchema,
-    outputSchema: z.custom<CompareWoundReportsOutput>(),
+    outputSchema: CompareWoundImagesOutputSchema,
   },
   async input => {
     const {output} = await prompt(input);
     return output!;
   }
 );
-
