@@ -80,7 +80,7 @@ export default function ReportsPage() {
           // Professional: Fetch reports they created from their own subcollection
           reportsQuery = query(collection(db, "users", user.uid, "reports"), orderBy("createdAt", "desc"));
         } else {
-          // Patient: Fetch all reports where they are the patient
+          // Patient: Fetch all reports where they are the patient across all professionals
           reportsQuery = query(collectionGroup(db, "reports"), where("patientId", "==", user.uid));
         }
         
