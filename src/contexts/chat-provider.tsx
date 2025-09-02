@@ -4,13 +4,15 @@
 import { createContext, useState, useEffect, ReactNode, useContext } from "react";
 import { useAuth } from '@/hooks/use-auth';
 import { db } from '@/firebase/client-app';
-import { collection, query, where, getDocs, collectionGroup } from 'firebase/firestore';
+import { collection, query, where, getDocs, onSnapshot, orderBy } from 'firebase/firestore';
 import { useSearchParams, useRouter } from 'next/navigation';
 
 interface ChatUser {
   id: string;
   name: string | null;
   photoURL: string | null;
+  lastMessage?: string;
+  lastMessageTimestamp?: Date;
 }
 
 interface ChatContextType {
@@ -26,6 +28,7 @@ const zeloContact: ChatUser = {
   id: 'zelo-assistant',
   name: 'Zelo',
   photoURL: null, // We'll use a fallback icon
+  lastMessage: 'Pergunte-me qualquer coisa!',
 };
 
 
@@ -38,37 +41,42 @@ export function ChatProvider({ children }: { children: ReactNode }) {
   const [loadingContacts, setLoadingContacts] = useState(true);
 
   useEffect(() => {
-    if (!user || !user.role) {
+    if (!user) {
       setLoadingContacts(false);
       return;
     };
 
-    const fetchContacts = async () => {
-      setLoadingContacts(true);
-      try {
-        const usersRef = collection(db, 'users');
-        let contactsQuery;
-        
-        // Professionals see all patients, and patients see all professionals
-        if (user.role === 'professional') {
-          contactsQuery = query(usersRef, where('role', '==', 'patient'));
-        } else { // patient
-          contactsQuery = query(usersRef, where('role', '==', 'professional'));
-        }
+    const chatsQuery = query(
+        collection(db, 'chats'),
+        where('participants', 'array-contains', user.uid),
+        orderBy('timestampUltimaMensagem', 'desc')
+    );
+    
+    const unsubscribe = onSnapshot(chatsQuery, (querySnapshot) => {
+        setLoadingContacts(true);
+        const fetchedChats = querySnapshot.docs.map(doc => {
+            const data = doc.data();
+            const otherParticipantId = data.participants.find((p: string) => p !== user.uid);
+            
+            // Handle case where chat might be with Zelo or self, though unlikely
+            if (!otherParticipantId) return null;
 
-        const usersSnapshot = await getDocs(contactsQuery);
-        const fetchedContacts = usersSnapshot.docs.map(doc => ({ 
-          id: doc.data().uid, 
-          name: doc.data().name, 
-          photoURL: doc.data().photoURL 
-        } as ChatUser));
-        
-        // Add Zelo to the top of the list
-        setContacts([zeloContact, ...fetchedContacts]);
+            return {
+                id: otherParticipantId,
+                name: data.nomesParticipantes[otherParticipantId] || 'Usuário Desconhecido',
+                photoURL: data.photoURLs[otherParticipantId] || null,
+                lastMessage: data.ultimaMensagem,
+                lastMessageTimestamp: data.timestampUltimaMensagem?.toDate(),
+            };
+        }).filter(Boolean) as ChatUser[]; // filter(Boolean) removes nulls
 
+        setContacts([zeloContact, ...fetchedChats]);
+        setLoadingContacts(false);
+        
+        // Logic to pre-select a contact from URL params
         const preselectedId = searchParams.get('patientId') || searchParams.get('professionalId');
         if (preselectedId) {
-          const contactToSelect = fetchedContacts.find(c => c.id === preselectedId);
+          const contactToSelect = fetchedChats.find(c => c.id === preselectedId);
           if (contactToSelect) {
             setSelectedContact(contactToSelect);
             // Clean up URL params
@@ -79,14 +87,12 @@ export function ChatProvider({ children }: { children: ReactNode }) {
           }
         }
 
-      } catch (error) {
-        console.error("Error fetching contacts:", error);
-      } finally {
+    }, (error) => {
+        console.error("Error fetching chats:", error);
         setLoadingContacts(false);
-      }
-    };
-
-    fetchContacts();
+    });
+    
+    return () => unsubscribe();
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user]);
 

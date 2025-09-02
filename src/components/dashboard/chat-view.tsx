@@ -4,7 +4,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { useAuth } from '@/hooks/use-auth';
 import { db } from '@/firebase/client-app';
-import { collection, onSnapshot, addDoc, serverTimestamp, orderBy, query } from 'firebase/firestore';
+import { collection, onSnapshot, addDoc, serverTimestamp, orderBy, query, doc, setDoc } from 'firebase/firestore';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
@@ -72,12 +72,30 @@ export function ChatView() {
     if (newMessage.trim() === '' || !user || !selectedContact) return;
 
     const chatId = [user.uid, selectedContact.id].sort().join('_');
+    const chatDocRef = doc(db, 'chats', chatId);
+    const messagesColRef = collection(chatDocRef, 'messages');
     
-    await addDoc(collection(db, 'chats', chatId, 'messages'), {
+    // Add the new message to the subcollection
+    await addDoc(messagesColRef, {
       text: newMessage,
       senderId: user.uid,
       timestamp: serverTimestamp(),
     });
+
+    // Update the main chat document with metadata
+    await setDoc(chatDocRef, {
+        participants: [user.uid, selectedContact.id],
+        nomesParticipantes: {
+            [user.uid]: user.name,
+            [selectedContact.id]: selectedContact.name,
+        },
+        photoURLs: {
+            [user.uid]: user.photoURL,
+            [selectedContact.id]: selectedContact.photoURL,
+        },
+        ultimaMensagem: newMessage,
+        timestampUltimaMensagem: serverTimestamp(),
+    }, { merge: true }); // Use merge: true to create or update the doc without overwriting
 
     setNewMessage('');
   };

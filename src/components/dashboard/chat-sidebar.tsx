@@ -7,6 +7,8 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { Loader2, MessageSquarePlus, Cat } from 'lucide-react';
 import { useChat } from '@/contexts/chat-provider';
 import { Popover, PopoverTrigger } from '../ui/popover';
+import { formatDistanceToNow } from 'date-fns';
+import { ptBR } from 'date-fns/locale';
 
 const getInitials = (name: string | null | undefined): string => {
   if (!name) return "?";
@@ -22,7 +24,7 @@ export function ChatSidebar() {
   return (
     <div className="flex flex-col h-full">
         <div className="flex h-14 items-center border-b px-4 lg:h-[60px] lg:px-6">
-            <h2 className="font-semibold text-lg tracking-tight">Contatos</h2>
+            <h2 className="font-semibold text-lg tracking-tight">Conversas</h2>
         </div>
          <ScrollArea className="flex-1 p-2">
             {loadingContacts ? (
@@ -35,10 +37,10 @@ export function ChatSidebar() {
                     <Button
                     key={contact.id}
                     variant={selectedContact?.id === contact.id ? 'secondary' : 'ghost'}
-                    className="w-full justify-start h-14"
+                    className="w-full justify-start h-auto py-2"
                     onClick={() => setSelectedContact(contact)}
                     >
-                    <div className="relative mr-3">
+                    <div className="relative mr-3 self-start mt-1">
                         <Avatar className="h-10 w-10">
                             <AvatarImage src={contact.photoURL ?? undefined} />
                             <AvatarFallback>
@@ -53,20 +55,32 @@ export function ChatSidebar() {
                            <span className="absolute bottom-0 right-0 block h-2.5 w-2.5 rounded-full bg-green-500 ring-2 ring-card" />
                         )}
                     </div>
-                    <span className="truncate">{contact.name}</span>
+                     <div className="flex flex-col items-start w-full overflow-hidden text-left">
+                        <div className="flex justify-between w-full">
+                            <span className="font-semibold truncate">{contact.name}</span>
+                             {contact.lastMessageTimestamp && (
+                                <span className="text-xs text-muted-foreground shrink-0 ml-2">
+                                    {formatDistanceToNow(contact.lastMessageTimestamp, { addSuffix: true, locale: ptBR })}
+                                </span>
+                            )}
+                        </div>
+                        <p className="text-xs text-muted-foreground truncate w-full">
+                           {contact.lastMessage}
+                        </p>
+                     </div>
                     </Button>
                 ))}
                 </div>
             ) : (
                 <div className="flex flex-col items-center justify-center h-full text-center p-4">
                     <MessageSquarePlus className="h-12 w-12 text-muted-foreground mb-4" />
-                    <p className="text-sm text-muted-foreground">Nenhum contato encontrado.</p>
-                    <p className="text-xs text-muted-foreground mt-1">Seus contatos aparecerão aqui quando você gerar relatórios para pacientes.</p>
-                    <div className="mt-4 text-xs text-muted-foreground flex items-center gap-2">
+                    <p className="text-sm text-muted-foreground">Nenhuma conversa encontrada.</p>
+                    <p className="text-xs text-muted-foreground mt-1">Inicie uma conversa selecionando um usuário na página de pacientes.</p>
+                     <div className="mt-4 text-xs text-muted-foreground flex items-center gap-2">
                         <span>Com dúvida?</span>
                         <Popover>
                             <PopoverTrigger asChild>
-                                <Button variant="outline" size="sm" className="gap-1">
+                                <Button variant="outline" size="sm" className="gap-1" onClick={() => setSelectedContact(contacts.find(c => c.id === 'zelo-assistant') || null)}>
                                     <Cat className="h-4 w-4" /> Fale com o Zelo
                                 </Button>
                             </PopoverTrigger>

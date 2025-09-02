@@ -3,33 +3,34 @@ rules_version = '2';
 
 service cloud.firestore {
   match /databases/{database}/documents {
-
-    // Users can read anyone's profile for chat/contact purposes
-    // but can only write to their own.
+  
+    // Regras para a coleção 'users'
     match /users/{userId} {
-      allow read: if request.auth != null;
-      allow write, delete: if request.auth.uid == userId;
+      allow read, write: if request.auth.uid == userId;
     }
 
-    // A professional can manage their own subcollections (anamnesis, reports, etc.).
-    match /users/{professionalId}/{collection}/{docId} {
-       allow read, write, delete: if request.auth.uid == professionalId &&
-                                     request.auth.token.role == 'professional';
+    // Regras para as subcoleções dentro de 'users'
+    match /users/{userId}/{collection}/{docId} {
+      // O usuário só pode ler e escrever em suas próprias subcoleções (anamnesis, reports, etc.)
+      allow read, write: if request.auth.uid == userId;
     }
     
-    // This rule allows the collectionGroup query for patients to find their reports
-    // across all professional subcollections.
-    match /{path=**}/reports/{reportId} {
-      allow read: if (request.auth.token.role == 'patient' && get(/databases/$(database)/documents/$(path)/reports/$(reportId)).data.patientId == request.auth.uid) ||
-                     (request.auth.token.role == 'professional' && get(/databases/$(database)/documents/$(path)/reports/$(reportId)).data.professionalId == request.auth.uid);
-    }
-
-    // Chats can only be accessed by the two participants.
+    // Regras para a coleção 'chats'
     match /chats/{chatId} {
-      allow read, write: if request.auth.uid in chatId.split('_');
-
+    	// Permite leitura e escrita apenas para os participantes do chat
+    	allow read, update, delete: if request.auth.uid in resource.data.participants;
+      
+      // Permite a criação se o ID do criador estiver na lista de participantes
+      allow create: if request.auth.uid in request.resource.data.participants;
+      
+      // Regras para a subcoleção 'messages'
       match /messages/{messageId} {
-        allow read, write: if request.auth.uid in resource.data.chatId.split('_');
+      	// Permite a leitura das mensagens apenas para os participantes do chat
+      	allow read: if get(/databases/$(database)/documents/chats/$(chatId)).data.participants.hasAny([request.auth.uid]);
+        
+        // Permite a criação de mensagens se o remetente for um dos participantes
+        allow create: if get(/databases/$(database)/documents/chats/$(chatId)).data.participants.hasAny([request.auth.uid])
+                      && request.resource.data.senderId == request.auth.uid;
       }
     }
   }
