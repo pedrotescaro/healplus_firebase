@@ -56,11 +56,13 @@ export function ChatSidebar() {
                     <p className="text-xs text-muted-foreground mt-1">Seus contatos aparecerão aqui quando você gerar relatórios para pacientes.</p>
                     <div className="mt-4 text-xs text-muted-foreground flex items-center gap-2">
                         <span>Com dúvida?</span>
-                        <PopoverTrigger asChild>
-                             <Button variant="outline" size="sm" className="gap-1">
-                                <Cat className="h-4 w-4" /> Fale com o Zelo
-                            </Button>
-                        </PopoverTrigger>
+                        <Popover>
+                            <PopoverTrigger asChild>
+                                <Button variant="outline" size="sm" className="gap-1">
+                                    <Cat className="h-4 w-4" /> Fale com o Zelo
+                                </Button>
+                            </PopoverTrigger>
+                        </Popover>
                     </div>
                 </div>
             )}
