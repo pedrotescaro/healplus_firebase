@@ -136,7 +136,7 @@ export function ReportGenerator() {
           reportContent: result.report,
           woundImageUri: selectedRecord.woundImageUri,
           professionalId: user.uid,
-          patientId: selectedRecord.patientId, // Use the patientId from the anamnesis record
+          patientId: selectedRecord.patientId || "", // Ensure patientId is not undefined
           createdAt: serverTimestamp(),
         });
         toast({ title: "Relatório Gerado e Salvo", description: "O relatório foi gerado com sucesso." });
