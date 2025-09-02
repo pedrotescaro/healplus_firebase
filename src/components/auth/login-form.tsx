@@ -23,6 +23,9 @@ import { Loader2, Eye, EyeOff } from "lucide-react";
 import { DisclaimerDialog } from "./disclaimer-dialog";
 import { useToast } from "@/hooks/use-toast";
 import { useTranslation } from "@/contexts/app-provider";
+import type { UserCredential } from "firebase/auth";
+import { doc, getDoc } from "firebase/firestore";
+import { db } from "@/firebase/client-app";
 
 const GoogleIcon = () => (
     <svg className="h-5 w-5" viewBox="0 0 24 24" fill="currentColor">
@@ -42,11 +45,9 @@ const MicrosoftIcon = () => (
     </svg>
 );
 
-const DISCLAIMER_AGREED_KEY = 'heal-plus-disclaimer-agreed';
-
 export function LoginForm() {
   const router = useRouter();
-  const { login, loginWithGoogle, loginWithMicrosoft, setUserRole } = useAuth();
+  const { login, loginWithGoogle, loginWithMicrosoft, setUserRoleAndRefresh } = useAuth();
   const { t } = useTranslation();
   const { toast } = useToast();
   const [loading, setLoading] = useState(false);
@@ -54,53 +55,7 @@ export function LoginForm() {
   const [microsoftLoading, setMicrosoftLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [showDisclaimer, setShowDisclaimer] = useState(false);
-  const [loginValues, setLoginValues] = useState<z.infer<typeof loginSchema> | null>(null);
-  const [loginMethod, setLoginMethod] = useState<'email' | 'google' | 'microsoft' | null>(null);
-  const [disclaimerAgreed, setDisclaimerAgreed] = useState<boolean | null>(null);
-  
-  useEffect(() => {
-    // This code runs only on the client, preventing hydration errors
-    try {
-      const agreed = localStorage.getItem(DISCLAIMER_AGREED_KEY) === 'true';
-      setDisclaimerAgreed(agreed);
-    } catch (error) {
-      console.error("Could not access localStorage", error);
-      setDisclaimerAgreed(false);
-    }
-  }, []);
-
-
-  function onSubmit(values: z.infer<typeof loginSchema>) {
-    handleEmailLogin(values);
-  }
-
-  function handleGoogleClick() {
-    handleGoogleLogin();
-  }
-
-  function handleMicrosoftClick() {
-    handleMicrosoftLogin();
-  }
-
-  async function handleDisclaimerAgree(isProfessional: boolean) {
-    setShowDisclaimer(false);
-    try {
-      localStorage.setItem(DISCLAIMER_AGREED_KEY, 'true');
-      setDisclaimerAgreed(true);
-      await setUserRole(isProfessional ? 'professional' : 'patient');
-    } catch (error) {
-      console.error("Could not set item in localStorage", error);
-    }
-
-    if (loginMethod === 'email' && loginValues) {
-        await handleEmailLogin(loginValues, true);
-    } else if (loginMethod === 'google') {
-        await handleGoogleLogin(true);
-    } else if (loginMethod === 'microsoft') {
-        await handleMicrosoftLogin(true);
-    }
-    setLoginMethod(null);
-  }
+  const [pendingUser, setPendingUser] = useState<UserCredential | null>(null);
 
   const form = useForm<z.infer<typeof loginSchema>>({
     resolver: zodResolver(loginSchema),
@@ -110,18 +65,25 @@ export function LoginForm() {
     },
   });
 
-  async function handleEmailLogin(values: z.infer<typeof loginSchema>, fromDisclaimer = false) {
+  const checkUserRoleAndProceed = async (userCredential: UserCredential) => {
+    const userDocRef = doc(db, "users", userCredential.user.uid);
+    const userDoc = await getDoc(userDocRef);
+
+    if (!userDoc.exists() || !userDoc.data()?.role) {
+      // User is new or has no role, show disclaimer to set role
+      setPendingUser(userCredential);
+      setShowDisclaimer(true);
+    } else {
+      // User has a role, proceed to dashboard
+      router.push("/dashboard");
+    }
+  };
+
+  async function onSubmit(values: z.infer<typeof loginSchema>) {
     setLoading(true);
     try {
       const userCredential = await login(values.email, values.password);
-      if (userCredential.user && !fromDisclaimer && disclaimerAgreed === false) {
-          setLoginValues(values);
-          setLoginMethod('email');
-          setShowDisclaimer(true);
-          setLoading(false);
-          return;
-      }
-      router.push("/dashboard");
+      await checkUserRoleAndProceed(userCredential);
     } catch (error: any) {
        toast({
         title: t.loginErrorTitle,
@@ -129,21 +91,15 @@ export function LoginForm() {
         variant: "destructive",
       });
     } finally {
-        setLoading(false);
+      setLoading(false);
     }
   }
-
-  async function handleGoogleLogin(fromDisclaimer = false) {
+  
+  async function handleGoogleClick() {
     setGoogleLoading(true);
     try {
-        const userCredential = await loginWithGoogle();
-         if (userCredential.user && !fromDisclaimer && disclaimerAgreed === false) {
-            setLoginMethod('google');
-            setShowDisclaimer(true);
-            setGoogleLoading(false);
-            return;
-        }
-        router.push("/dashboard");
+      const userCredential = await loginWithGoogle();
+      await checkUserRoleAndProceed(userCredential);
     } catch (error: any) {
         toast({
             title: t.loginGoogleErrorTitle,
@@ -157,17 +113,11 @@ export function LoginForm() {
     }
   }
 
-  async function handleMicrosoftLogin(fromDisclaimer = false) {
+  async function handleMicrosoftClick() {
     setMicrosoftLoading(true);
     try {
-        const userCredential = await loginWithMicrosoft();
-         if (userCredential.user && !fromDisclaimer && disclaimerAgreed === false) {
-            setLoginMethod('microsoft');
-            setShowDisclaimer(true);
-            setMicrosoftLoading(false);
-            return;
-        }
-        router.push("/dashboard");
+      const userCredential = await loginWithMicrosoft();
+      await checkUserRoleAndProceed(userCredential);
     } catch (error: any) {
         toast({
             title: t.loginMicrosoftErrorTitle,
@@ -180,9 +130,20 @@ export function LoginForm() {
         setMicrosoftLoading(false);
     }
   }
-
-  if (disclaimerAgreed === null) {
-    return null; // or a loading spinner
+  
+  async function handleDisclaimerAgree(isProfessional: boolean) {
+    setShowDisclaimer(false);
+    if (!pendingUser) return;
+    
+    try {
+      await setUserRoleAndRefresh(pendingUser.user, isProfessional ? 'professional' : 'patient');
+      router.push("/dashboard");
+    } catch (error) {
+       console.error("Failed to set user role:", error);
+       toast({ title: "Erro", description: "Não foi possível definir o seu perfil de usuário.", variant: "destructive" });
+    } finally {
+        setPendingUser(null);
+    }
   }
 
   return (

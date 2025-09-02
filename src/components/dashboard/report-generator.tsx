@@ -26,7 +26,7 @@ import { Alert, AlertDescription, AlertTitle } from "../ui/alert";
 import Link from "next/link";
 import { Input } from "../ui/input";
 
-type StoredAnamnesis = AnamnesisFormValues & { id: string, patientId: string };
+type StoredAnamnesis = AnamnesisFormValues & { id: string };
 const isAIEnabled = !!process.env.NEXT_PUBLIC_GEMINI_API_KEY;
 
 export function ReportGenerator() {
@@ -180,7 +180,6 @@ export function ReportGenerator() {
         const anamnesisBody = [
             ['Histórico Médico', anamnesisRecord.historico_cicrizacao || 'Nenhum relatado'],
             ['Alergias', anamnesisRecord.possui_alergia ? anamnesisRecord.qual_alergia : 'Nenhuma relatada'],
-            ['Medicamentos em Uso', anamnesisRecord.usa_medicacao ? anamnesisRecord.qual_medicacao : 'Nenhum'],
             ['Hábitos', `Atividade Física: ${anamnesisRecord.pratica_atividade_fisica ? 'Sim' : 'Não'}\nÁlcool: ${anamnesisRecord.ingestao_alcool ? 'Sim' : 'Não'}\nFumante: ${anamnesisRecord.fumante ? 'Sim' : 'Não'}`],
             ['Queixa Principal', `Ferida em ${anamnesisRecord.localizacao_ferida} com ${anamnesisRecord.tempo_evolucao} de evolução.`],
         ];

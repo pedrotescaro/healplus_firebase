@@ -1,3 +1,4 @@
+
 import { z } from "zod";
 
 // Personal Data
@@ -88,17 +89,17 @@ export const clinicalHistorySchema = z.object({
 // T - Tissue
 export const tissueSchema = z.object({
   woundImageUri: z.string().optional(),
-  ferida_largura: z.coerce.number().min(0, "Largura não pode ser negativa"),
-  ferida_comprimento: z.coerce.number().min(0, "Comprimento não pode ser negativo"),
-  ferida_profundidade: z.coerce.number().min(0, "Profundidade não pode ser negativa"),
+  ferida_largura: z.coerce.number().min(0, "Largura não pode ser negativa").optional(),
+  ferida_comprimento: z.coerce.number().min(0, "Comprimento não pode ser negativo").optional(),
+  ferida_profundidade: z.coerce.number().min(0, "Profundidade não pode ser negativa").optional(),
   localizacao_ferida: z.string().min(1, "Localização é obrigatória"),
   etiologia_ferida: z.string().optional(),
   etiologia_outra: z.string().optional(),
   tempo_evolucao: z.string().min(1, "Tempo de evolução é obrigatório"),
-  percentual_granulacao_leito: z.coerce.number().min(0).max(100),
-  percentual_epitelizacao_leito: z.coerce.number().min(0).max(100),
-  percentual_esfacelo_leito: z.coerce.number().min(0).max(100),
-  percentual_necrose_seca_leito: z.coerce.number().min(0).max(100),
+  percentual_granulacao_leito: z.coerce.number().min(0).max(100).optional(),
+  percentual_epitelizacao_leito: z.coerce.number().min(0).max(100).optional(),
+  percentual_esfacelo_leito: z.coerce.number().min(0).max(100).optional(),
+  percentual_necrose_seca_leito: z.coerce.number().min(0).max(100).optional(),
 });
 
 // I - Infection/Inflammation
@@ -168,15 +169,6 @@ export const anamnesisFormSchema = personalDataSchema
   .merge(infectionSchema)
   .merge(moistureSchema)
   .merge(edgeSchema)
-  .merge(repairSchema)
-  // Deprecated fields that are not part of TIMERS explicitly but were in the old schema
-  .merge(z.object({
-    usa_medicacao: z.boolean().default(false),
-    qual_medicacao: z.string().optional(),
-    possui_doenca: z.boolean().default(false),
-    qual_doenca: z.string().optional(),
-    tem_filhos: z.boolean().default(false),
-    quantos_filhos: z.coerce.number().optional(),
-  }));
+  .merge(repairSchema);
 
 export type AnamnesisFormValues = z.infer<typeof anamnesisFormSchema>;

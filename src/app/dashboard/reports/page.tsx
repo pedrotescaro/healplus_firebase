@@ -75,8 +75,8 @@ export default function ReportsPage() {
         return;
       }
       try {
-        const professionalIdField = user.role === 'professional' ? 'professionalId' : 'patientId';
-        const q = query(collection(db, "reports"), where(professionalIdField, "==", user.uid), orderBy("createdAt", "desc"));
+        const idField = user.role === 'professional' ? 'professionalId' : 'patientId';
+        const q = query(collection(db, "reports"), where(idField, "==", user.uid), orderBy("createdAt", "desc"));
         const querySnapshot = await getDocs(q);
         const fetchedReports = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as StoredReport));
         setReports(fetchedReports);
@@ -114,8 +114,9 @@ export default function ReportsPage() {
     }
   };
 
-  const handleStartChat = (patientId: string) => {
-    router.push(`/dashboard/chat?patientId=${patientId}`);
+  const handleStartChat = (contactId: string) => {
+    const queryParam = user?.role === 'professional' ? 'patientId' : 'professionalId';
+    router.push(`/dashboard/chat?${queryParam}=${contactId}`);
   };
 
   const handleSavePdf = async (report: StoredReport | null) => {
@@ -272,16 +273,16 @@ export default function ReportsPage() {
                              <DropdownMenuItem onSelect={() => handleSavePdf(report)}>
                               <FileDown className="mr-2 h-4 w-4" /> Salvar em PDF
                             </DropdownMenuItem>
+                            <DropdownMenuItem onSelect={() => handleStartChat(user?.role === 'professional' ? report.patientId : report.professionalId)}>
+                              <MessageSquare className="mr-2 h-4 w-4" /> Conversar
+                            </DropdownMenuItem>
                             {user?.role === 'professional' && (
-                                <DropdownMenuItem onSelect={() => handleStartChat(report.patientId)}>
-                                  <MessageSquare className="mr-2 h-4 w-4" /> Conversar
-                                </DropdownMenuItem>
-                            )}
-                            <DropdownMenuSeparator />
-                             {user?.role === 'professional' && (
+                              <>
+                                <DropdownMenuSeparator />
                                 <DropdownMenuItem onSelect={() => setReportToDelete(report.id)} className="text-destructive focus:text-destructive">
                                 <Trash2 className="mr-2 h-4 w-4" /> {t.delete}
                                 </DropdownMenuItem>
+                              </>
                              )}
                           </DropdownMenuContent>
                         </DropdownMenu>
