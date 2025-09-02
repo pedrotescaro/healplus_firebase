@@ -88,7 +88,7 @@ const ComparativeReportSchema = z.object({
 });
 
 
-const CompareWoundImagesOutputSchema = z.object({
+export const CompareWoundImagesOutputSchema = z.object({
   analise_imagem_1: ImageAnalysisSchema,
   analise_imagem_2: ImageAnalysisSchema,
   relatorio_comparativo: ComparativeReportSchema,
@@ -152,3 +152,5 @@ const compareWoundImagesFlow = ai.defineFlow(
     return output!;
   }
 );
+
+    
