@@ -70,7 +70,15 @@ export function ChatProvider({ children }: { children: ReactNode }) {
             };
         }).filter(Boolean) as ChatUser[]; // filter(Boolean) removes nulls
 
-        setContacts([zeloContact, ...fetchedChats]);
+        // Create a map to avoid duplicates, keeping the most recent chat
+        const uniqueContacts = new Map<string, ChatUser>();
+        fetchedChats.forEach(contact => {
+          if (!uniqueContacts.has(contact.id)) {
+            uniqueContacts.set(contact.id, contact);
+          }
+        });
+
+        setContacts([zeloContact, ...Array.from(uniqueContacts.values())]);
         setLoadingContacts(false);
         
         // Logic to pre-select a contact from URL params
