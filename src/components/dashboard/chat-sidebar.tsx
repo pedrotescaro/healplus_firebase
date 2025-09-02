@@ -4,8 +4,9 @@
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { Loader2, MessageSquarePlus } from 'lucide-react';
+import { Loader2, MessageSquarePlus, Cat } from 'lucide-react';
 import { useChat } from '@/contexts/chat-provider';
+import { Popover, PopoverTrigger } from '../ui/popover';
 
 const getInitials = (name: string | null | undefined): string => {
   if (!name) return "?";
@@ -51,7 +52,16 @@ export function ChatSidebar() {
             ) : (
                 <div className="flex flex-col items-center justify-center h-full text-center p-4">
                     <MessageSquarePlus className="h-12 w-12 text-muted-foreground mb-4" />
-                    <p className="text-sm text-muted-foreground">Nenhum contato encontrado. Seus contatos aparecerão aqui quando você gerar relatórios para pacientes.</p>
+                    <p className="text-sm text-muted-foreground">Nenhum contato encontrado.</p>
+                    <p className="text-xs text-muted-foreground mt-1">Seus contatos aparecerão aqui quando você gerar relatórios para pacientes.</p>
+                    <div className="mt-4 text-xs text-muted-foreground flex items-center gap-2">
+                        <span>Com dúvida?</span>
+                        <PopoverTrigger asChild>
+                             <Button variant="outline" size="sm" className="gap-1">
+                                <Cat className="h-4 w-4" /> Fale com o Zelo
+                            </Button>
+                        </PopoverTrigger>
+                    </div>
                 </div>
             )}
          </ScrollArea>
