@@ -11,7 +11,8 @@
 
 import {ai} from '@/ai/genkit';
 import {z} from 'genkit';
-import { CompareWoundImagesOutput, CompareWoundImagesOutputSchema } from './compare-wound-images';
+import { CompareWoundImagesOutputSchema } from '../schemas';
+import type { CompareWoundImagesOutput } from './compare-wound-images';
 
 
 const CompareWoundReportsInputSchema = z.object({
