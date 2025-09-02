@@ -196,11 +196,11 @@ export function ReportComparator() {
                             <h3 className="font-semibold text-lg mb-2">Análise Quantitativa (Delta Δ)</h3>
                             <Table>
                                 <TableBody>
-                                    <TableRow><TableCell className="font-medium">Δ Área Total Afetada</TableCell><TableCell>{comparisonResult.relatorio_comparativo.analise_quantitativa_progressao.delta_area_total_afetada}</TableCell></TableRow>
-                                    <TableRow><TableCell className="font-medium">Δ Hiperpigmentação</TableCell><TableCell>{comparisonResult.relatorio_comparativo.analise_quantitativa_progressao.delta_coloracao.mudanca_area_hiperpigmentacao}</TableCell></TableRow>
-                                    <TableRow><TableCell className="font-medium">Δ Eritema/Rubor</TableCell><TableCell>{comparisonResult.relatorio_comparativo.analise_quantitativa_progressao.delta_coloracao.mudanca_area_eritema_rubor}</TableCell></TableRow>
-                                    <TableRow><TableCell className="font-medium">Δ Edema</TableCell><TableCell>{comparisonResult.relatorio_comparativo.analise_quantitativa_progressao.delta_edema}</TableCell></TableRow>
-                                    <TableRow><TableCell className="font-medium">Δ Textura</TableCell><TableCell>{comparisonResult.relatorio_comparativo.analise_quantitativa_progressao.delta_textura}</TableCell></TableRow>
+                                    <TableRow><TableCell className="font-medium">Δ Área Total Afetada</TableCell><TableCell>{comparisonResult.relatorio_comparativo.analise_quantitativa_progressao?.delta_area_total_afetada}</TableCell></TableRow>
+                                    <TableRow><TableCell className="font-medium">Δ Hiperpigmentação</TableCell><TableCell>{comparisonResult.relatorio_comparativo.analise_quantitativa_progressao?.delta_coloracao?.mudanca_area_hiperpigmentacao}</TableCell></TableRow>
+                                    <TableRow><TableCell className="font-medium">Δ Eritema/Rubor</TableCell><TableCell>{comparisonResult.relatorio_comparativo.analise_quantitativa_progressao?.delta_coloracao?.mudanca_area_eritema_rubor}</TableCell></TableRow>
+                                    <TableRow><TableCell className="font-medium">Δ Edema</TableCell><TableCell>{comparisonResult.relatorio_comparativo.analise_quantitativa_progressao?.delta_edema}</TableCell></TableRow>
+                                    <TableRow><TableCell className="font-medium">Δ Textura</TableCell><TableCell>{comparisonResult.relatorio_comparativo.analise_quantitativa_progressao?.delta_textura}</TableCell></TableRow>
                                 </TableBody>
                             </Table>
                         </div>
