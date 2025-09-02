@@ -40,7 +40,7 @@ import {
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { useToast } from "@/hooks/use-toast";
 import { db } from "@/firebase/client-app";
-import { collection, query, getDocs, orderBy, limit, doc, deleteDoc,getCountFromServer, where } from "firebase/firestore";
+import { collection, query, getDocs, orderBy, limit, doc, deleteDoc,getCountFromServer } from "firebase/firestore";
 import { ActivitySummaryChart } from "@/components/dashboard/activity-summary-chart";
 import { useTranslation } from "@/contexts/app-provider";
 import { AnamnesisDetailsView } from "@/components/dashboard/anamnesis-details-view";
@@ -77,14 +77,12 @@ export function ProfessionalDashboard() {
 
         // Fetch activity counts
         const anamnesisCol = collection(db, "users", user.uid, "anamnesis");
-        const reportsCol = collection(db, "reports"); // Global collection
+        const reportsCol = collection(db, "users", user.uid, "reports");
         const comparisonsCol = collection(db, "users", user.uid, "comparisons");
-
-        const reportsQuery = query(reportsCol, where("professionalId", "==", user.uid));
 
         const [anamnesisCountSnapshot, reportsCountSnapshot, comparisonsCountSnapshot] = await Promise.all([
           getCountFromServer(anamnesisCol),
-          getCountFromServer(reportsQuery),
+          getCountFromServer(reportsCol),
           getCountFromServer(comparisonsCol),
         ]);
 
