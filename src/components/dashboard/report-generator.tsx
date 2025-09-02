@@ -6,11 +6,9 @@ import Image from "next/image";
 import { generateWoundReport, GenerateWoundReportOutput } from "@/ai/flows/generate-wound-report";
 import { useToast } from "@/hooks/use-toast";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { fileToDataUri } from "@/lib/file-to-data-uri";
-import { UploadCloud, Loader2, FileText, Camera, AlertCircle, FileDown } from "lucide-react";
+import { Loader2, FileText, AlertCircle, FileDown, ImageOff } from "lucide-react";
 import { AnamnesisFormValues } from "@/lib/anamnesis-schema";
 import {
   Select,
@@ -21,18 +19,16 @@ import {
 } from "@/components/ui/select"
 import jsPDF from "jspdf";
 import autoTable from 'jspdf-autotable';
-import { ImageCapture } from "./image-capture";
 import { useAuth } from "@/hooks/use-auth";
 import { db } from "@/firebase/client-app";
-import { collection, query, getDocs, orderBy, addDoc, serverTimestamp, Timestamp } from "firebase/firestore";
+import { collection, query, getDocs, orderBy, addDoc, serverTimestamp } from "firebase/firestore";
 import { Alert, AlertDescription, AlertTitle } from "../ui/alert";
+import Link from "next/link";
 
 type StoredAnamnesis = AnamnesisFormValues & { id: string };
 const isAIEnabled = !!process.env.NEXT_PUBLIC_GEMINI_API_KEY;
 
 export function ReportGenerator() {
-  const [woundImage, setWoundImage] = useState<File | null>(null);
-  const [imagePreview, setImagePreview] = useState<string | null>(null);
   const [selectedAnamnesisId, setSelectedAnamnesisId] = useState<string>("");
   const [anamnesisRecords, setAnamnesisRecords] = useState<StoredAnamnesis[]>([]);
   const [report, setReport] = useState<GenerateWoundReportOutput | null>(null);
@@ -40,6 +36,8 @@ export function ReportGenerator() {
   const [pdfLoading, setPdfLoading] = useState(false);
   const { toast } = useToast();
   const { user } = useAuth();
+
+  const selectedRecord = anamnesisRecords.find(record => record.id === selectedAnamnesisId);
 
   useEffect(() => {
     const fetchRecords = async () => {
@@ -62,39 +60,14 @@ export function ReportGenerator() {
       fetchRecords();
     }
   }, [user, toast]);
-
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file) {
-      handleFileSelect(file);
-    }
-  };
-
-  const handleFileSelect = (file: File) => {
-    setWoundImage(file);
-    const reader = new FileReader();
-    reader.onloadend = () => {
-      setImagePreview(reader.result as string);
-    };
-    reader.readAsDataURL(file);
-  };
+  
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!woundImage || !selectedAnamnesisId) {
+    if (!selectedRecord || !selectedRecord.woundImageUri) {
       toast({
         title: "Informações Faltando",
-        description: "Por favor, selecione uma anamnese e carregue uma imagem da ferida.",
-        variant: "destructive",
-      });
-      return;
-    }
-
-    const selectedRecord = anamnesisRecords.find(record => record.id === selectedAnamnesisId);
-    if (!selectedRecord) {
-       toast({
-        title: "Erro",
-        description: "Não foi possível encontrar a ficha de anamnese selecionada.",
+        description: "Por favor, selecione uma avaliação que contenha uma imagem da ferida.",
         variant: "destructive",
       });
       return;
@@ -103,9 +76,8 @@ export function ReportGenerator() {
     setLoading(true);
     setReport(null);
     try {
-      const woundImageUri = await fileToDataUri(woundImage);
       const anamnesisDataString = JSON.stringify(selectedRecord, null, 2);
-      const result = await generateWoundReport({ woundImage: woundImageUri, anamnesisData: anamnesisDataString });
+      const result = await generateWoundReport({ woundImage: selectedRecord.woundImageUri, anamnesisData: anamnesisDataString });
       setReport(result);
       
       if (user) {
@@ -113,7 +85,7 @@ export function ReportGenerator() {
           anamnesisId: selectedAnamnesisId,
           patientName: selectedRecord.nome_cliente,
           reportContent: result.report,
-          woundImageUri: woundImageUri,
+          woundImageUri: selectedRecord.woundImageUri,
           createdAt: serverTimestamp(),
         });
       }
@@ -130,14 +102,11 @@ export function ReportGenerator() {
   };
 
  const handleSavePdf = async () => {
-    if (!report || !selectedAnamnesisId || !imagePreview) return;
+    if (!report || !selectedRecord || !selectedRecord.woundImageUri) return;
     setPdfLoading(true);
 
     try {
         const doc = new jsPDF('p', 'mm', 'a4');
-        const selectedRecord = anamnesisRecords.find(record => record.id === selectedAnamnesisId);
-        if (!selectedRecord) return;
-
         const margin = 15;
         const pageWidth = doc.internal.pageSize.getWidth();
         
@@ -200,14 +169,14 @@ export function ReportGenerator() {
         doc.text("Imagem da Ferida Analisada", margin, finalY + 10);
         
         const img = new (window as any).Image();
-        img.src = imagePreview;
+        img.src = selectedRecord.woundImageUri;
         await new Promise(resolve => { img.onload = resolve; });
 
-        const imgProps = doc.getImageProperties(imagePreview);
+        const imgProps = doc.getImageProperties(selectedRecord.woundImageUri);
         const imgWidth = 80;
         const imgHeight = (imgProps.height * imgWidth) / imgProps.width;
         const imgX = (pageWidth - imgWidth) / 2;
-        doc.addImage(imagePreview, 'PNG', imgX, finalY + 15, imgWidth, imgHeight);
+        doc.addImage(selectedRecord.woundImageUri, 'PNG', imgX, finalY + 15, imgWidth, imgHeight);
         finalY += imgHeight + 20;
 
         const cleanReportText = report.report.replace(/\*\*/g, '');
@@ -253,44 +222,11 @@ export function ReportGenerator() {
     <div className="space-y-8">
       <form onSubmit={handleSubmit} className="space-y-6">
         <div className="grid gap-6 lg:grid-cols-2">
-          <div className="space-y-2">
-            <Label htmlFor="wound-image">Imagem da Ferida</Label>
-             <div className="relative flex h-64 w-full flex-col items-center justify-center rounded-lg border-2 border-dashed bg-card p-4">
-              {imagePreview ? (
-                <div className="relative h-full w-full">
-                  <Image src={imagePreview} alt="Wound preview" layout="fill" className="object-contain" data-ai-hint="wound" />
-                </div>
-              ) : (
-                <>
-                  <label htmlFor="wound-image" className="w-full cursor-pointer flex-grow flex flex-col items-center justify-center text-center text-muted-foreground hover:text-primary transition-colors">
-                    <UploadCloud className="mb-2 h-8 w-8" />
-                    <p className="font-semibold">Arraste ou clique para enviar</p>
-                    <p className="text-xs">PNG, JPG, ou WEBP</p>
-                  </label>
-                  <div className="my-2 text-xs text-muted-foreground">OU</div>
-                  <div onClick={(e) => e.stopPropagation()}>
-                    <ImageCapture onCapture={handleFileSelect}>
-                      <Button type="button" variant="outline" size="sm">
-                        <Camera className="mr-2" />
-                        Tirar Foto
-                      </Button>
-                    </ImageCapture>
-                  </div>
-                </>
-              )}
-            </div>
-            <Input id="wound-image" type="file" className="sr-only" accept="image/*" onChange={handleFileChange} />
-            {imagePreview && (
-              <Button type="button" variant="link" className="w-full" onClick={() => { setImagePreview(null); setWoundImage(null); }}>
-                Remover Imagem
-              </Button>
-            )}
-          </div>
-          <div className="space-y-2 flex flex-col">
-            <Label htmlFor="anamnesis-data">Selecionar Anamnese Salva</Label>
+           <div className="space-y-2 flex flex-col">
+            <Label htmlFor="anamnesis-data">Selecionar Avaliação</Label>
             <Select onValueChange={setSelectedAnamnesisId} value={selectedAnamnesisId}>
               <SelectTrigger>
-                <SelectValue placeholder="Selecione uma ficha de anamnese..." />
+                <SelectValue placeholder="Selecione uma ficha de avaliação..." />
               </SelectTrigger>
               <SelectContent>
                 {anamnesisRecords.length > 0 ? (
@@ -301,17 +237,42 @@ export function ReportGenerator() {
                   ))
                 ) : (
                   <SelectItem value="no-records" disabled>
-                    Nenhuma ficha de anamnese encontrada.
+                    Nenhuma ficha encontrada. Crie uma na página de "Nova Avaliação".
                   </SelectItem>
                 )}
               </SelectContent>
             </Select>
             <p className="text-sm text-muted-foreground pt-2">
-                As fichas de anamnese são salvas na nuvem e associadas à sua conta.
+                A IA usará a imagem e os dados salvos nesta avaliação para gerar o relatório.
             </p>
           </div>
+          <div className="space-y-2">
+            <Label>Imagem da Ferida (da avaliação selecionada)</Label>
+             <div className="relative flex h-64 w-full flex-col items-center justify-center rounded-lg border-2 border-dashed bg-card p-4">
+              {selectedRecord?.woundImageUri ? (
+                <div className="relative h-full w-full">
+                  <Image src={selectedRecord.woundImageUri} alt="Wound preview" layout="fill" className="object-contain" data-ai-hint="wound" />
+                </div>
+              ) : (
+                <div className="text-center text-muted-foreground">
+                  <ImageOff className="mx-auto h-12 w-12" />
+                  <p className="mt-2">Selecione uma avaliação para ver a imagem.</p>
+                  {selectedAnamnesisId && !selectedRecord?.woundImageUri && (
+                    <Alert variant="destructive" className="mt-4 text-left">
+                        <AlertCircle className="h-4 w-4"/>
+                        <AlertTitle>Imagem não encontrada!</AlertTitle>
+                        <AlertDescription>
+                            Esta avaliação não possui uma imagem. Por favor, 
+                            <Link href={`/dashboard/anamnesis?edit=${selectedAnamnesisId}`} className="font-bold underline"> edite a ficha</Link> para adicionar uma.
+                        </AlertDescription>
+                    </Alert>
+                  )}
+                </div>
+              )}
+            </div>
+          </div>
         </div>
-        <Button type="submit" disabled={loading} className="w-full md:w-auto">
+        <Button type="submit" disabled={loading || !selectedRecord?.woundImageUri} className="w-full md:w-auto">
           {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
           Gerar Relatório
         </Button>
@@ -337,10 +298,12 @@ export function ReportGenerator() {
             </Button>
           </CardHeader>
           <CardContent>
-             {imagePreview && (
+             {selectedRecord?.woundImageUri && (
                 <div className="mb-4">
                     <h3 className="font-bold text-lg mb-2 text-center">Imagem da Ferida Analisada</h3>
-                    <Image src={imagePreview} alt="Wound analysed" width={300} height={300} className="rounded-md object-contain mx-auto" data-ai-hint="wound" />
+                    <div className="relative w-full max-w-sm mx-auto aspect-square">
+                        <Image src={selectedRecord.woundImageUri} alt="Wound analysed" layout="fill" className="rounded-md object-contain" data-ai-hint="wound" />
+                    </div>
                 </div>
             )}
             <div className="prose prose-sm max-w-none dark:prose-invert whitespace-pre-wrap">
