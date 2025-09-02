@@ -8,6 +8,8 @@ import AppSidebar from "@/components/dashboard/app-sidebar";
 import { Skeleton } from "@/components/ui/skeleton";
 import MobileNav from "@/components/dashboard/mobile-nav";
 import { CatSupport } from "@/components/dashboard/cat-support";
+import { ChatSidebar } from "@/components/dashboard/chat-sidebar";
+import { ChatProvider } from "@/contexts/chat-provider";
 
 export default function DashboardLayout({
   children,
@@ -39,19 +41,24 @@ export default function DashboardLayout({
   }
 
   return (
-    <div className="grid min-h-screen w-full md:grid-cols-[256px_1fr]">
-      <div className="hidden border-r bg-card md:block">
-        <AppSidebar />
+    <ChatProvider>
+      <div className="grid min-h-screen w-full md:grid-cols-[256px_1fr] lg:grid-cols-[256px_1fr_320px]">
+        <div className="hidden border-r bg-card md:block">
+          <AppSidebar />
+        </div>
+        <div className="flex flex-col h-screen">
+          <header className="flex h-14 items-center gap-4 border-b bg-card px-4 lg:h-[60px] lg:px-6 md:hidden">
+            <MobileNav />
+          </header>
+          <main className="flex-1 overflow-auto bg-background/95 p-4 sm:p-6 lg:p-8">
+            {children}
+          </main>
+          {user.role === 'professional' && <CatSupport currentPage={pathname} />}
+        </div>
+         <div className="hidden border-l bg-card lg:block">
+            <ChatSidebar />
+        </div>
       </div>
-      <div className="flex flex-col h-screen">
-        <header className="flex h-14 items-center gap-4 border-b bg-card px-4 lg:h-[60px] lg:px-6 md:hidden">
-          <MobileNav />
-        </header>
-        <main className="flex-1 overflow-auto bg-background/95 p-4 sm:p-6 lg:p-8">
-          {children}
-        </main>
-        {user.role === 'professional' && <CatSupport currentPage={pathname} />}
-      </div>
-    </div>
+    </ChatProvider>
   );
 }
