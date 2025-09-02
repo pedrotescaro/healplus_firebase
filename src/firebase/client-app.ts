@@ -12,7 +12,7 @@ const firebaseConfig = {
   projectId: "woundwise-g3zb9",
   storageBucket: "woundwise-g3zb9.appspot.com",
   messagingSenderId: "315167035013",
-  appId: "1:315167035013:web:c6b876cc9a961e0ff963ec"
+  appId: "1:315167035013:web:189654d5723c779cf963ec"
 };
 
 
