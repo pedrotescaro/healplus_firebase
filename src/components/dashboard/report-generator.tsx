@@ -125,16 +125,6 @@ export function ReportGenerator() {
     setReport(null);
     
     try {
-        // Find patient by name from the anamnesis record to associate the report
-        const usersRef = collection(db, "users");
-        const q = query(usersRef, where("name", "==", selectedRecord.nome_cliente));
-        const querySnapshot = await getDocs(q);
-
-        let foundPatientId: string | null = null;
-        if (!querySnapshot.empty) {
-            foundPatientId = querySnapshot.docs[0].id;
-        }
-
       const staticReportContent = createStaticReport(selectedRecord);
       const result = { report: staticReportContent };
       setReport(result);
@@ -146,7 +136,7 @@ export function ReportGenerator() {
           reportContent: result.report,
           woundImageUri: selectedRecord.woundImageUri,
           professionalId: user.uid,
-          patientId: foundPatientId, 
+          patientId: selectedRecord.patientId, // Use the patientId from the anamnesis record
           createdAt: serverTimestamp(),
         });
         toast({ title: "Relatório Gerado e Salvo", description: "O relatório foi gerado com sucesso." });

@@ -51,7 +51,8 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useState } from "react";
 import { useAuth } from "@/hooks/use-auth";
 import { db } from "@/firebase/client-app";
-import { collection, addDoc, getDoc, doc, updateDoc } from "firebase/firestore";
+import { collection, addDoc, getDoc, doc, updateDoc, query, where, getDocs, limit } from "firebase/firestore";
+import { v4 as uuidv4 } from 'uuid';
 
 export function AnamnesisForm() {
   const { toast } = useToast();
@@ -62,6 +63,7 @@ export function AnamnesisForm() {
   const [recordId, setRecordId] = useState<string | null>(null);
 
   const defaultValues: Partial<AnamnesisFormValues> = {
+    patientId: "",
     nome_cliente: "",
     data_nascimento: "",
     telefone: "",
@@ -297,6 +299,27 @@ export function AnamnesisForm() {
       return;
     }
 
+    // --- Logic to find or assign patientId ---
+    let patientId = data.patientId;
+    if (!patientId) {
+        try {
+            const usersRef = collection(db, "users");
+            const q = query(usersRef, where("name", "==", data.nome_cliente), limit(1));
+            const querySnapshot = await getDocs(q);
+            if (!querySnapshot.empty) {
+                patientId = querySnapshot.docs[0].id;
+            } else {
+                // If no user found, create a placeholder ID
+                patientId = `unregistered_${uuidv4()}`;
+            }
+        } catch (error) {
+            console.error("Error querying for patient, assigning placeholder ID:", error);
+            patientId = `unregistered_${uuidv4()}`;
+        }
+    }
+    data.patientId = patientId;
+    // --- End of patientId logic ---
+
     // Sanitize data to ensure no undefined values are sent to Firestore
     const sanitizedData = Object.fromEntries(
         Object.entries(data).map(([key, value]) => [key, value === undefined ? "" : value])
@@ -349,6 +372,11 @@ export function AnamnesisForm() {
           <AccordionItem value="item-0">
             <AccordionTrigger className="text-lg font-semibold"><User className="mr-2 text-primary" /> Dados Pessoais</AccordionTrigger>
             <AccordionContent className="space-y-4 p-2 border-l-2 border-primary/20">
+                <FormField
+                    control={form.control}
+                    name="patientId"
+                    render={({ field }) => <Input type="hidden" {...field} />}
+                />
                 <div className="grid md:grid-cols-2 gap-4">
                     <FormField control={form.control} name="nome_cliente" render={({ field }) => ( <FormItem><FormLabel>Nome Completo</FormLabel><FormControl><Input {...field} /></FormControl><FormMessage /></FormItem> )} />
                     <FormField control={form.control} name="data_nascimento" render={({ field }) => ( <FormItem><FormLabel>Data de Nascimento</FormLabel><FormControl><Input type="date" {...field} /></FormControl><FormMessage /></FormItem> )} />

@@ -3,6 +3,7 @@ import { z } from "zod";
 
 // Personal Data
 export const personalDataSchema = z.object({
+  patientId: z.string().optional(), // Added to link to a user account
   nome_cliente: z.string().min(1, "Nome é obrigatório"),
   data_nascimento: z.string().optional(),
   telefone: z.string().optional(),
