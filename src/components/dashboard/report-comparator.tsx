@@ -15,7 +15,7 @@ import {
 } from "@/components/ui/select";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import { Loader2, Sparkles, AlertCircle, TrendingUp, TrendingDown, Minus, PencilLine, GitCompareArrows, FileImage, ClipboardCheck, ImageOff } from "lucide-react";
+import { Loader2, Sparkles, AlertCircle, TrendingUp, TrendingDown, Minus, PencilLine, GitCompareArrows, FileImage, ClipboardCheck, ImageOff, FileDown } from "lucide-react";
 import { useAuth } from "@/hooks/use-auth";
 import { db } from "@/firebase/client-app";
 import { collection, query, getDocs, orderBy, Timestamp } from "firebase/firestore";
@@ -25,6 +25,8 @@ import { Badge } from "../ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Separator } from "../ui/separator";
+import jsPDF from "jspdf";
+import autoTable from 'jspdf-autotable';
 
 interface StoredReport {
   id: string;
@@ -42,6 +44,7 @@ export function ReportComparator() {
   const [selectedReport2Id, setSelectedReport2Id] = useState<string>("");
   const [comparisonResult, setComparisonResult] = useState<CompareWoundReportsOutput | null>(null);
   const [loading, setLoading] = useState(false);
+  const [pdfLoading, setPdfLoading] = useState(false);
   const { toast } = useToast();
   const { user } = useAuth();
 
@@ -102,6 +105,92 @@ export function ReportComparator() {
     }
   };
   
+    const handleSavePdf = async () => {
+    if (!comparisonResult || !selectedReport1?.woundImageUri || !selectedReport2?.woundImageUri) return;
+    setPdfLoading(true);
+    
+    try {
+        const doc = new jsPDF('p', 'mm', 'a4');
+        const margin = 15;
+        const pageWidth = doc.internal.pageSize.getWidth();
+        
+        doc.setFont('helvetica', 'bold');
+        doc.setFontSize(16);
+        doc.text("Relatório Comparativo de Progressão de Ferida", pageWidth / 2, 20, { align: 'center' });
+
+        doc.setFont('helvetica', 'normal');
+        doc.setFontSize(10);
+        const analysisPeriod = comparisonResult.relatorio_comparativo.periodo_analise || `De ${selectedReport1.createdAt.toDate().toLocaleDateString()} a ${selectedReport2.createdAt.toDate().toLocaleDateString()}`;
+        doc.text(`Período de Análise: ${analysisPeriod}`, pageWidth / 2, 28, { align: 'center' });
+        
+        let finalY = 35;
+        
+        doc.setFontSize(12);
+        doc.setFont('helvetica', 'bold');
+        doc.text("Imagens Comparadas", margin, finalY);
+        finalY += 8;
+
+        const imgWidth = (pageWidth - margin * 3) / 2;
+        const img1Props = doc.getImageProperties(selectedReport1.woundImageUri);
+        const img2Props = doc.getImageProperties(selectedReport2.woundImageUri);
+        const img1Height = (img1Props.height * imgWidth) / img1Props.width;
+        const img2Height = (img2Props.height * imgWidth) / img2Props.width;
+        const maxHeight = Math.max(img1Height, img2Height);
+
+        doc.addImage(selectedReport1.woundImageUri, 'PNG', margin, finalY, imgWidth, img1Height);
+        doc.addImage(selectedReport2.woundImageUri, 'PNG', margin + imgWidth + margin, finalY, imgWidth, img2Height);
+        
+        doc.setFontSize(8);
+        doc.setFont('helvetica', 'normal');
+        doc.text(`Relatório 1 (${selectedReport1.createdAt.toDate().toLocaleDateString()})`, margin, finalY + maxHeight + 4);
+        doc.text(`Relatório 2 (${selectedReport2.createdAt.toDate().toLocaleDateString()})`, margin + imgWidth + margin, finalY + maxHeight + 4);
+        
+        finalY += maxHeight + 10;
+        
+        const summaryText = doc.splitTextToSize(comparisonResult.relatorio_comparativo.resumo_descritivo_evolucao, pageWidth - margin * 2);
+        
+        autoTable(doc, {
+            startY: finalY,
+            head: [['Resumo Descritivo da Evolução']],
+            body: [[summaryText]],
+            theme: 'grid',
+            headStyles: { fontStyle: 'bold', fillColor: [22, 160, 133] },
+        });
+        
+        finalY = (doc as any).lastAutoTable.finalY + 10;
+
+        const delta = comparisonResult.relatorio_comparativo.analise_quantitativa_progressao;
+        const tableBody = [
+            ["Δ Área Total Afetada", delta.delta_area_total_afetada],
+            ["Δ Coloração (Hiperpigmentação)", delta.delta_coloracao.mudanca_area_hiperpigmentacao],
+            ["Δ Coloração (Eritema/Rubor)", delta.delta_coloracao.mudanca_area_eritema_rubor],
+            ["Δ Edema", delta.delta_edema],
+            ["Δ Textura", delta.delta_textura],
+        ];
+
+        autoTable(doc, {
+            startY: finalY,
+            head: [['Análise Quantitativa (Delta Δ)', 'Variação']],
+            body: tableBody,
+            theme: 'striped',
+            headStyles: { fontStyle: 'bold', fillColor: [22, 160, 133] },
+        });
+
+        const fileName = `Comparativo_${selectedReport1.patientName.replace(/\s/g, '_')}.pdf`;
+        doc.save(fileName);
+
+    } catch (error) {
+      console.error("Erro ao gerar PDF:", error);
+      toast({
+          title: "Erro ao Gerar PDF",
+          description: "Não foi possível criar o arquivo PDF. Tente novamente.",
+          variant: "destructive",
+      });
+    } finally {
+      setPdfLoading(false);
+    }
+  };
+
   const selectedReport1 = reports.find(r => r.id === selectedReport1Id);
   const selectedReport2 = reports.find(r => r.id === selectedReport2Id);
 
@@ -168,6 +257,12 @@ export function ReportComparator() {
 
       {comparisonResult && comparisonResult.relatorio_comparativo && (
          <Tabs defaultValue="comparativo" className="w-full">
+            <div className="flex justify-end mb-2">
+                <Button onClick={handleSavePdf} disabled={pdfLoading} variant="outline" size="sm">
+                    {pdfLoading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <FileDown className="mr-2 h-4 w-4" />}
+                    Salvar em PDF
+                </Button>
+            </div>
             <TabsList className="grid w-full grid-cols-3">
                 <TabsTrigger value="comparativo"><GitCompareArrows className="mr-2" />Comparativo</TabsTrigger>
                 <TabsTrigger value="imagem1"><FileImage className="mr-2" />Análise Imagem 1</TabsTrigger>
