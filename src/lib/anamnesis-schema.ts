@@ -1,13 +1,17 @@
 import { z } from "zod";
 
-// S - Social/Self-Care
-export const socialSchema = z.object({
+// Personal Data
+export const personalDataSchema = z.object({
   nome_cliente: z.string().min(1, "Nome é obrigatório"),
   data_nascimento: z.string().optional(),
   telefone: z.string().optional(),
   email: z.string().email("Email inválido").optional().or(z.literal('')),
   profissao: z.string().optional(),
   estado_civil: z.string().optional(),
+});
+
+// S - Social/Self-Care
+export const socialSchema = z.object({
   nivel_atividade: z.string().optional(),
   suporte_social: z.string().optional(),
   compreensao_adesao: z.string().optional(),
@@ -83,6 +87,7 @@ export const clinicalHistorySchema = z.object({
 
 // T - Tissue
 export const tissueSchema = z.object({
+  woundImageUri: z.string().optional(),
   ferida_largura: z.coerce.number().min(0, "Largura não pode ser negativa"),
   ferida_comprimento: z.coerce.number().min(0, "Comprimento não pode ser negativo"),
   ferida_profundidade: z.coerce.number().min(0, "Profundidade não pode ser negativa"),
@@ -156,7 +161,8 @@ export const repairSchema = z.object({
 
 
 // Unifying schema with all parts of TIMERS
-export const anamnesisFormSchema = socialSchema
+export const anamnesisFormSchema = personalDataSchema
+  .merge(socialSchema)
   .merge(clinicalHistorySchema)
   .merge(tissueSchema)
   .merge(infectionSchema)

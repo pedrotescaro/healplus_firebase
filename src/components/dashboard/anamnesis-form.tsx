@@ -3,6 +3,7 @@
 
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
+import Image from "next/image";
 import { anamnesisFormSchema, AnamnesisFormValues } from "@/lib/anamnesis-schema";
 import { useToast } from "@/hooks/use-toast";
 import { Button } from "@/components/ui/button";
@@ -32,9 +33,11 @@ import {
 } from "@/components/ui/select";
 import { Separator } from "@/components/ui/separator";
 import { WoundBedProgress } from "./wound-bed-progress";
-import { User, Stethoscope, HeartPulse, Pill, Microscope, FilePlus, Info, MapPin, RefreshCw, Syringe, Droplets, Ruler, RedoDot } from "lucide-react";
+import { User, Stethoscope, HeartPulse, Pill, Microscope, FilePlus, Info, MapPin, RefreshCw, Syringe, Droplets, Ruler, RedoDot, UploadCloud, Camera } from "lucide-react";
 import { Slider } from "@/components/ui/slider";
 import { BodyMapSelector } from "./body-map-selector";
+import { ImageCapture } from "./image-capture";
+import { fileToDataUri } from "@/lib/file-to-data-uri";
 import {
   Dialog,
   DialogContent,
@@ -138,6 +141,7 @@ export function AnamnesisForm() {
     antirretroviral_nome: "",
     antirretroviral_dose: "",
     outros_medicamento: "",
+    woundImageUri: "",
     ferida_largura: 0,
     ferida_comprimento: 0,
     ferida_profundidade: 0,
@@ -236,6 +240,23 @@ export function AnamnesisForm() {
     if (value <= 6) return { range: "bg-yellow-500", thumb: "border-yellow-500" };
     return { range: "bg-red-500", thumb: "border-red-500" };
   };
+  
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      handleFileSelect(file);
+    }
+  };
+
+  const handleFileSelect = async (file: File) => {
+    try {
+      const dataUri = await fileToDataUri(file);
+      form.setValue('woundImageUri', dataUri);
+    } catch (error) {
+       toast({ title: "Erro ao carregar imagem", description: "Não foi possível processar o arquivo.", variant: "destructive" });
+    }
+  };
+
 
   const renderMedicationFields = (name: "anti_hipertensivo" | "corticoides" | "hipoglicemiantes_orais" | "aines" | "insulina" | "drogas_vasoativa" | "suplemento" | "anticoagulante" | "vitaminico" | "antirretroviral") => {
     return watch[name] && (
@@ -330,12 +351,67 @@ export function AnamnesisForm() {
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
-        <Accordion type="multiple" defaultValue={['item-1']} className="w-full">
-          
+        <Accordion type="multiple" defaultValue={['item-0']} className="w-full">
+          <AccordionItem value="item-0">
+            <AccordionTrigger className="text-lg font-semibold"><User className="mr-2 text-primary" /> Dados Pessoais</AccordionTrigger>
+            <AccordionContent className="space-y-4 p-2 border-l-2 border-primary/20">
+                <div className="grid md:grid-cols-2 gap-4">
+                    <FormField control={form.control} name="nome_cliente" render={({ field }) => ( <FormItem><FormLabel>Nome Completo</FormLabel><FormControl><Input {...field} /></FormControl><FormMessage /></FormItem> )} />
+                    <FormField control={form.control} name="data_nascimento" render={({ field }) => ( <FormItem><FormLabel>Data de Nascimento</FormLabel><FormControl><Input type="date" {...field} /></FormControl><FormMessage /></FormItem> )} />
+                    <FormField control={form.control} name="telefone" render={({ field }) => ( <FormItem><FormLabel>Telefone</FormLabel><FormControl><Input type="tel" {...field} /></FormControl><FormMessage /></FormItem> )} />
+                    <FormField control={form.control} name="email" render={({ field }) => ( <FormItem><FormLabel>Email</FormLabel><FormControl><Input type="email" {...field} /></FormControl><FormMessage /></FormItem> )} />
+                    <FormField control={form.control} name="profissao" render={({ field }) => ( <FormItem><FormLabel>Profissão</FormLabel><FormControl><Input {...field} /></FormControl><FormMessage /></FormItem> )} />
+                    <FormField control={form.control} name="estado_civil" render={({ field }) => ( <FormItem><FormLabel>Estado Civil</FormLabel><FormControl><Input {...field} /></FormControl><FormMessage /></FormItem> )} />
+                </div>
+            </AccordionContent>
+          </AccordionItem>
+
           <AccordionItem value="item-1">
             <AccordionTrigger className="text-lg font-semibold"><Microscope className="mr-2 text-primary" /> T - Tecido</AccordionTrigger>
             <AccordionContent className="space-y-6 p-2 border-l-2 border-primary/20">
               <div className="space-y-4">
+                  <FormField
+                    control={form.control}
+                    name="woundImageUri"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Imagem da Ferida</FormLabel>
+                        <FormControl>
+                           <div className="relative flex h-64 w-full flex-col items-center justify-center rounded-lg border-2 border-dashed bg-card p-4">
+                              {field.value ? (
+                                <div className="relative h-full w-full">
+                                  <Image src={field.value} alt="Pré-visualização da ferida" layout="fill" className="object-contain" data-ai-hint="wound" />
+                                </div>
+                              ) : (
+                                <>
+                                  <label htmlFor="wound-image-input" className="w-full cursor-pointer flex-grow flex flex-col items-center justify-center text-center text-muted-foreground hover:text-primary transition-colors">
+                                    <UploadCloud className="mb-2 h-8 w-8" />
+                                    <p className="font-semibold">Arraste ou clique para enviar</p>
+                                    <p className="text-xs">PNG, JPG, ou WEBP</p>
+                                  </label>
+                                  <div className="my-2 text-xs text-muted-foreground">OU</div>
+                                  <div onClick={(e) => e.stopPropagation()}>
+                                    <ImageCapture onCapture={handleFileSelect}>
+                                      <Button type="button" variant="outline" size="sm">
+                                        <Camera className="mr-2" />
+                                        Tirar Foto
+                                      </Button>
+                                    </ImageCapture>
+                                  </div>
+                                </>
+                              )}
+                            </div>
+                        </FormControl>
+                        <Input id="wound-image-input" type="file" className="sr-only" accept="image/*" onChange={handleFileChange} />
+                        <FormMessage />
+                        {field.value && (
+                          <Button type="button" variant="link" className="w-full" onClick={() => field.onChange("")}>
+                            Remover Imagem
+                          </Button>
+                        )}
+                      </FormItem>
+                    )}
+                  />
                   <h4 className="font-semibold text-md">Dimensões e Características Gerais</h4>
                   <div className="grid md:grid-cols-3 gap-4">
                     <FormField control={form.control} name="ferida_largura" render={({ field }) => ( <FormItem><FormLabel>Largura (cm)</FormLabel><FormControl><Input type="number" step="0.1" {...field} /></FormControl><FormMessage /></FormItem> )} />
@@ -698,19 +774,16 @@ export function AnamnesisForm() {
           </AccordionItem>
 
           <AccordionItem value="item-6">
-            <AccordionTrigger className="text-lg font-semibold"><User className="mr-2 text-primary" /> S - Fatores Sociais e do Paciente</AccordionTrigger>
-            <AccordionContent className="space-y-4 p-2 border-l-2 border-primary/20">
-              <div className="grid md:grid-cols-2 gap-4">
-                <FormField control={form.control} name="nome_cliente" render={({ field }) => ( <FormItem><FormLabel>Nome Completo</FormLabel><FormControl><Input {...field} /></FormControl><FormMessage /></FormItem> )} />
-                <FormField control={form.control} name="data_nascimento" render={({ field }) => ( <FormItem><FormLabel>Data de Nascimento</FormLabel><FormControl><Input type="date" {...field} /></FormControl><FormMessage /></FormItem> )} />
-                <FormField control={form.control} name="telefone" render={({ field }) => ( <FormItem><FormLabel>Telefone</FormLabel><FormControl><Input type="tel" {...field} /></FormControl><FormMessage /></FormItem> )} />
-                <FormField control={form.control} name="email" render={({ field }) => ( <FormItem><FormLabel>Email</FormLabel><FormControl><Input type="email" {...field} /></FormControl><FormMessage /></FormItem> )} />
-                <FormField control={form.control} name="profissao" render={({ field }) => ( <FormItem><FormLabel>Profissão</FormLabel><FormControl><Input {...field} /></FormControl><FormMessage /></FormItem> )} />
-                <FormField control={form.control} name="estado_civil" render={({ field }) => ( <FormItem><FormLabel>Estado Civil</FormLabel><FormControl><Input {...field} /></FormControl><FormMessage /></FormItem> )} />
-                <FormField control={form.control} name="nivel_atividade" render={({ field }) => ( <FormItem><FormLabel>Nível de Atividade</FormLabel><FormControl><Input placeholder="Ex: Acamado, Ativo" {...field} /></FormControl><FormMessage /></FormItem> )} />
-                <FormField control={form.control} name="compreensao_adesao" render={({ field }) => ( <FormItem><FormLabel>Compreensão e Adesão</FormLabel><FormControl><Input placeholder="Ex: Boa, Regular, Baixa" {...field} /></FormControl><FormMessage /></FormItem> )} />
+            <AccordionTrigger className="text-lg font-semibold"><Info className="mr-2 text-primary" /> S - Fatores Sociais e Histórico do Paciente</AccordionTrigger>
+            <AccordionContent className="space-y-6 p-2 border-l-2 border-primary/20">
+              <div className="space-y-4">
+                <h4 className="font-semibold text-md">Fatores Sociais e de Autocuidado</h4>
+                <div className="grid md:grid-cols-2 gap-4">
+                  <FormField control={form.control} name="nivel_atividade" render={({ field }) => ( <FormItem><FormLabel>Nível de Atividade</FormLabel><FormControl><Input placeholder="Ex: Acamado, Ativo" {...field} /></FormControl><FormMessage /></FormItem> )} />
+                  <FormField control={form.control} name="compreensao_adesao" render={({ field }) => ( <FormItem><FormLabel>Compreensão e Adesão</FormLabel><FormControl><Input placeholder="Ex: Boa, Regular, Baixa" {...field} /></FormControl><FormMessage /></FormItem> )} />
+                </div>
+                <FormField control={form.control} name="suporte_social" render={({ field }) => ( <FormItem><FormLabel>Suporte Social e Cuidadores</FormLabel><FormControl><Textarea {...field} /></FormControl><FormMessage /></FormItem> )} />
               </div>
-              <FormField control={form.control} name="suporte_social" render={({ field }) => ( <FormItem><FormLabel>Suporte Social e Cuidadores</FormLabel><FormControl><Textarea {...field} /></FormControl><FormMessage /></FormItem> )} />
               <Separator />
                <h4 className="font-semibold text-md">Hábitos e Histórico Pessoal</h4>
                 <div className="grid md:grid-cols-2 gap-x-8 gap-y-4">
