@@ -3,7 +3,6 @@
 
 import { useState, useEffect } from "react";
 import Image from "next/image";
-import { generateWoundReport, GenerateWoundReportOutput } from "@/ai/flows/generate-wound-report";
 import { useToast } from "@/hooks/use-toast";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
@@ -27,12 +26,52 @@ import Link from "next/link";
 import { Input } from "../ui/input";
 
 type StoredAnamnesis = AnamnesisFormValues & { id: string };
-const isAIEnabled = !!process.env.NEXT_PUBLIC_GEMINI_API_KEY;
+
+// Helper function to create a static report from anamnesis data
+const createStaticReport = (record: StoredAnamnesis): string => {
+  let report = `## Relatório de Avaliação de Ferida\n\n`;
+  report += `**Paciente:** ${record.nome_cliente}\n`;
+  report += `**Data da Avaliação:** ${new Date(record.data_consulta).toLocaleDateString('pt-BR', { timeZone: 'UTC' })}\n\n`;
+
+  report += `### 1. Avaliação da Ferida\n`;
+  report += `- **Localização:** ${record.localizacao_ferida}\n`;
+  report += `- **Tempo de Evolução:** ${record.tempo_evolucao}\n`;
+  report += `- **Etiologia:** ${record.etiologia_ferida === 'Outra' ? record.etiologia_outra : record.etiologia_ferida}\n`;
+  report += `- **Dimensões:** ${record.ferida_comprimento || 0}cm (C) x ${record.ferida_largura || 0}cm (L) x ${record.ferida_profundidade || 0}cm (P)\n`;
+  report += `- **Leito da Ferida:**\n`;
+  if (record.percentual_granulacao_leito) report += `  - Tecido de Granulação: ${record.percentual_granulacao_leito}%\n`;
+  if (record.percentual_epitelizacao_leito) report += `  - Tecido de Epitelização: ${record.percentual_epitelizacao_leito}%\n`;
+  if (record.percentual_esfacelo_leito) report += `  - Esfacelo: ${record.percentual_esfacelo_leito}%\n`;
+  if (record.percentual_necrose_seca_leito) report += `  - Necrose: ${record.percentual_necrose_seca_leito}%\n`;
+  report += `- **Exsudato:** ${record.quantidade_exsudato || 'Não informado'}, ${record.tipo_exsudato || 'Não informado'}\n`;
+  report += `- **Bordas:** ${record.bordas_caracteristicas || 'Não informado'}\n`;
+  report += `- **Pele Perilesional:** ${record.pele_perilesional_umidade || 'Não informado'}\n`;
+  
+  report += `\n### 2. Hipótese Diagnóstica Provável\n`;
+  report += `A análise dos dados da ficha sugere uma ferida com etiologia **${record.etiologia_ferida || 'Não especificada'}**. O estado atual da ferida deve ser avaliado pelo profissional de saúde com base nos dados coletados.\n\n`;
+
+  report += `### 3. Plano de Tratamento Sugerido\n`;
+  report += `${record.observacoes || "O plano de tratamento deve ser definido pelo profissional responsável com base na avaliação clínica completa."}\n\n`;
+  
+  report += `### 4. Fatores de Risco e Recomendações\n`;
+  const riskFactors = [];
+  if (record.dmi || record.dmii) riskFactors.push("Diabetes");
+  if (record.has) riskFactors.push("Hipertensão");
+  if (record.fumante) riskFactors.push("Tabagismo");
+  if (riskFactors.length > 0) {
+    report += `Fatores de risco identificados que podem impactar a cicatrização: ${riskFactors.join(', ')}. É crucial o controle dessas comorbidades.\n`;
+  } else {
+    report += `Nenhum fator de risco principal foi marcado na ficha. Recomenda-se manter um bom estado nutricional e hidratação.\n`;
+  }
+
+  return report;
+};
+
 
 export function ReportGenerator() {
   const [selectedAnamnesisId, setSelectedAnamnesisId] = useState<string>("");
   const [anamnesisRecords, setAnamnesisRecords] = useState<StoredAnamnesis[]>([]);
-  const [report, setReport] = useState<GenerateWoundReportOutput | null>(null);
+  const [report, setReport] = useState<{ report: string } | null>(null);
   const [loading, setLoading] = useState(false);
   const [pdfLoading, setPdfLoading] = useState(false);
   const { toast } = useToast();
@@ -65,7 +104,15 @@ export function ReportGenerator() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!selectedRecord || !selectedRecord.woundImageUri) {
+    if (!selectedRecord) {
+      toast({
+        title: "Seleção Necessária",
+        description: "Por favor, selecione uma ficha de avaliação para gerar o relatório.",
+        variant: "destructive",
+      });
+      return;
+    }
+     if (!selectedRecord.woundImageUri) {
       toast({
         title: "Informações Faltando",
         description: "Por favor, selecione uma avaliação que contenha uma imagem da ferida.",
@@ -85,27 +132,21 @@ export function ReportGenerator() {
 
         let foundPatientId: string | null = null;
         if (!querySnapshot.empty) {
-            // Assuming the first match is the correct one. 
-            // A more robust system might handle multiple users with the same name.
             foundPatientId = querySnapshot.docs[0].id;
-        } else {
-             // For now, we'll allow generating reports even if a patient user account doesn't exist.
-             // The report will be associated with the professional.
         }
 
-      const anamnesisDataString = JSON.stringify(selectedRecord, null, 2);
-      const result = await generateWoundReport({ woundImage: selectedRecord.woundImageUri, anamnesisData: anamnesisDataString });
+      const staticReportContent = createStaticReport(selectedRecord);
+      const result = { report: staticReportContent };
       setReport(result);
       
       if (user) {
-        // Save the report in the professional's subcollection
         await addDoc(collection(db, "users", user.uid, "reports"), {
           anamnesisId: selectedAnamnesisId,
           patientName: selectedRecord.nome_cliente,
           reportContent: result.report,
           woundImageUri: selectedRecord.woundImageUri,
           professionalId: user.uid,
-          patientId: foundPatientId, // This can be null if no matching patient account is found
+          patientId: foundPatientId, 
           createdAt: serverTimestamp(),
         });
         toast({ title: "Relatório Gerado e Salvo", description: "O relatório foi gerado com sucesso." });
@@ -113,8 +154,8 @@ export function ReportGenerator() {
     } catch (error) {
       console.error("Error generating report:", error);
       toast({
-        title: "Erro",
-        description: "Falha ao gerar o relatório. Verifique se a chave de API do Gemini está configurada corretamente.",
+        title: "Erro ao Salvar",
+        description: "Não foi possível salvar o relatório no banco de dados.",
         variant: "destructive",
       });
     } finally {
@@ -208,10 +249,10 @@ export function ReportGenerator() {
         doc.addImage(selectedRecord.woundImageUri, 'PNG', imgX, finalY + 15, imgWidth, imgHeight);
         finalY += imgHeight + 20;
 
-        const cleanReportText = report.report.replace(/\*\*/g, '');
+        const cleanReportText = report.report.replace(/\*\*/g, '').replace(/###/g, '').replace(/##/g, '');
         autoTable(doc, {
             startY: finalY + 5,
-            head: [['Avaliação da Ferida (Análise por IA)']],
+            head: [['Avaliação da Ferida']],
             body: [[cleanReportText]],
             theme: 'grid',
             headStyles: { fontStyle: 'bold', fillColor: [22, 160, 133] },
@@ -234,18 +275,6 @@ export function ReportGenerator() {
         setPdfLoading(false);
     }
 };
-
-  if (!isAIEnabled) {
-    return (
-       <Alert variant="destructive">
-        <AlertCircle className="h-4 w-4" />
-        <AlertTitle>Funcionalidade de IA Desativada</AlertTitle>
-        <AlertDescription>
-          A chave de API do Gemini não foi configurada. Por favor, adicione a `GEMINI_API_KEY` ao seu ambiente para habilitar a geração de relatórios.
-        </AlertDescription>
-      </Alert>
-    )
-  }
 
   return (
     <div className="space-y-8">
@@ -299,7 +328,7 @@ export function ReportGenerator() {
           </div>
         </div>
         <Button type="submit" disabled={loading || !selectedRecord?.woundImageUri} className="w-full md:w-auto">
-          {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+          {loading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <FileText className="mr-2 h-4 w-4" />}
           Gerar Relatório
         </Button>
       </form>
