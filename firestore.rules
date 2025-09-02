@@ -3,36 +3,29 @@ rules_version = '2';
 
 service cloud.firestore {
   match /databases/{database}/documents {
-    
-    // Users can read public profiles, but only write/delete their own.
+
+    // Users can read anyone's profile (for chat names/photos) but only write to their own.
     match /users/{userId} {
       allow read: if request.auth != null;
       allow create, update, delete: if request.auth.uid == userId;
 
-      // Professionals can manage their own subcollections (e.g., anamnesis, reports).
+      // A professional can manage their own subcollections.
       match /{subcollection}/{docId} {
-        allow read, write: if request.auth.uid == userId && 
-                          get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'professional';
+         allow read, write, delete: if request.auth.uid == userId && get(/databases/$(database)/documents/users/$(userId)).data.role == 'professional';
       }
     }
     
-    // This rule allows a collectionGroup query on 'reports'.
-    // It is used by patients to find all reports associated with them, across all professionals.
-    match /{path=**}/reports/{reportId} {
-       allow read: if (
-         // Rule for Patients: Can read if their UID matches the patientId in the report.
-         get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'patient' &&
-         request.auth.uid == resource.data.patientId
-       ) || (
-         // Rule for Professionals: Can read if their UID matches the professionalId who created the report.
-         get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'professional' &&
-         request.auth.uid == resource.data.professionalId
-       );
+    // This rule allows a patient to list reports from any professional's subcollection
+    // as long as the query filters for their own patientId.
+    // It also allows a professional to read reports they created.
+    match /users/{userId}/reports/{reportId} {
+        allow read: if (request.auth != null && resource.data.patientId == request.auth.uid) || 
+                       (request.auth.uid == userId);
     }
 
-    // Chat messages can only be read/written by participants.
+    // Chat participants can read/write messages in a chat.
     match /chats/{chatId}/messages/{messageId} {
-      allow read, create: if request.auth.uid in chatId.split('_');
+      allow read, create: if request.auth != null && request.auth.uid in chatId.split('_');
     }
   }
 }
