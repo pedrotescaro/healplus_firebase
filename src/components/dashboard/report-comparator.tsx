@@ -18,7 +18,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { Loader2, Sparkles, AlertCircle, TrendingUp, TrendingDown, Minus, PencilLine, GitCompareArrows, FileImage, ClipboardCheck, ImageOff, FileDown } from "lucide-react";
 import { useAuth } from "@/hooks/use-auth";
 import { db } from "@/firebase/client-app";
-import { collection, query, getDocs, orderBy, Timestamp } from "firebase/firestore";
+import { collection, query, getDocs, orderBy, Timestamp, addDoc, serverTimestamp } from "firebase/firestore";
 import { Alert, AlertDescription, AlertTitle } from "../ui/alert";
 import { ScrollArea } from "../ui/scroll-area";
 import { Badge } from "../ui/badge";
@@ -97,6 +97,21 @@ export function ReportComparator() {
         report2Date: report2.createdAt.toDate().toISOString(),
       });
       setComparisonResult(result);
+      
+      if (user) {
+        await addDoc(collection(db, "users", user.uid, "comparisons"), {
+          ...result,
+          report1Id: selectedReport1Id,
+          report2Id: selectedReport2Id,
+          patientName: report1.patientName,
+          createdAt: serverTimestamp(),
+        });
+         toast({
+          title: "Comparação Salva",
+          description: "O resultado da análise foi salvo no seu histórico.",
+        });
+      }
+
     } catch (error) {
       console.error("Erro ao comparar relatórios:", error);
       toast({ title: "Erro na Análise", description: "A IA não conseguiu processar a comparação. Tente novamente.", variant: "destructive" });
@@ -106,6 +121,8 @@ export function ReportComparator() {
   };
   
     const handleSavePdf = async () => {
+    const selectedReport1 = reports.find(r => r.id === selectedReport1Id);
+    const selectedReport2 = reports.find(r => r.id === selectedReport2Id);
     if (!comparisonResult || !selectedReport1?.woundImageUri || !selectedReport2?.woundImageUri) return;
     setPdfLoading(true);
     
@@ -433,3 +450,5 @@ const IndividualAnalysisCard = ({ analysis }: { analysis?: CompareWoundReportsOu
           </div>
       )
   };
+
+    
