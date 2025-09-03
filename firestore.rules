@@ -1,4 +1,3 @@
-
 rules_version = '2';
 
 service cloud.firestore {
@@ -9,26 +8,28 @@ service cloud.firestore {
       allow read, write: if request.auth.uid == userId;
     }
 
-    // Regras para as subcoleções dentro de 'users'
-    match /users/{userId}/{collection}/{docId} {
-      // O usuário só pode ler e escrever em suas próprias subcoleções (anamnesis, reports, etc.)
+    // Regras para as subcoleções de 'users'
+    match /users/{userId}/anamnesis/{docId} {
+      allow read, write: if request.auth.uid == userId;
+    }
+
+    match /users/{userId}/reports/{reportId} {
+      allow write: if request.auth.uid == userId;
+      allow read: if request.auth.uid == userId || (resource.data.patientId != null && request.auth.uid == resource.data.patientId);
+    }
+
+     match /users/{userId}/comparisons/{comparisonId} {
       allow read, write: if request.auth.uid == userId;
     }
     
     // Regras para a coleção 'chats'
     match /chats/{chatId} {
-    	// Permite leitura e escrita apenas para os participantes do chat
     	allow read, update, delete: if request.auth.uid in resource.data.participants;
-      
-      // Permite a criação se o ID do criador estiver na lista de participantes
       allow create: if request.auth.uid in request.resource.data.participants;
       
       // Regras para a subcoleção 'messages'
       match /messages/{messageId} {
-      	// Permite a leitura das mensagens apenas para os participantes do chat
       	allow read: if get(/databases/$(database)/documents/chats/$(chatId)).data.participants.hasAny([request.auth.uid]);
-        
-        // Permite a criação de mensagens se o remetente for um dos participantes
         allow create: if get(/databases/$(database)/documents/chats/$(chatId)).data.participants.hasAny([request.auth.uid])
                       && request.resource.data.senderId == request.auth.uid;
       }
