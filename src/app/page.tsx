@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useEffect } from "react";
@@ -10,6 +11,7 @@ export default function Home() {
   const router = useRouter();
 
   useEffect(() => {
+    // Only redirect once the loading state is resolved.
     if (!loading) {
       if (user) {
         router.replace("/dashboard");
@@ -18,7 +20,8 @@ export default function Home() {
       }
     }
   }, [user, loading, router]);
-
+  
+  // Render a loading state to prevent the redirect loop and visual flicker.
   return (
     <div className="flex h-screen w-full items-center justify-center bg-background">
       <div className="space-y-4 w-full max-w-sm">

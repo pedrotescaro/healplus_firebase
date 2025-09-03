@@ -304,13 +304,20 @@ export function AnamnesisForm() {
     if (!patientId) {
         try {
             const usersRef = collection(db, "users");
-            const q = query(usersRef, where("name", "==", data.nome_cliente), limit(1));
+            const q = query(usersRef, where("email", "==", data.email), limit(1));
             const querySnapshot = await getDocs(q);
             if (!querySnapshot.empty) {
                 patientId = querySnapshot.docs[0].id;
             } else {
-                // If no user found, create a placeholder ID
-                patientId = `unregistered_${uuidv4()}`;
+                // If no user found by email, check by name as a fallback
+                const qName = query(usersRef, where("name", "==", data.nome_cliente), limit(1));
+                const querySnapshotName = await getDocs(qName);
+                if (!querySnapshotName.empty) {
+                   patientId = querySnapshotName.docs[0].id;
+                } else {
+                   // If no user found, create a placeholder ID
+                   patientId = `unregistered_${uuidv4()}`;
+                }
             }
         } catch (error) {
             console.error("Error querying for patient, assigning placeholder ID:", error);
