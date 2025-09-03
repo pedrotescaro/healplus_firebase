@@ -43,6 +43,7 @@ export function ChatProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     if (!user) {
       setLoadingContacts(false);
+      setContacts([zeloContact]); // Reset to default when logged out
       return;
     };
 
@@ -58,19 +59,17 @@ export function ChatProvider({ children }: { children: ReactNode }) {
             const data = doc.data();
             const otherParticipantId = data.participants.find((p: string) => p !== user.uid);
             
-            // Handle case where chat might be with Zelo or self, though unlikely
             if (!otherParticipantId) return null;
 
             return {
                 id: otherParticipantId,
-                name: data.nomesParticipantes[otherParticipantId] || 'Usuário Desconhecido',
-                photoURL: data.photoURLs[otherParticipantId] || null,
+                name: data.nomesParticipantes?.[otherParticipantId] || 'Usuário Desconhecido',
+                photoURL: data.photoURLs?.[otherParticipantId] || null,
                 lastMessage: data.ultimaMensagem,
                 lastMessageTimestamp: data.timestampUltimaMensagem?.toDate(),
             };
-        }).filter(Boolean) as ChatUser[]; // filter(Boolean) removes nulls
+        }).filter(Boolean) as ChatUser[]; 
 
-        // Create a map to avoid duplicates, keeping the most recent chat
         const uniqueContacts = new Map<string, ChatUser>();
         fetchedChats.forEach(contact => {
           if (!uniqueContacts.has(contact.id)) {
@@ -81,13 +80,11 @@ export function ChatProvider({ children }: { children: ReactNode }) {
         setContacts([zeloContact, ...Array.from(uniqueContacts.values())]);
         setLoadingContacts(false);
         
-        // Logic to pre-select a contact from URL params
         const preselectedId = searchParams.get('patientId') || searchParams.get('professionalId');
         if (preselectedId) {
           const contactToSelect = fetchedChats.find(c => c.id === preselectedId);
           if (contactToSelect) {
             setSelectedContact(contactToSelect);
-            // Clean up URL params
             const newParams = new URLSearchParams(searchParams.toString());
             newParams.delete('patientId');
             newParams.delete('professionalId');

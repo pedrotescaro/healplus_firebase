@@ -1,3 +1,4 @@
+
 rules_version = '2';
 
 service cloud.firestore {
@@ -6,28 +7,32 @@ service cloud.firestore {
     // Regras para a coleção 'users'
     match /users/{userId} {
       allow read, write: if request.auth.uid == userId;
+
+      // Allow professionals to be read by others for chat contact lists, for example.
+      // allow read: if resource.data.role == 'professional';
+      
+      // Allow patients to read their own data, and professionals to read patient data
+      // allow read: if request.auth.uid == userId || 
+      //             (exists(/databases/$(database)/documents/users/$(request.auth.uid)) && 
+      //              get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'professional');
     }
 
-    // Regras para as subcoleções de 'users'
-    match /users/{userId}/anamnesis/{docId} {
+    // Rules for subcollections within 'users'
+    match /users/{userId}/{collection}/{docId} {
+      // Allow users to read/write their own subcollections
       allow read, write: if request.auth.uid == userId;
-    }
 
-    match /users/{userId}/reports/{reportId} {
-      allow write: if request.auth.uid == userId;
-      allow read: if request.auth.uid == userId || (resource.data.patientId != null && request.auth.uid == resource.data.patientId);
-    }
-
-     match /users/{userId}/comparisons/{comparisonId} {
-      allow read, write: if request.auth.uid == userId;
+      // Allow patients to read reports created for them by professionals
+      allow read: if collection == 'reports' && 
+                  request.auth.uid == resource.data.patientId;
     }
     
-    // Regras para a coleção 'chats'
+    // Rules for the 'chats' collection
     match /chats/{chatId} {
     	allow read, update, delete: if request.auth.uid in resource.data.participants;
       allow create: if request.auth.uid in request.resource.data.participants;
       
-      // Regras para a subcoleção 'messages'
+      // Rules for the 'messages' subcollection
       match /messages/{messageId} {
       	allow read: if get(/databases/$(database)/documents/chats/$(chatId)).data.participants.hasAny([request.auth.uid]);
         allow create: if get(/databases/$(database)/documents/chats/$(chatId)).data.participants.hasAny([request.auth.uid])
