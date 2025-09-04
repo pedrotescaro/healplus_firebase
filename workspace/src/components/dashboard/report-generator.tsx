@@ -157,31 +157,31 @@ export function ReportGenerator() {
     setPdfLoading(true);
 
     try {
-        const doc = new jsPDF('p', 'mm', 'a4');
+        const pdf = new jsPDF('p', 'mm', 'a4');
         const margin = 15;
-        const pageWidth = doc.internal.pageSize.getWidth();
+        const pageWidth = pdf.internal.pageSize.getWidth();
         
         const addFooter = () => {
-            const pageCount = (doc as any).internal.getNumberOfPages();
+            const pageCount = (pdf as any).internal.getNumberOfPages();
             for (let i = 1; i <= pageCount; i++) {
-                doc.setPage(i);
-                doc.setFontSize(8);
-                doc.setTextColor(150);
+                pdf.setPage(i);
+                pdf.setFontSize(8);
+                pdf.setTextColor(150);
                 const footerText = `Gerado por Heal+ em ${new Date().toLocaleDateString('pt-BR')} | Página ${i} de ${pageCount}`;
-                doc.text(footerText, pageWidth / 2, doc.internal.pageSize.getHeight() - 10, { align: 'center' });
+                pdf.text(footerText, pageWidth / 2, pdf.internal.pageSize.getHeight() - 10, { align: 'center' });
             }
         };
 
-        doc.setFont('helvetica', 'bold');
-        doc.setFontSize(16);
-        doc.text("Relatório de Avaliação e Plano de Tratamento de Ferida", pageWidth / 2, 20, { align: 'center' });
+        pdf.setFont('helvetica', 'bold');
+        pdf.setFontSize(16);
+        pdf.text("Relatório de Avaliação e Plano de Tratamento de Ferida", pageWidth / 2, 20, { align: 'center' });
 
-        doc.setFontSize(12);
+        pdf.setFontSize(12);
         const evaluationDate = new Date(selectedRecord.data_consulta + 'T' + selectedRecord.hora_consulta);
         const formattedDate = evaluationDate.toLocaleDateString('pt-BR', { day: '2-digit', month: 'long', year: 'numeric' });
         const formattedTime = evaluationDate.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
         
-        autoTable(doc, {
+        autoTable(pdf, {
             startY: 30,
             head: [['Identificação do Paciente']],
             body: [
@@ -201,14 +201,14 @@ export function ReportGenerator() {
         }
         const anamnesisRecord = anamnesisSnap.data() as AnamnesisFormValues;
 
-        const anamnesisBody = [
-            ['Histórico Médico', anamnesisRecord.historico_cicrizacao || 'Nenhum relatado'],
-            ['Alergias', anamnesisRecord.possui_alergia ? anamnesisRecord.qual_alergia : 'Nenhuma relatada'],
-            ['Hábitos', `Atividade Física: ${anamnesisRecord.pratica_atividade_fisica ? 'Sim' : 'Não'}\nÁlcool: ${anamnesisRecord.ingestao_alcool ? 'Sim' : 'Não'}\nFumante: ${anamnesisRecord.fumante ? 'Sim' : 'Não'}`],
-            ['Queixa Principal', `Ferida em ${anamnesisRecord.localizacao_ferida} com ${anamnesisRecord.tempo_evolucao} de evolução.`],
+        const anamnesisBody: Array<Array<{ content: string }>> = [
+            [{ content: 'Histórico Médico' }, { content: anamnesisRecord.historico_cicrizacao || 'Nenhum relatado' }],
+            [{ content: 'Alergias' }, { content: anamnesisRecord.possui_alergia ? (anamnesisRecord.qual_alergia || 'Não especificada') : 'Nenhuma relatada' }],
+            [{ content: 'Hábitos' }, { content: `Atividade Física: ${anamnesisRecord.pratica_atividade_fisica ? 'Sim' : 'Não'}\nÁlcool: ${anamnesisRecord.ingestao_alcool ? 'Sim' : 'Não'}\nFumante: ${anamnesisRecord.fumante ? 'Sim' : 'Não'}` }],
+            [{ content: 'Queixa Principal' }, { content: `Ferida em ${anamnesisRecord.localizacao_ferida} com ${anamnesisRecord.tempo_evolucao} de evolução.` }],
         ];
 
-        autoTable(doc, {
+        autoTable(pdf, {
             head: [['Anamnese']],
             body: anamnesisBody,
             theme: 'grid',
@@ -216,30 +216,30 @@ export function ReportGenerator() {
             didDrawPage: () => addFooter(),
         });
         
-        let finalY = (doc as any).lastAutoTable.finalY;
+        let finalY = (pdf as any).lastAutoTable.finalY;
 
-         if (doc.internal.pageSize.getHeight() - finalY < 80) {
-            doc.addPage();
+         if (pdf.internal.pageSize.getHeight() - finalY < 80) {
+            pdf.addPage();
             finalY = margin;
         }
 
-        doc.setFont('helvetica', 'bold');
-        doc.setFontSize(12);
-        doc.text("Imagem da Ferida Analisada", margin, finalY + 10);
+        pdf.setFont('helvetica', 'bold');
+        pdf.setFontSize(12);
+        pdf.text("Imagem da Ferida Analisada", margin, finalY + 10);
         
         const img = new (window as any).Image();
         img.src = selectedRecord.woundImageUri;
         await new Promise(resolve => { img.onload = resolve; });
 
-        const imgProps = doc.getImageProperties(selectedRecord.woundImageUri);
+        const imgProps = pdf.getImageProperties(selectedRecord.woundImageUri);
         const imgWidth = 80;
         const imgHeight = (imgProps.height * imgWidth) / imgProps.width;
         const imgX = (pageWidth - imgWidth) / 2;
-        doc.addImage(selectedRecord.woundImageUri, 'PNG', imgX, finalY + 15, imgWidth, imgHeight);
+        pdf.addImage(selectedRecord.woundImageUri, 'PNG', imgX, finalY + 15, imgWidth, imgHeight);
         finalY += imgHeight + 20;
 
         const cleanReportText = report.report.replace(/\*\*/g, '');
-        autoTable(doc, {
+        autoTable(pdf, {
             startY: finalY + 5,
             head: [['Avaliação da Ferida (Análise por IA)']],
             body: [[cleanReportText]],
@@ -251,7 +251,7 @@ export function ReportGenerator() {
         addFooter();
 
         const fileName = `Relatorio_${selectedRecord.nome_cliente.replace(/\s/g, '_')}_${new Date().toLocaleDateString('pt-BR').replace(/\//g, '-')}.pdf`;
-        doc.save(fileName);
+        pdf.save(fileName);
 
     } catch (error) {
         console.error("Error generating PDF:", error);
