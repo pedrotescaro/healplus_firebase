@@ -1,11 +1,10 @@
 
 "use client";
 
-import { useRouter } from "next/navigation";
 import Image from "next/image";
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { MoreHorizontal, Trash2, Eye, Loader2, FileDown, MessageSquare } from "lucide-react";
+import { MoreHorizontal, Trash2, Eye, Loader2, FileDown } from "lucide-react";
 import { useEffect, useState } from "react";
 import { Badge } from "@/components/ui/badge";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
@@ -59,7 +58,6 @@ interface StoredReport {
 export default function ReportsPage() {
   const { toast } = useToast();
   const { t } = useTranslation();
-  const router = useRouter();
   const { user } = useAuth();
   const [reports, setReports] = useState<StoredReport[]>([]);
   const [loading, setLoading] = useState(true);
@@ -104,15 +102,6 @@ export default function ReportsPage() {
     }
   }, [user, toast, t]);
   
-  const handleStartChat = (professionalId: string) => {
-    if (!professionalId) {
-        toast({ title: "Erro", description: "ID do profissional não encontrado.", variant: "destructive" });
-        return;
-    }
-    router.push(`/dashboard/chat?professionalId=${professionalId}`);
-  };
-
-
   const handleDelete = async () => {
     if (!reportToDelete || !user || user.role !== 'professional') return;
     try {
@@ -290,21 +279,10 @@ export default function ReportsPage() {
                               <FileDown className="mr-2 h-4 w-4" /> Salvar em PDF
                             </DropdownMenuItem>
                             {user?.role === 'professional' && (
-                              <>
-                                <DropdownMenuItem onSelect={() => router.push(`/dashboard/chat?patientId=${report.patientId}`)}>
-                                    <MessageSquare className="mr-2 h-4 w-4" /> Iniciar Chat
-                                </DropdownMenuItem>
-                                <DropdownMenuSeparator />
-                                <DropdownMenuItem onSelect={() => setReportToDelete(report.id)} className="text-destructive focus:text-destructive">
+                              <DropdownMenuItem onSelect={() => setReportToDelete(report.id)} className="text-destructive focus:text-destructive">
                                 <Trash2 className="mr-2 h-4 w-4" /> {t.delete}
-                                </DropdownMenuItem>
-                              </>
-                             )}
-                              {user?.role === 'patient' && (
-                                <DropdownMenuItem onSelect={() => handleStartChat(report.professionalId)}>
-                                    <MessageSquare className="mr-2 h-4 w-4" /> Conversar com Profissional
-                                </DropdownMenuItem>
-                             )}
+                              </DropdownMenuItem>
+                            )}
                           </DropdownMenuContent>
                         </DropdownMenu>
                       </TableCell>
