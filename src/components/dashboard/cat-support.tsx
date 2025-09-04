@@ -36,14 +36,9 @@ const chatTopics = {
     icon: CalendarDays,
     answer: "A Agenda mostra automaticamente os retornos marcados nas fichas de avaliação. É uma forma fácil de ver seus próximos compromissos e nunca perder uma reavaliação importante.",
   },
-  chat: {
-    question: "Como posso conversar com alguém?",
-    icon: MessageSquare,
-    answer: "É fácil! Seus contatos (pacientes ou profissionais) aparecerão na lista de 'Contatos' assim que você gerar ou receber um relatório. A partir daí, é só selecionar um contato para iniciar a conversa.",
-  },
 };
 
-type ChatStep = 'intro' | 'anamnesis' | 'report' | 'compare' | 'agenda' | 'chat';
+type ChatStep = 'intro' | 'anamnesis' | 'report' | 'compare' | 'agenda';
 
 const greetings = [
   "Olá! Sou o Zelo.",

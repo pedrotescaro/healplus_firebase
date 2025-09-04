@@ -56,7 +56,6 @@ export const translations = {
     agenda: "Agenda",
     generateReport: "Gerar Relatório",
     compareReports: "Comparar Relatórios",
-    chat: "Chat",
     profile: "Perfil",
     logout: "Sair",
 
@@ -152,10 +151,6 @@ export const translations = {
     analyzedImage: "Imagem Analisada",
     myReportsErrorLoading: "Não foi possível carregar os relatórios.",
 
-    // Página de Chat
-    chatTitle: "Chat",
-    chatDescription: "Converse com seus contatos.",
-
     // Página de Perfil/Configurações
     settingsTitle: "Configurações",
     settingsDescription: "Gerencie seu perfil e preferências de exibição.",
@@ -220,7 +215,6 @@ export const translations = {
     agenda: "Agenda",
     generateReport: "Generate Report",
     compareReports: "Compare Reports",
-    chat: "Chat",
     profile: "Profile",
     logout: "Logout",
 
@@ -315,10 +309,6 @@ export const translations = {
     analyzedImage: "Analyzed Image",
     myReportsErrorLoading: "Could not load reports.",
     
-    // Chat Page
-    chatTitle: "Chat",
-    chatDescription: "Chat with your contacts.",
-
     // Profile/Settings Page
     settingsTitle: "Settings",
     settingsDescription: "Manage your profile and display preferences.",

@@ -41,23 +41,6 @@ export function PatientDashboard() {
         <Card className="flex flex-col">
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
-              <MessageSquare className="h-5 w-5 text-primary" />
-              {t.chatCardTitle}
-            </CardTitle>
-            <CardDescription>
-              {t.chatCardDescriptionPatient}
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="mt-auto">
-            <Link href="/dashboard/chat" passHref>
-              <Button className="w-full">{t.chatCardBtn}</Button>
-            </Link>
-          </CardContent>
-        </Card>
-
-        <Card className="flex flex-col">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
               <User className="h-5 w-5 text-primary" />
               {t.profileCardTitle}
             </CardTitle>

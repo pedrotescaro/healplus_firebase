@@ -56,14 +56,12 @@ export default function AppSidebar({ className, onLinkClick }: AppSidebarProps) 
     { href: "/dashboard/report", icon: FileText, label: t.generateReport },
     { href: "/dashboard/reports", icon: Archive, label: t.myReports },
     { href: "/dashboard/compare-reports", icon: CopyCheck, label: t.compareReports },
-    { href: "/dashboard/chat", icon: MessageSquare, label: t.chat },
     { href: "/dashboard/profile", icon: User, label: t.profile },
   ];
 
   const patientNavItems = [
     { href: "/dashboard", icon: LayoutDashboard, label: t.dashboard },
     { href: "/dashboard/reports", icon: Archive, label: t.myReports },
-    { href: "/dashboard/chat", icon: MessageSquare, label: t.chat },
     { href: "/dashboard/profile", icon: User, label: t.profile },
   ];
 

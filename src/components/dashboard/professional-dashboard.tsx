@@ -140,7 +140,7 @@ export function ProfessionalDashboard() {
         <p className="text-muted-foreground">{t.dashboardGreeting}</p>
       </div>
       
-      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-2 xl:grid-cols-4">
+      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
         <Card className="flex flex-col">
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
@@ -188,23 +188,6 @@ export function ProfessionalDashboard() {
           <CardContent className="mt-auto">
             <Link href="/dashboard/compare-reports" passHref>
               <Button className="w-full">{t.compareReportsBtn}</Button>
-            </Link>
-          </CardContent>
-        </Card>
-
-        <Card className="flex flex-col">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <MessageSquare className="h-5 w-5 text-primary" />
-              {t.chatCardTitle}
-            </CardTitle>
-            <CardDescription>
-              {t.chatCardDescriptionProfessional}
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="mt-auto">
-            <Link href="/dashboard/chat" passHref>
-              <Button className="w-full">{t.chatCardBtn}</Button>
             </Link>
           </CardContent>
         </Card>
