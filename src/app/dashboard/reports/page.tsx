@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import Image from "next/image";
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { MoreHorizontal, Trash2, Eye, Loader2, FileDown } from "lucide-react";
+import { MoreHorizontal, Trash2, Eye, Loader2, FileDown, MessageSquare } from "lucide-react";
 import { useEffect, useState } from "react";
 import { Badge } from "@/components/ui/badge";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
@@ -59,6 +59,7 @@ interface StoredReport {
 export default function ReportsPage() {
   const { toast } = useToast();
   const { t } = useTranslation();
+  const router = useRouter();
   const { user } = useAuth();
   const [reports, setReports] = useState<StoredReport[]>([]);
   const [loading, setLoading] = useState(true);
@@ -80,11 +81,15 @@ export default function ReportsPage() {
           reportsQuery = query(collection(db, "users", user.uid, "reports"), orderBy("createdAt", "desc"));
         } else {
           // Patient: Fetch all reports where they are the patient across all professionals using a collectionGroup query
-          reportsQuery = query(collectionGroup(db, "reports"), where("patientId", "==", user.uid), orderBy("createdAt", "desc"));
+          reportsQuery = query(collectionGroup(db, "reports"), where("patientId", "==", user.uid));
         }
         
         const querySnapshot = await getDocs(reportsQuery);
+        // Sort patient reports by date client-side as collectionGroup queries don't support compound indexes well here
         const fetchedReports = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as StoredReport));
+        if (user.role === 'patient') {
+            fetchedReports.sort((a, b) => b.createdAt.toMillis() - a.createdAt.toMillis());
+        }
         setReports(fetchedReports);
       } catch (error) {
         console.error("Error fetching reports from Firestore: ", error);
@@ -98,6 +103,15 @@ export default function ReportsPage() {
       fetchReports();
     }
   }, [user, toast, t]);
+  
+  const handleStartChat = (professionalId: string) => {
+    if (!professionalId) {
+        toast({ title: "Erro", description: "ID do profissional não encontrado.", variant: "destructive" });
+        return;
+    }
+    router.push(`/dashboard/chat?professionalId=${professionalId}`);
+  };
+
 
   const handleDelete = async () => {
     if (!reportToDelete || !user || user.role !== 'professional') return;
@@ -277,11 +291,19 @@ export default function ReportsPage() {
                             </DropdownMenuItem>
                             {user?.role === 'professional' && (
                               <>
+                                <DropdownMenuItem onSelect={() => router.push(`/dashboard/chat?patientId=${report.patientId}`)}>
+                                    <MessageSquare className="mr-2 h-4 w-4" /> Iniciar Chat
+                                </DropdownMenuItem>
                                 <DropdownMenuSeparator />
                                 <DropdownMenuItem onSelect={() => setReportToDelete(report.id)} className="text-destructive focus:text-destructive">
                                 <Trash2 className="mr-2 h-4 w-4" /> {t.delete}
                                 </DropdownMenuItem>
                               </>
+                             )}
+                              {user?.role === 'patient' && (
+                                <DropdownMenuItem onSelect={() => handleStartChat(report.professionalId)}>
+                                    <MessageSquare className="mr-2 h-4 w-4" /> Conversar com Profissional
+                                </DropdownMenuItem>
                              )}
                           </DropdownMenuContent>
                         </DropdownMenu>

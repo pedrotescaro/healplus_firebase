@@ -10,7 +10,7 @@ import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Card } from '@/components/ui/card';
-import { Send, User, Loader2 } from 'lucide-react';
+import { Send, User, Loader2, Cat } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useChat } from '@/contexts/chat-provider';
 
@@ -42,6 +42,13 @@ export function ChatView() {
         setMessages([]);
         return;
     };
+    
+    // Zelo is a client-side assistant, no messages are fetched
+    if (selectedContact.id === 'zelo-assistant') {
+        setMessages([]);
+        setLoadingMessages(false);
+        return;
+    }
 
     setLoadingMessages(true);
     const chatId = [user.uid, selectedContact.id].sort().join('_');
@@ -70,6 +77,13 @@ export function ChatView() {
 
   const handleSendMessage = async () => {
     if (newMessage.trim() === '' || !user || !selectedContact) return;
+    
+    if (selectedContact.id === 'zelo-assistant') {
+        // Handle chat with Zelo client-side for now
+        alert("A conversa com o Zelo ainda não foi implementada.");
+        setNewMessage('');
+        return;
+    }
 
     const chatId = [user.uid, selectedContact.id].sort().join('_');
     const chatDocRef = doc(db, 'chats', chatId);
@@ -82,7 +96,7 @@ export function ChatView() {
       timestamp: serverTimestamp(),
     });
 
-    // Update the main chat document with metadata
+    // Update the main chat document with metadata for the sidebar
     await setDoc(chatDocRef, {
         participants: [user.uid, selectedContact.id],
         nomesParticipantes: {
@@ -107,7 +121,13 @@ export function ChatView() {
             <div className="flex items-center p-4 border-b">
                <Avatar className="h-10 w-10 mr-3">
                   <AvatarImage src={selectedContact.photoURL ?? undefined} />
-                  <AvatarFallback>{getInitials(selectedContact.name)}</AvatarFallback>
+                   <AvatarFallback>
+                       {selectedContact.id === 'zelo-assistant' ? (
+                            <Cat className="h-6 w-6 text-primary" />
+                       ) : (
+                            getInitials(selectedContact.name)
+                       )}
+                    </AvatarFallback>
                </Avatar>
                <div>
                   <h3 className="font-semibold text-lg">{selectedContact.name}</h3>

@@ -75,7 +75,7 @@ export function ChatSidebar() {
                 <div className="flex flex-col items-center justify-center h-full text-center p-4">
                     <MessageSquarePlus className="h-12 w-12 text-muted-foreground mb-4" />
                     <p className="text-sm text-muted-foreground">Nenhuma conversa encontrada.</p>
-                    <p className="text-xs text-muted-foreground mt-1">Inicie uma conversa selecionando um usuário na página de pacientes.</p>
+                    <p className="text-xs text-muted-foreground mt-1">Gere um relatório para um paciente para iniciar uma conversa.</p>
                      <div className="mt-4 text-xs text-muted-foreground flex items-center gap-2">
                         <span>Com dúvida?</span>
                         <Popover>
