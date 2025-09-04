@@ -23,7 +23,7 @@ import { Badge } from "@/components/ui/badge";
 import { useTranslation } from "@/contexts/app-provider";
 
 
-const isAIEnabled = !!process.env.GEMINI_API_KEY;
+const isAIEnabled = !!process.env.NEXT_PUBLIC_GEMINI_API_KEY;
 
 type ImageFileState = {
     file: File | null;
