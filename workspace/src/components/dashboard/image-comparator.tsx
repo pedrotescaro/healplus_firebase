@@ -12,8 +12,8 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { fileToDataUri } from "@/lib/file-to-data-uri";
 import { UploadCloud, Loader2, GitCompareArrows, Camera, AlertCircle, Sparkles, FileImage, ClipboardCheck } from "lucide-react";
 import { Separator } from "@/components/ui/separator";
-import { ImageCapture } from "./image-capture";
-import { Alert, AlertDescription, AlertTitle } from "../ui/alert";
+import { ImageCapture } from "@/components/dashboard/image-capture";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { useAuth } from "@/hooks/use-auth";
 import { db } from "@/firebase/client-app";
 import { collection, addDoc, serverTimestamp } from "firebase/firestore";

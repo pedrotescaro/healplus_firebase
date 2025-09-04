@@ -19,12 +19,12 @@ import { Loader2, Sparkles, AlertCircle, TrendingUp, TrendingDown, Minus, Pencil
 import { useAuth } from "@/hooks/use-auth";
 import { db } from "@/firebase/client-app";
 import { collection, query, getDocs, orderBy, Timestamp } from "firebase/firestore";
-import { Alert, AlertDescription, AlertTitle } from "../ui/alert";
-import { ScrollArea } from "../ui/scroll-area";
-import { Badge } from "../ui/badge";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { ScrollArea } from "@/components/ui/scroll-area";
+import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Separator } from "../ui/separator";
+import { Separator } from "@/components/ui/separator";
 
 interface StoredReport {
   id: string;
