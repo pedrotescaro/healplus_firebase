@@ -24,7 +24,7 @@ export default function Home() {
   // Render a loading state to prevent the redirect loop and visual flicker.
   return (
     <div className="flex h-screen w-full items-center justify-center bg-background">
-      <div className="space-y-4 w-full max-w-sm">
+      <div className="container mx-auto px-4 sm:px-6 lg:px-8 space-y-4 w-full max-w-sm">
         <Skeleton className="h-10 w-full" />
         <Skeleton className="h-10 w-full" />
         <Skeleton className="h-10 w-full" />

@@ -15,12 +15,12 @@ export function PatientDashboard() {
 
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="text-3xl font-bold tracking-tight">{t.welcomeMessage.replace('{name}', user?.name || '')}</h1>
-        <p className="text-muted-foreground">{t.patientDashboardGreeting}</p>
+      <div className="container mx-auto px-4 sm:px-6 lg:px-8">
+        <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold tracking-tight">Zelo, seu assistente Heal+: cuidado inteligente, decisões seguras.</h1>
+        <p className="text-muted-foreground text-sm sm:text-base">Relatórios estruturados em minutos, com linguagem clínica e apoio à decisão.</p>
       </div>
       
-      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
         <Card className="flex flex-col">
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
