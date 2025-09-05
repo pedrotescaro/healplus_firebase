@@ -18,6 +18,7 @@ import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription, SheetTr
 import { useAuth } from "@/hooks/use-auth";
 import { Avatar, AvatarFallback, AvatarImage } from "../ui/avatar";
 import AppSidebar from "./app-sidebar";
+import { useTranslation } from "@/contexts/app-provider";
 
 const getInitials = (name: string | null | undefined): string => {
   if (!name) return "U";
@@ -30,6 +31,7 @@ const getInitials = (name: string | null | undefined): string => {
 export default function MobileNav() {
   const { user, logout } = useAuth();
   const [isSheetOpen, setIsSheetOpen] = React.useState(false);
+  const { t } = useTranslation();
 
   return (
     <>
@@ -42,9 +44,9 @@ export default function MobileNav() {
         </SheetTrigger>
         <SheetContent side="left" className="flex flex-col p-0 w-64">
            <SheetHeader className="sr-only">
-              <SheetTitle>Menu de Navegação</SheetTitle>
+              <SheetTitle>{t.actions}</SheetTitle>
               <SheetDescription>
-                Navegue pelas seções do dashboard, incluindo anamnese, relatórios e seu perfil.
+                {t.dashboardGreeting}
               </SheetDescription>
             </SheetHeader>
            <AppSidebar onLinkClick={() => setIsSheetOpen(false)} />
@@ -62,13 +64,13 @@ export default function MobileNav() {
           </Button>
         </DropdownMenuTrigger>
         <DropdownMenuContent align="end">
-          <DropdownMenuLabel>Minha Conta</DropdownMenuLabel>
+          <DropdownMenuLabel>{t.profileTitle}</DropdownMenuLabel>
           <DropdownMenuSeparator />
           <Link href="/dashboard/profile" passHref>
-            <DropdownMenuItem>Perfil</DropdownMenuItem>
+            <DropdownMenuItem>{t.profile}</DropdownMenuItem>
           </Link>
           <DropdownMenuSeparator />
-          <DropdownMenuItem onClick={() => logout()}>Sair</DropdownMenuItem>
+          <DropdownMenuItem onClick={() => logout()}>{t.logout}</DropdownMenuItem>
         </DropdownMenuContent>
       </DropdownMenu>
     </>

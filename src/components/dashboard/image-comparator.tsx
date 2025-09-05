@@ -395,7 +395,7 @@ export function ImageComparator() {
             <div className="flex justify-end mb-2">
                 <Button onClick={handleSavePdf} disabled={pdfLoading} variant="outline" size="sm">
                     {pdfLoading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <FileDown className="mr-2 h-4 w-4" />}
-                    Salvar em PDF
+                    PDF
                 </Button>
             </div>
             <TabsList className="grid w-full grid-cols-3">

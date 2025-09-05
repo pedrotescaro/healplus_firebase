@@ -339,7 +339,7 @@ export function ReportGenerator() {
             </CardTitle>
              <Button onClick={handleSavePdf} disabled={pdfLoading} variant="outline" size="sm">
               {pdfLoading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <FileDown className="mr-2 h-4 w-4" />}
-              Salvar em PDF
+              PDF
             </Button>
           </CardHeader>
           <CardContent>
