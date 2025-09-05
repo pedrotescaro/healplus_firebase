@@ -69,7 +69,7 @@ export function ReportComparator() {
     if (user) {
       fetchReports();
     }
-  }, [user, toast]);
+  }, [user, toast, t]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -358,6 +358,7 @@ export function ReportComparator() {
 }
 
 const ReportDisplay = ({ report, title }: { report: StoredReport | undefined, title: string }) => {
+    const { t } = useTranslation();
     if (!report) {
         return (
              <Card>
@@ -477,5 +478,7 @@ const IndividualAnalysisCard = ({ analysis }: { analysis?: CompareWoundReportsOu
           </div>
       )
   };
+
+    
 
     
