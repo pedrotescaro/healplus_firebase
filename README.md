@@ -202,6 +202,16 @@ src/
 - KPIs e métricas: docs/kpis.md
 - Compliance (ANVISA/LGPD/Segurança): docs/compliance.md
 
+### Exportar documentação em PDF
+
+- Guia: docs/EXPORT.md
+- Comando: `npm run export:docs`
+
+### Serviços locais (stubs)
+
+- API Gateway: `npm run services:api` (porta 4000)
+- AI Engine: `npm run services:ai` (porta 5000)
+
 ## 🔒 Segurança e Privacidade
 
 - **Autenticação Segura**: Firebase Authentication com múltiplos provedores
