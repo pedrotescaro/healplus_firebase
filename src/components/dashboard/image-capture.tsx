@@ -17,7 +17,7 @@ import { useToast } from "@/hooks/use-toast";
 import { Alert, AlertTitle, AlertDescription } from "@/components/ui/alert";
 
 interface ImageCaptureProps {
-  onCapture: (file: File) => void;
+  onCapture: (fileOrUrl: File | string) => void;
   children: React.ReactNode;
 }
 
@@ -76,15 +76,20 @@ export function ImageCapture({ onCapture, children }: ImageCaptureProps) {
     }
   };
 
-  const handleConfirm = () => {
+  const handleConfirm = async () => {
     if (capturedImage) {
-      fetch(capturedImage)
-        .then(res => res.blob())
-        .then(blob => {
-          const file = new File([blob], `capture-${new Date().toISOString()}.png`, { type: 'image/png' });
-          onCapture(file);
-          setIsDialogOpen(false);
-        });
+      try {
+        // Prefer upload direto via Storage quando disponível no consumidor
+        onCapture(capturedImage);
+        setIsDialogOpen(false);
+      } catch (e) {
+        // fallback para File
+        const res = await fetch(capturedImage);
+        const blob = await res.blob();
+        const file = new File([blob], `capture-${new Date().toISOString()}.png`, { type: 'image/png' });
+        onCapture(file);
+        setIsDialogOpen(false);
+      }
     }
   };
 
