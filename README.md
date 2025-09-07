@@ -201,6 +201,8 @@ src/
 - Roadmap 90 dias: docs/roadmap.md
 - KPIs e métricas: docs/kpis.md
 - Compliance (ANVISA/LGPD/Segurança): docs/compliance.md
+- Guia de testes: docs/test-guide.md
+- Checklist de release: docs/release-checklist.md
 
 ### Exportar documentação em PDF
 
