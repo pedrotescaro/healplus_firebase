@@ -24,7 +24,7 @@ import { collection, query, getDocs, orderBy, addDoc, serverTimestamp, where, ge
 import { Alert, AlertDescription, AlertTitle } from "../ui/alert";
 import Link from "next/link";
 import { Input } from "../ui/input";
-import { getRisk } from "@/lib/api-client";
+import { getRisk, createAssessment, getAnalysis } from "@/lib/api-client";
 import { getRisk, getAnalysis } from "@/lib/api-client";
 
 type StoredAnamnesis = AnamnesisFormValues & { id: string };
@@ -75,6 +75,7 @@ export function ReportGenerator() {
   const [anamnesisRecords, setAnamnesisRecords] = useState<StoredAnamnesis[]>([]);
   const [report, setReport] = useState<{ report: string } | null>(null);
   const [aiPreview, setAiPreview] = useState<any | null>(null);
+  const [visionResult, setVisionResult] = useState<null | { mask?: string; tissue?: string }>(null);
   const [aiPreview, setAiPreview] = useState<any | null>(null);
   const [loading, setLoading] = useState(false);
   const [pdfLoading, setPdfLoading] = useState(false);
@@ -164,6 +165,22 @@ export function ReportGenerator() {
       toast({ title: "Risco (mock)", description: `Infecção: ${risk.infection.level} (${Math.round(risk.infection.score * 100)}%)` });
     } catch (e) {
       toast({ title: "Falha ao consultar AI (mock)", variant: "destructive" });
+    }
+  };
+
+  const handleVisionMock = async () => {
+    if (!selectedRecord) return;
+    try {
+      setLoading(true);
+      const { assessmentId } = await createAssessment(selectedRecord.id, { demo: true });
+      const analysis = await getAnalysis(assessmentId);
+      const tissue = analysis.tissueQuant.map((t) => `${t.class}: ${t.percent}%`).join(' | ');
+      setVisionResult({ mask: analysis.segmentationMaskUri, tissue });
+      toast({ title: "Análise de imagem (mock)", description: tissue });
+    } catch (e) {
+      toast({ title: "Falha na análise (mock)", variant: "destructive" });
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -341,10 +358,15 @@ export function ReportGenerator() {
             </div>
           </div>
         </div>
+        <div className="flex gap-2 flex-wrap">
         <Button type="submit" disabled={loading || !selectedRecord?.woundImageUri} className="w-full md:w-auto">
           {loading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <FileText className="mr-2 h-4 w-4" />}
           Gerar Relatório
         </Button>
+        <Button type="button" variant="secondary" onClick={handleVisionMock} disabled={loading || !selectedRecord?.woundImageUri} className="w-full md:w-auto">
+          Analisar Imagem (mock)
+        </Button>
+        </div>
       </form>
 
       {loading && (
@@ -379,6 +401,11 @@ export function ReportGenerator() {
                 </div>
             )}
             <div className="prose prose-sm max-w-none dark:prose-invert whitespace-pre-wrap">{report.report}</div>
+            {visionResult && (
+              <div className="mt-4 text-sm">
+                <div className="font-semibold">Tecido (mock): {visionResult.tissue}</div>
+              </div>
+            )}
             {aiPreview && (
               <div className="mt-4 text-sm text-muted-foreground">
                 <strong>AI (mock):</strong> Infecção {aiPreview.infection.level} • {Math.round(aiPreview.infection.score*100)}% | Prob. cicatrização 30d {Math.round(aiPreview.healing.probHeal30*100)}%

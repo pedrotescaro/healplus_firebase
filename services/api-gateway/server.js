@@ -20,6 +20,15 @@ app.get('/assessments/:id/analysis', (req, res) => {
   });
 });
 
+// FHIR mock endpoints
+app.post('/fhir/sync/push', (req, res) => {
+  return res.json({ bundleId: 'mock-bundle-001', status: 'accepted' });
+});
+
+app.post('/fhir/sync/pull', (req, res) => {
+  return res.json({ resources: [{ resourceType: 'Patient', id: 'mock-patient-001' }] });
+});
+
 const port = process.env.PORT || 4000;
 app.listen(port, () => console.log(`api-gateway listening on ${port}`));
 
