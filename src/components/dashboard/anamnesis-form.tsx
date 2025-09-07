@@ -50,7 +50,8 @@ import {
 import { useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useState } from "react";
 import { useAuth } from "@/hooks/use-auth";
-import { db } from "@/firebase/client-app";
+import { db, storage } from "@/firebase/client-app";
+import { ref, uploadString, getDownloadURL } from "firebase/storage";
 import { collection, addDoc, getDoc, doc, updateDoc, query, where, getDocs, limit } from "firebase/firestore";
 import { v4 as uuidv4 } from 'uuid';
 
@@ -244,10 +245,14 @@ export function AnamnesisForm() {
     }
   };
 
-  const handleFileSelect = async (file: File) => {
+  const handleFileSelect = async (fileOrData: File | string) => {
     try {
-      const dataUri = await fileToDataUri(file);
-      form.setValue('woundImageUri', dataUri);
+      if (typeof fileOrData === 'string') {
+        form.setValue('woundImageUri', fileOrData);
+      } else {
+        const dataUri = await fileToDataUri(fileOrData);
+        form.setValue('woundImageUri', dataUri);
+      }
     } catch (error) {
        toast({ title: "Erro ao carregar imagem", description: "Não foi possível processar o arquivo.", variant: "destructive" });
     }
@@ -326,6 +331,20 @@ export function AnamnesisForm() {
     }
     data.patientId = patientId;
     // --- End of patientId logic ---
+
+    // Upload imagem ao Storage se for data URI
+    try {
+      if (data.woundImageUri && data.woundImageUri.startsWith('data:')) {
+        const imagePath = `users/${user.uid}/anamnesis/${uuidv4()}.png`;
+        const sref = ref(storage, imagePath);
+        await uploadString(sref, data.woundImageUri, 'data_url');
+        const imageUrl = await getDownloadURL(sref);
+        data.woundImageUri = imageUrl;
+      }
+    } catch (e) {
+      toast({ title: "Falha ao enviar imagem", description: "Tente novamente.", variant: "destructive" });
+      return;
+    }
 
     // Sanitize data to ensure no undefined values are sent to Firestore
     const sanitizedData = Object.fromEntries(
