@@ -24,6 +24,8 @@ import { collection, query, getDocs, orderBy, addDoc, serverTimestamp, where, ge
 import { Alert, AlertDescription, AlertTitle } from "../ui/alert";
 import Link from "next/link";
 import { Input } from "../ui/input";
+import { getRisk } from "@/lib/api-client";
+import { getRisk, getAnalysis } from "@/lib/api-client";
 
 type StoredAnamnesis = AnamnesisFormValues & { id: string };
 
@@ -72,6 +74,8 @@ export function ReportGenerator() {
   const [selectedAnamnesisId, setSelectedAnamnesisId] = useState<string>("");
   const [anamnesisRecords, setAnamnesisRecords] = useState<StoredAnamnesis[]>([]);
   const [report, setReport] = useState<{ report: string } | null>(null);
+  const [aiPreview, setAiPreview] = useState<any | null>(null);
+  const [aiPreview, setAiPreview] = useState<any | null>(null);
   const [loading, setLoading] = useState(false);
   const [pdfLoading, setPdfLoading] = useState(false);
   const { toast } = useToast();
@@ -150,6 +154,26 @@ export function ReportGenerator() {
       });
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleTestAI = async () => {
+    try {
+      const risk = await getRisk({ demo: true });
+      setAiPreview(risk);
+      toast({ title: "Risco (mock)", description: `Infecção: ${risk.infection.level} (${Math.round(risk.infection.score * 100)}%)` });
+    } catch (e) {
+      toast({ title: "Falha ao consultar AI (mock)", variant: "destructive" });
+    }
+  };
+
+  const handleTestAI = async () => {
+    try {
+      const risk = await getRisk({ demo: true });
+      setAiPreview(risk);
+      toast({ title: "Risco (mock)", description: `Infecção: ${risk.infection.level} (${Math.round(risk.infection.score * 100)}%)` });
+    } catch (e) {
+      toast({ title: "Falha ao consultar AI (mock)", variant: "destructive" });
     }
   };
 
@@ -337,10 +361,13 @@ export function ReportGenerator() {
               <FileText className="h-5 w-5 text-primary" />
               Relatório da Ferida Gerado
             </CardTitle>
-             <Button onClick={handleSavePdf} disabled={pdfLoading} variant="outline" size="sm">
-              {pdfLoading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <FileDown className="mr-2 h-4 w-4" />}
-              PDF
-            </Button>
+            <div className="flex gap-2">
+              <Button onClick={handleTestAI} variant="secondary" size="sm">Teste AI (mock)</Button>
+              <Button onClick={handleSavePdf} disabled={pdfLoading} variant="outline" size="sm">
+                {pdfLoading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <FileDown className="mr-2 h-4 w-4" />}
+                PDF
+              </Button>
+            </div>
           </CardHeader>
           <CardContent>
              {selectedRecord?.woundImageUri && (
@@ -351,9 +378,12 @@ export function ReportGenerator() {
                     </div>
                 </div>
             )}
-            <div className="prose prose-sm max-w-none dark:prose-invert whitespace-pre-wrap">
-              {report.report}
-            </div>
+            <div className="prose prose-sm max-w-none dark:prose-invert whitespace-pre-wrap">{report.report}</div>
+            {aiPreview && (
+              <div className="mt-4 text-sm text-muted-foreground">
+                <strong>AI (mock):</strong> Infecção {aiPreview.infection.level} • {Math.round(aiPreview.infection.score*100)}% | Prob. cicatrização 30d {Math.round(aiPreview.healing.probHeal30*100)}%
+              </div>
+            )}
           </CardContent>
         </Card>
       )}
