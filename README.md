@@ -193,6 +193,15 @@ src/
 └── firebase/            # Configuração Firebase
 ```
 
+### Documentação detalhada
+
+- Arquitetura: docs/architecture.md
+- Modelo de dados (TIMERS + FHIR): docs/data-model.md
+- APIs e contratos: docs/apis.md
+- Roadmap 90 dias: docs/roadmap.md
+- KPIs e métricas: docs/kpis.md
+- Compliance (ANVISA/LGPD/Segurança): docs/compliance.md
+
 ## 🔒 Segurança e Privacidade
 
 - **Autenticação Segura**: Firebase Authentication com múltiplos provedores
