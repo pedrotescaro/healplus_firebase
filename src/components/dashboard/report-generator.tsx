@@ -24,7 +24,7 @@ import { collection, query, getDocs, orderBy, addDoc, serverTimestamp, where, ge
 import { Alert, AlertDescription, AlertTitle } from "../ui/alert";
 import Link from "next/link";
 import { Input } from "../ui/input";
-import { getRisk, createAssessment, getAnalysis } from "@/lib/api-client";
+import { getRisk, createAssessment, getAnalysis, fhirPush, fhirPull } from "@/lib/api-client";
 import { getRisk, getAnalysis } from "@/lib/api-client";
 
 type StoredAnamnesis = AnamnesisFormValues & { id: string };
@@ -76,6 +76,7 @@ export function ReportGenerator() {
   const [report, setReport] = useState<{ report: string } | null>(null);
   const [aiPreview, setAiPreview] = useState<any | null>(null);
   const [visionResult, setVisionResult] = useState<null | { mask?: string; tissue?: string }>(null);
+  const [fhirStatus, setFhirStatus] = useState<string | null>(null);
   const [aiPreview, setAiPreview] = useState<any | null>(null);
   const [loading, setLoading] = useState(false);
   const [pdfLoading, setPdfLoading] = useState(false);
@@ -181,6 +182,28 @@ export function ReportGenerator() {
       toast({ title: "Falha na análise (mock)", variant: "destructive" });
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleFhirPush = async () => {
+    if (!selectedAnamnesisId) return;
+    try {
+      const resp = await fhirPush(selectedAnamnesisId);
+      setFhirStatus(`PUSH: ${resp.status} (${resp.bundleId})`);
+      toast({ title: "FHIR Push", description: `Status: ${resp.status}` });
+    } catch (e) {
+      toast({ title: "FHIR Push falhou", variant: "destructive" });
+    }
+  };
+
+  const handleFhirPull = async () => {
+    if (!user) return;
+    try {
+      const resp = await fhirPull(user.uid);
+      setFhirStatus(`PULL: ${resp.resources?.length || 0} recursos`);
+      toast({ title: "FHIR Pull", description: `${resp.resources?.length || 0} recursos` });
+    } catch (e) {
+      toast({ title: "FHIR Pull falhou", variant: "destructive" });
     }
   };
 
@@ -366,6 +389,8 @@ export function ReportGenerator() {
         <Button type="button" variant="secondary" onClick={handleVisionMock} disabled={loading || !selectedRecord?.woundImageUri} className="w-full md:w-auto">
           Analisar Imagem (mock)
         </Button>
+        <Button type="button" variant="outline" onClick={handleFhirPush} className="w-full md:w-auto">Push FHIR (mock)</Button>
+        <Button type="button" variant="outline" onClick={handleFhirPull} className="w-full md:w-auto">Pull FHIR (mock)</Button>
         </div>
       </form>
 
@@ -405,6 +430,9 @@ export function ReportGenerator() {
               <div className="mt-4 text-sm">
                 <div className="font-semibold">Tecido (mock): {visionResult.tissue}</div>
               </div>
+            )}
+            {fhirStatus && (
+              <div className="mt-2 text-xs text-muted-foreground">{fhirStatus}</div>
             )}
             {aiPreview && (
               <div className="mt-4 text-sm text-muted-foreground">

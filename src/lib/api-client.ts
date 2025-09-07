@@ -48,4 +48,24 @@ export async function getRisk(input: unknown): Promise<{
   return res.json();
 }
 
+export async function fhirPush(assessmentId: string): Promise<{ bundleId: string; status: string }>{
+  const res = await fetch(`${API_BASE}/fhir/sync/push`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ assessmentId })
+  });
+  if (!res.ok) throw new Error('FHIR push failed');
+  return res.json();
+}
+
+export async function fhirPull(patientId: string): Promise<{ resources: any[] }>{
+  const res = await fetch(`${API_BASE}/fhir/sync/pull`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ patientId, resources: ['Patient','Condition','MedicationRequest'] })
+  });
+  if (!res.ok) throw new Error('FHIR pull failed');
+  return res.json();
+}
+
 
