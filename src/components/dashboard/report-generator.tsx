@@ -192,10 +192,19 @@ export function ReportGenerator() {
           await uploadString(sref, maskUrl, 'data_url');
           maskUrl = await getDownloadURL(sref);
         }
+        // Persist original image if data URI
+        if (selectedRecord.woundImageUri?.startsWith('data:')) {
+          const ipath = `users/${user.uid}/assessments/${assessmentId}/image.png`;
+          const iref = ref(storage, ipath);
+          await uploadString(iref, selectedRecord.woundImageUri, 'data_url');
+          const imageUrl = await getDownloadURL(iref);
+          (selectedRecord as any).woundImageUri = imageUrl;
+        }
         await addDoc(collection(db, "users", user.uid, "assessments"), {
           anamnesisId: selectedAnamnesisId,
           woundId: selectedRecord.id,
-          analysis: { ...analysis, segmentationMaskUri: maskUrl },
+          imageUri: selectedRecord.woundImageUri,
+          analysis: { ...analysis, segmentationMaskUri: maskUrl, modelVersion: analysis.modelVersion || 'vision-0.1.0', createdAt: serverTimestamp() },
           createdAt: serverTimestamp(),
         });
       }

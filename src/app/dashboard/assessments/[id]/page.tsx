@@ -3,7 +3,9 @@
 import { useEffect, useState } from "react";
 import { useAuth } from "@/hooks/use-auth";
 import { db } from "@/firebase/client-app";
-import { doc, getDoc } from "firebase/firestore";
+import { doc, getDoc, updateDoc } from "firebase/firestore";
+import { Button } from "@/components/ui/button";
+import { toast } from "@/hooks/use-toast";
 import Image from "next/image";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
@@ -14,6 +16,7 @@ export default function AssessmentDetailPage({ params }: { params: { id: string 
   const { user } = useAuth();
   const [item, setItem] = useState<any | null>(null);
   const [opacity, setOpacity] = useState<number>(50);
+  const [loading, setLoading] = useState<boolean>(false);
 
   useEffect(() => {
     const load = async () => {
@@ -36,6 +39,23 @@ export default function AssessmentDetailPage({ params }: { params: { id: string 
         <CardTitle>Assessment {item.id}</CardTitle>
       </CardHeader>
       <CardContent className="space-y-4">
+        <div className="flex gap-2">
+          <Button variant="secondary" disabled={loading} onClick={async () => {
+            try {
+              setLoading(true);
+              // mock reprocess: bump modelVersion suffix
+              const current = item.analysis?.modelVersion || 'vision-0.1.0';
+              const next = current.replace(/(\d+)$/, (m: string) => String(Number(m) + 1));
+              const ref = doc(db, "users", user!.uid, "assessments", params.id);
+              await updateDoc(ref, { "analysis.modelVersion": next });
+              setItem({ ...item, analysis: { ...item.analysis, modelVersion: next } });
+              // @ts-ignore
+              toast?.({ title: "Reprocessado (mock)", description: `Modelo: ${next}` });
+            } finally {
+              setLoading(false);
+            }
+          }}>Reprocessar (mock)</Button>
+        </div>
         <div className="grid md:grid-cols-2 gap-6">
           <div>
             <div className="relative w-full max-w-md aspect-square">
@@ -46,6 +66,9 @@ export default function AssessmentDetailPage({ params }: { params: { id: string 
               )}
               {analysis.segmentationMaskUri && (
                 <img src={analysis.segmentationMaskUri} alt="Mask" className="absolute inset-0 w-full h-full object-contain" style={{ opacity: opacity/100 }} />
+              )}
+              {analysis.gradcamUri && (
+                <img src={analysis.gradcamUri} alt="Grad-CAM" className="absolute inset-0 w-full h-full object-contain mix-blend-multiply pointer-events-none" style={{ opacity: opacity/100 }} />
               )}
             </div>
             {analysis.segmentationMaskUri && (

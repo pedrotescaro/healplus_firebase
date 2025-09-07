@@ -16,7 +16,9 @@ app.get('/assessments/:id/analysis', (req, res) => {
     tissueQuant: [{ class: 'granulation', percent: 45 }],
     area: { value: 12.3, unit: 'cm2' },
     perimeter: { value: 14.8, unit: 'cm' },
-    gradcamUri: 's3://mock/gradcam.png'
+    gradcamUri: 's3://mock/gradcam.png',
+    modelVersion: 'vision-0.1.0',
+    createdAt: new Date().toISOString()
   });
 });
 
