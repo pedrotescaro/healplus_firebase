@@ -9,6 +9,7 @@
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
+    "lint:fix": "next lint --fix || true",
     "typecheck": "tsc --noEmit",
     "services:api": "node services/api-gateway/server.js",
     "services:ai": "node services/ai-engine/server.js",
