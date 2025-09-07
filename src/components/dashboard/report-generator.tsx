@@ -22,6 +22,8 @@ import autoTable from 'jspdf-autotable';
 import { useAuth } from "@/hooks/use-auth";
 import { db } from "@/firebase/client-app";
 import { collection, query, getDocs, orderBy, addDoc, serverTimestamp, where, getDoc, doc } from "firebase/firestore";
+import { storage } from "@/firebase/client-app";
+import { ref, uploadString, getDownloadURL } from "firebase/storage";
 import { Alert, AlertDescription, AlertTitle } from "../ui/alert";
 import Link from "next/link";
 import { Input } from "../ui/input";
@@ -182,10 +184,18 @@ export function ReportGenerator() {
       toast({ title: "Análise de imagem (mock)", description: tissue });
 
       if (user) {
+        // Persist mask if it's a data URI
+        let maskUrl = analysis.segmentationMaskUri;
+        if (maskUrl?.startsWith('data:')) {
+          const path = `users/${user.uid}/assessments/${assessmentId}/mask.png`;
+          const sref = ref(storage, path);
+          await uploadString(sref, maskUrl, 'data_url');
+          maskUrl = await getDownloadURL(sref);
+        }
         await addDoc(collection(db, "users", user.uid, "assessments"), {
           anamnesisId: selectedAnamnesisId,
           woundId: selectedRecord.id,
-          analysis,
+          analysis: { ...analysis, segmentationMaskUri: maskUrl },
           createdAt: serverTimestamp(),
         });
       }

@@ -14,6 +14,8 @@ import {
   CopyCheck,
   Users,
   MessageSquare,
+  Activity,
+  FileSearch
 } from "lucide-react";
 import { useAuth } from "@/hooks/use-auth";
 import { Button } from "@/components/ui/button";
@@ -56,6 +58,8 @@ export default function AppSidebar({ className, onLinkClick }: AppSidebarProps) 
     { href: "/dashboard/report", icon: FileText, label: t.generateReport },
     { href: "/dashboard/reports", icon: Archive, label: t.myReports },
     { href: "/dashboard/compare-reports", icon: CopyCheck, label: t.compareReports },
+    { href: "/dashboard/assessments", icon: FileSearch, label: "Assessments" },
+    { href: "/dashboard/fhir-logs", icon: Activity, label: "FHIR Logs" },
     { href: "/dashboard/profile", icon: User, label: t.profile },
   ];
 
