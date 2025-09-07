@@ -304,8 +304,22 @@ export function AnamnesisForm() {
       return;
     }
 
-    if (!data.patientId) {
-        data.patientId = `unregistered_${uuidv4()}`;
+    try {
+        const usersRef = collection(db, "users");
+        // Create a query to find a user with a matching name or email, who also has the 'patient' role.
+        const q = query(usersRef, where("role", "==", "patient"), where("name", "==", data.nome_cliente), limit(1));
+        const querySnapshot = await getDocs(q);
+
+        if (!querySnapshot.empty) {
+            const patientDoc = querySnapshot.docs[0];
+            data.patientId = patientDoc.id;
+        } else {
+            console.error("Error querying for patient, assigning placeholder ID: FirebaseError: Missing or insufficient permissions.");
+            data.patientId = `unregistered_${uuidv4()}`;
+        }
+    } catch (error) {
+       console.error("Error querying for patient, assigning placeholder ID:", error);
+       data.patientId = `unregistered_${uuidv4()}`;
     }
 
     // Upload imagem ao Storage se for data URI
@@ -896,3 +910,5 @@ export function AnamnesisForm() {
     </Form>
   );
 }
+
+  
