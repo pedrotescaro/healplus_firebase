@@ -6,6 +6,7 @@ import Image from "next/image";
 import { useToast } from "@/hooks/use-toast";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
+import { Slider } from "@/components/ui/slider";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Loader2, FileText, AlertCircle, FileDown, ImageOff } from "lucide-react";
 import { AnamnesisFormValues } from "@/lib/anamnesis-schema";
@@ -76,6 +77,7 @@ export function ReportGenerator() {
   const [report, setReport] = useState<{ report: string } | null>(null);
   const [aiPreview, setAiPreview] = useState<any | null>(null);
   const [visionResult, setVisionResult] = useState<null | { mask?: string; tissue?: string }>(null);
+  const [maskOpacity, setMaskOpacity] = useState<number>(50);
   const [fhirStatus, setFhirStatus] = useState<string | null>(null);
   const [aiPreview, setAiPreview] = useState<any | null>(null);
   const [loading, setLoading] = useState(false);
@@ -178,6 +180,15 @@ export function ReportGenerator() {
       const tissue = analysis.tissueQuant.map((t) => `${t.class}: ${t.percent}%`).join(' | ');
       setVisionResult({ mask: analysis.segmentationMaskUri, tissue });
       toast({ title: "Análise de imagem (mock)", description: tissue });
+
+      if (user) {
+        await addDoc(collection(db, "users", user.uid, "assessments"), {
+          anamnesisId: selectedAnamnesisId,
+          woundId: selectedRecord.id,
+          analysis,
+          createdAt: serverTimestamp(),
+        });
+      }
     } catch (e) {
       toast({ title: "Falha na análise (mock)", variant: "destructive" });
     } finally {
@@ -191,6 +202,11 @@ export function ReportGenerator() {
       const resp = await fhirPush(selectedAnamnesisId);
       setFhirStatus(`PUSH: ${resp.status} (${resp.bundleId})`);
       toast({ title: "FHIR Push", description: `Status: ${resp.status}` });
+      if (user) {
+        await addDoc(collection(db, "users", user.uid, "fhirLogs"), {
+          type: 'push', status: resp.status, bundleId: resp.bundleId, assessmentRef: selectedAnamnesisId, createdAt: serverTimestamp()
+        });
+      }
     } catch (e) {
       toast({ title: "FHIR Push falhou", variant: "destructive" });
     }
@@ -202,6 +218,9 @@ export function ReportGenerator() {
       const resp = await fhirPull(user.uid);
       setFhirStatus(`PULL: ${resp.resources?.length || 0} recursos`);
       toast({ title: "FHIR Pull", description: `${resp.resources?.length || 0} recursos` });
+      await addDoc(collection(db, "users", user.uid, "fhirLogs"), {
+        type: 'pull', count: resp.resources?.length || 0, createdAt: serverTimestamp()
+      });
     } catch (e) {
       toast({ title: "FHIR Pull falhou", variant: "destructive" });
     }
@@ -418,12 +437,21 @@ export function ReportGenerator() {
           </CardHeader>
           <CardContent>
              {selectedRecord?.woundImageUri && (
-                <div className="mb-4">
-                    <h3 className="font-bold text-lg mb-2 text-center">Imagem da Ferida Analisada</h3>
-                    <div className="relative w-full max-w-sm mx-auto aspect-square">
-                        <Image src={selectedRecord.woundImageUri} alt="Wound analysed" layout="fill" className="rounded-md object-contain" data-ai-hint="wound" />
-                    </div>
-                </div>
+               <div className="mb-4">
+                   <h3 className="font-bold text-lg mb-2 text-center">Imagem da Ferida Analisada</h3>
+                   <div className="relative w-full max-w-sm mx-auto aspect-square">
+                       <Image src={selectedRecord.woundImageUri} alt="Wound analysed" layout="fill" className="rounded-md object-contain" data-ai-hint="wound" />
+                       {visionResult?.mask && (
+                          <img src={visionResult.mask} alt="Mask overlay" className="absolute inset-0 w-full h-full object-contain" style={{ opacity: maskOpacity/100 }} />
+                       )}
+                   </div>
+                   {visionResult?.mask && (
+                      <div className="mt-2">
+                        <Label>Opacidade da Máscara</Label>
+                        <Slider defaultValue={[maskOpacity]} max={100} step={5} onValueChange={(v) => setMaskOpacity(v[0] ?? 50)} />
+                      </div>
+                   )}
+               </div>
             )}
             <div className="prose prose-sm max-w-none dark:prose-invert whitespace-pre-wrap">{report.report}</div>
             {visionResult && (
