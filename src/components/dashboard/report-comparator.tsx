@@ -4,6 +4,7 @@
 import { useState, useEffect } from "react";
 import Image from "next/image";
 import { compareWoundReports, CompareWoundReportsOutput } from "@/ai/flows/compare-wound-reports";
+import { getRisk } from "@/lib/api-client";
 import { useToast } from "@/hooks/use-toast";
 import { Button } from "@/components/ui/button";
 import {
@@ -38,6 +39,7 @@ interface StoredReport {
 }
 
 const isAIEnabled = !!process.env.NEXT_PUBLIC_GEMINI_API_KEY;
+const isStubAvailable = !!process.env.NEXT_PUBLIC_AI_BASE;
 
 export function ReportComparator() {
   const [reports, setReports] = useState<StoredReport[]>([]);
@@ -46,6 +48,7 @@ export function ReportComparator() {
   const [comparisonResult, setComparisonResult] = useState<CompareWoundReportsOutput | null>(null);
   const [loading, setLoading] = useState(false);
   const [pdfLoading, setPdfLoading] = useState(false);
+  const [demoResult, setDemoResult] = useState<null | { risk1: any; risk2: any }>(null);
   const { toast } = useToast();
   const { user } = useAuth();
   const { t } = useTranslation();
@@ -89,31 +92,36 @@ export function ReportComparator() {
 
     setLoading(true);
     setComparisonResult(null);
+    setDemoResult(null);
     try {
-      const result = await compareWoundReports({
-        report1Content: report1.reportContent,
-        report2Content: report2.reportContent,
-        image1DataUri: report1.woundImageUri,
-        image2DataUri: report2.woundImageUri,
-        report1Date: report1.createdAt.toDate().toISOString(),
-        report2Date: report2.createdAt.toDate().toISOString(),
-      });
-      setComparisonResult(result);
-      
-      if (user) {
-        await addDoc(collection(db, "users", user.uid, "comparisons"), {
-          ...result,
-          report1Id: selectedReport1Id,
-          report2Id: selectedReport2Id,
-          patientName: report1.patientName,
-          createdAt: serverTimestamp(),
+      if (isAIEnabled) {
+        const result = await compareWoundReports({
+          report1Content: report1.reportContent,
+          report2Content: report2.reportContent,
+          image1DataUri: report1.woundImageUri,
+          image2DataUri: report2.woundImageUri,
+          report1Date: report1.createdAt.toDate().toISOString(),
+          report2Date: report2.createdAt.toDate().toISOString(),
         });
-         toast({
-          title: t.comparisonSavedTitle,
-          description: t.comparisonSavedDescription,
-        });
+        setComparisonResult(result);
+        if (user) {
+          await addDoc(collection(db, "users", user.uid, "comparisons"), {
+            ...result,
+            report1Id: selectedReport1Id,
+            report2Id: selectedReport2Id,
+            patientName: report1.patientName,
+            createdAt: serverTimestamp(),
+          });
+          toast({ title: t.comparisonSavedTitle, description: t.comparisonSavedDescription });
+        }
+      } else if (isStubAvailable) {
+        const [risk1, risk2] = await Promise.all([
+          getRisk({ demo: true, image: report1.woundImageUri }),
+          getRisk({ demo: true, image: report2.woundImageUri })
+        ]);
+        setDemoResult({ risk1, risk2 });
+        toast({ title: t.comparisonSavedTitle, description: 'Análise demo (mock) concluída.' });
       }
-
     } catch (error) {
       console.error("Erro ao comparar relatórios:", error);
       toast({ title: t.analysisErrorTitle, description: t.analysisErrorDescription, variant: "destructive" });
@@ -216,7 +224,7 @@ export function ReportComparator() {
   const selectedReport1 = reports.find(r => r.id === selectedReport1Id);
   const selectedReport2 = reports.find(r => r.id === selectedReport2Id);
 
-  if (!isAIEnabled) {
+  if (!isAIEnabled && !isStubAvailable) {
     return (
       <Alert variant="destructive">
         <AlertCircle className="h-4 w-4" />
@@ -275,6 +283,19 @@ export function ReportComparator() {
           <Loader2 className="h-8 w-8 animate-spin text-primary" />
           <p className="mt-4 text-muted-foreground">{t.analyzingProgressionMessage}</p>
         </div>
+      )}
+
+      {demoResult && (
+        <Card>
+          <CardHeader>
+            <CardTitle>{t.comparativeReportTitle} (Demo)</CardTitle>
+            <CardDescription>Resultado de risco simulado pelo stub.</CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-2 text-sm">
+            <div>Relatório 1: Infecção {demoResult.risk1.infection.level} ({Math.round(demoResult.risk1.infection.score*100)}%) • Prob. 30d {Math.round(demoResult.risk1.healing.probHeal30*100)}%</div>
+            <div>Relatório 2: Infecção {demoResult.risk2.infection.level} ({Math.round(demoResult.risk2.infection.score*100)}%) • Prob. 30d {Math.round(demoResult.risk2.healing.probHeal30*100)}%</div>
+          </CardContent>
+        </Card>
       )}
 
       {comparisonResult && comparisonResult.relatorio_comparativo && (
