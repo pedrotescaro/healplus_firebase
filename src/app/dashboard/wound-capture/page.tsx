@@ -144,12 +144,12 @@ export default function WoundCapturePage() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 text-white p-6">
+    <div className="min-h-screen bg-background text-foreground p-6">
       <div className="max-w-7xl mx-auto">
         {/* Header */}
         <div className="mb-8">
           <h1 className="text-4xl font-bold mb-2">Captura Inteligente de Feridas</h1>
-          <p className="text-lg text-gray-300">
+          <p className="text-lg text-muted-foreground">
             Registre fotos da sua ferida para análise automática com IA e acompanhamento médico.
           </p>
         </div>
@@ -190,20 +190,20 @@ export default function WoundCapturePage() {
         {/* Main Content */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
           {/* Left Card - Wound Capture */}
-          <Card className="bg-slate-800/50 border-slate-700">
+          <Card className="bg-card border-border">
             <CardHeader>
-              <CardTitle className="text-white">Captura da Ferida</CardTitle>
+              <CardTitle className="text-card-foreground">Captura da Ferida</CardTitle>
             </CardHeader>
             <CardContent>
-              <p className="text-gray-300 mb-6">
+              <p className="text-muted-foreground mb-6">
                 Posicione a câmera sobre a ferida para captura automática.
               </p>
               
               {/* Image Capture Area */}
               <div
                 className={cn(
-                  "border-2 border-dashed border-blue-400 rounded-lg p-8 text-center cursor-pointer transition-colors",
-                  "hover:border-blue-300 hover:bg-blue-500/10"
+                  "border-2 border-dashed border-primary rounded-lg p-8 text-center cursor-pointer transition-colors",
+                  "hover:border-primary/70 hover:bg-primary/5"
                 )}
                 onDragOver={handleDragOver}
                 onDrop={handleDrop}
@@ -220,11 +220,11 @@ export default function WoundCapturePage() {
                   </div>
                 ) : (
                   <div className="space-y-4">
-                    <div className="w-16 h-16 bg-blue-500 rounded-full flex items-center justify-center mx-auto">
-                      <Camera className="w-8 h-8 text-white" />
+                    <div className="w-16 h-16 bg-primary rounded-full flex items-center justify-center mx-auto">
+                      <Camera className="w-8 h-8 text-primary-foreground" />
                     </div>
-                    <p className="text-white font-medium">Clique para capturar</p>
-                    <p className="text-gray-400">ou arraste uma imagem aqui</p>
+                    <p className="text-foreground font-medium">Clique para capturar</p>
+                    <p className="text-muted-foreground">ou arraste uma imagem aqui</p>
                   </div>
                 )}
               </div>
@@ -234,7 +234,7 @@ export default function WoundCapturePage() {
                 <Button
                   onClick={handleCapture}
                   disabled={isCapturing}
-                  className="flex-1 bg-blue-500 hover:bg-blue-600 text-white"
+                  className="flex-1"
                 >
                   <Camera className="w-4 h-4 mr-2" />
                   {isCapturing ? "Capturando..." : "Capturar Foto"}
@@ -242,7 +242,7 @@ export default function WoundCapturePage() {
                 <Button
                   variant="outline"
                   onClick={() => fileInputRef.current?.click()}
-                  className="flex-1 border-blue-400 text-blue-400 hover:bg-blue-500/10"
+                  className="flex-1"
                 >
                   <Upload className="w-4 h-4 mr-2" />
                   Upload
@@ -260,7 +260,7 @@ export default function WoundCapturePage() {
               {capturedImage && currentStep === 2 && (
                 <Button
                   onClick={startAnalysis}
-                  className="w-full mt-4 bg-green-500 hover:bg-green-600 text-white"
+                  className="w-full mt-4"
                 >
                   Iniciar Análise IA
                 </Button>
@@ -269,12 +269,12 @@ export default function WoundCapturePage() {
           </Card>
 
           {/* Right Card - Capture Instructions */}
-          <Card className="bg-slate-800/50 border-slate-700">
+          <Card className="bg-card border-border">
             <CardHeader>
-              <CardTitle className="text-white">Instruções de Captura</CardTitle>
+              <CardTitle className="text-card-foreground">Instruções de Captura</CardTitle>
             </CardHeader>
             <CardContent>
-              <p className="text-gray-300 mb-6">
+              <p className="text-muted-foreground mb-6">
                 Siga estas diretrizes para obter a melhor análise.
               </p>
 
@@ -298,24 +298,24 @@ export default function WoundCapturePage() {
                   }
                 ].map((instruction, index) => (
                   <div key={index} className="flex items-start space-x-3">
-                    <div className="w-6 h-6 bg-blue-500 rounded-full flex items-center justify-center text-xs font-semibold text-white flex-shrink-0 mt-0.5">
+                    <div className="w-6 h-6 bg-primary rounded-full flex items-center justify-center text-xs font-semibold text-primary-foreground flex-shrink-0 mt-0.5">
                       {index + 1}
                     </div>
                     <div>
-                      <h4 className="font-medium text-white">{instruction.title}</h4>
-                      <p className="text-sm text-gray-300">{instruction.description}</p>
+                      <h4 className="font-medium text-foreground">{instruction.title}</h4>
+                      <p className="text-sm text-muted-foreground">{instruction.description}</p>
                     </div>
                   </div>
                 ))}
               </div>
 
               {/* Pro Tip */}
-              <div className="mt-6 p-4 bg-green-500/10 border border-green-500/20 rounded-lg">
+              <div className="mt-6 p-4 bg-accent border border-border rounded-lg">
                 <div className="flex items-start space-x-3">
-                  <CheckCircle className="w-5 h-5 text-green-400 flex-shrink-0 mt-0.5" />
+                  <CheckCircle className="w-5 h-5 text-accent-foreground flex-shrink-0 mt-0.5" />
                   <div>
-                    <h4 className="font-medium text-green-400">Dica Pro</h4>
-                    <p className="text-sm text-gray-300">
+                    <h4 className="font-medium text-accent-foreground">Dica Pro</h4>
+                    <p className="text-sm text-muted-foreground">
                       Use uma régua ou moeda como referência de escala para medições mais precisas.
                     </p>
                   </div>
@@ -327,20 +327,20 @@ export default function WoundCapturePage() {
 
         {/* Analysis Results */}
         {currentStep === 3 && (
-          <Card className="mt-8 bg-slate-800/50 border-slate-700">
+          <Card className="mt-8 bg-card border-border">
             <CardContent className="p-8 text-center">
-              <div className="animate-spin w-12 h-12 border-4 border-blue-500 border-t-transparent rounded-full mx-auto mb-4"></div>
-              <h3 className="text-xl font-semibold mb-2">Analisando com IA...</h3>
-              <p className="text-gray-300">Processando a imagem da ferida para análise detalhada.</p>
+              <div className="animate-spin w-12 h-12 border-4 border-primary border-t-transparent rounded-full mx-auto mb-4"></div>
+              <h3 className="text-xl font-semibold mb-2 text-foreground">Analisando com IA...</h3>
+              <p className="text-muted-foreground">Processando a imagem da ferida para análise detalhada.</p>
             </CardContent>
           </Card>
         )}
 
         {currentStep === 4 && (
-          <Card className="mt-8 bg-slate-800/50 border-slate-700">
+          <Card className="mt-8 bg-card border-border">
             <CardContent className="p-8">
-              <h3 className="text-xl font-semibold mb-4 text-green-400">✓ Análise Concluída!</h3>
-              <p className="text-gray-300 mb-4">
+              <h3 className="text-xl font-semibold mb-4 text-green-600 dark:text-green-400">✓ Análise Concluída!</h3>
+              <p className="text-muted-foreground mb-4">
                 A análise da ferida foi concluída com sucesso. Os resultados foram salvos e estão disponíveis no seu painel.
               </p>
               <Button
@@ -348,7 +348,6 @@ export default function WoundCapturePage() {
                   setCurrentStep(1);
                   setCapturedImage(null);
                 }}
-                className="bg-blue-500 hover:bg-blue-600 text-white"
               >
                 Nova Captura
               </Button>
@@ -359,7 +358,7 @@ export default function WoundCapturePage() {
 
       {/* Floating Action Button */}
       <Button
-        className="fixed bottom-6 right-6 w-14 h-14 rounded-full bg-blue-500 hover:bg-blue-600 text-white shadow-lg"
+        className="fixed bottom-6 right-6 w-14 h-14 rounded-full shadow-lg"
         size="icon"
       >
         <MessageCircle className="w-6 h-6" />
