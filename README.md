@@ -1,8 +1,8 @@
-# 🏥 HealPlus - Sistema Inteligente de Avaliação de Feridas
+# 🏥 Heal+ - Sistema Inteligente de Avaliação de Feridas
 
 <div align="center">
 
-![HealPlus Logo](https://img.shields.io/badge/HealPlus-Healthcare%20AI-blue?style=for-the-badge&logo=medical-cross)
+![Heal+ Logo](https://img.shields.io/badge/Heal+-Healthcare%20AI-blue?style=for-the-badge&logo=medical-cross)
 
 **Sistema de análise de feridas com Inteligência Artificial para profissionais de saúde**
 
@@ -10,12 +10,26 @@
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.0-blue?style=flat-square&logo=typescript)](https://www.typescriptlang.org/)
 [![Firebase](https://img.shields.io/badge/Firebase-11.9.1-orange?style=flat-square&logo=firebase)](https://firebase.google.com/)
 [![Google AI](https://img.shields.io/badge/Google%20AI-Gemini-purple?style=flat-square&logo=google)](https://ai.google.dev/)
+[![Tailwind CSS](https://img.shields.io/badge/Tailwind%20CSS-3.4-blue?style=flat-square&logo=tailwindcss)](https://tailwindcss.com/)
 
 </div>
 
 ## 📋 Sobre o Projeto
 
-O **HealPlus** é uma plataforma inovadora que utiliza Inteligência Artificial para auxiliar profissionais de saúde na avaliação, análise e acompanhamento de feridas. O sistema combina o framework TIMERS com tecnologia de visão computacional para gerar relatórios clínicos precisos e comparativos.
+O **Heal+** é uma plataforma inovadora que utiliza Inteligência Artificial para auxiliar profissionais de saúde na avaliação, análise e acompanhamento de feridas. O sistema combina o framework TIMERS com tecnologia de visão computacional para gerar relatórios clínicos precisos e comparativos.
+
+## 🎯 **Status do Projeto**
+
+- ✅ **MVP Funcional** - Sistema básico operacional
+- ✅ **Autenticação** - Login com Google, Microsoft, Apple e Email/Senha
+- ✅ **Framework TIMERS** - Formulário completo de avaliação
+- ✅ **Análise de Imagens** - IA para análise de feridas
+- ✅ **Geração de Relatórios** - PDFs estruturados
+- ✅ **Chat Inteligente** - Assistente Zelo com IA
+- ✅ **Interface Responsiva** - Design moderno e acessível
+- 🔄 **Em Desenvolvimento** - Comparação de progressões
+- 🔄 **Em Desenvolvimento** - Agenda inteligente
+- 🔄 **Em Desenvolvimento** - Analytics avançados
 
 ### 🎯 Objetivo
 
@@ -104,16 +118,21 @@ Crie um arquivo `.env.local` na raiz do projeto:
 
 ```env
 # Firebase Configuration
-NEXT_PUBLIC_FIREBASE_API_KEY=your_firebase_api_key
-NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN=your_project.firebaseapp.com
-NEXT_PUBLIC_FIREBASE_PROJECT_ID=your_project_id
-NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET=your_project.appspot.com
-NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID=your_sender_id
-NEXT_PUBLIC_FIREBASE_APP_ID=your_app_id
+NEXT_PUBLIC_FIREBASE_API_KEY=AIzaSyDX0mJJt5SW2L55Fs5SPWHsXP2gQHFbRPY
+NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN=woundwise-g3zb9.firebaseapp.com
+NEXT_PUBLIC_FIREBASE_PROJECT_ID=woundwise-g3zb9
+NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET=woundwise-g3zb9.firebasestorage.app
+NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID=315167035013
+NEXT_PUBLIC_FIREBASE_APP_ID=1:315167035013:web:189654d5723c779cf963ec
+NEXT_PUBLIC_FIREBASE_DATABASE_URL=https://woundwise-g3zb9-default-rtdb.firebaseio.com/
 
 # Google AI Configuration
-NEXT_PUBLIC_GEMINI_API_KEY=your_gemini_api_key
-GEMINI_API_KEY=your_gemini_api_key
+NEXT_PUBLIC_GEMINI_API_KEY=your_gemini_api_key_here
+GEMINI_API_KEY=your_gemini_api_key_here
+
+# API Configuration
+NEXT_PUBLIC_API_BASE=http://localhost:4000
+NEXT_PUBLIC_AI_BASE=http://localhost:5000
 ```
 
 ### **4. Configure o Firebase**
@@ -125,11 +144,16 @@ npm install -g firebase-tools
 firebase login
 
 # Configure o projeto
-firebase use your-project-id
+firebase use woundwise-g3zb9
 
 # Deploy das regras do Firestore
 firebase deploy --only firestore:rules
+
+# Deploy das regras do Realtime Database
+firebase deploy --only database
 ```
+
+> **⚠️ Importante**: Se não conseguir usar o Firebase CLI, consulte o arquivo `DEPLOY_FIRESTORE_RULES.md` para instruções de deploy manual.
 
 ### **5. Execute o Projeto**
 ```bash
@@ -193,26 +217,34 @@ src/
 └── firebase/            # Configuração Firebase
 ```
 
-### Documentação detalhada
+## 📚 **Documentação Completa**
 
-- Arquitetura: docs/architecture.md
-- Modelo de dados (TIMERS + FHIR): docs/data-model.md
-- APIs e contratos: docs/apis.md
-- Roadmap 90 dias: docs/roadmap.md
-- KPIs e métricas: docs/kpis.md
-- Compliance (ANVISA/LGPD/Segurança): docs/compliance.md
-- Guia de testes: docs/test-guide.md
-- Checklist de release: docs/release-checklist.md
+### **🚀 Início Rápido**
+- **[Instalação e Configuração](docs/installation.md)** - Guia completo de setup
+- **[Primeiros Passos](docs/getting-started.md)** - Tutorial para começar a usar
+- **[Desenvolvimento](docs/development.md)** - Guia para desenvolvedores
 
-### Exportar documentação em PDF
+### **🏗️ Arquitetura e Técnico**
+- **[Arquitetura](docs/architecture.md)** - Visão geral do sistema
+- **[Modelo de Dados](docs/data-model.md)** - Estrutura TIMERS + FHIR
+- **[APIs](docs/apis.md)** - Endpoints e contratos
+- **[Segurança](docs/compliance.md)** - LGPD e compliance
 
-- Guia: docs/EXPORT.md
-- Comando: `npm run export:docs`
+### **📋 Funcionalidades**
+- **[Framework TIMERS](docs/timers-framework.md)** - Sistema de avaliação
+- **[Análise de Imagens](docs/image-analysis.md)** - IA para análise
+- **[Geração de Relatórios](docs/report-generation.md)** - PDFs estruturados
+- **[Chat Inteligente](docs/chat-system.md)** - Assistente Zelo
 
-### Serviços locais (stubs)
+### **🛠️ Manutenção**
+- **[Troubleshooting](docs/troubleshooting.md)** - Solução de problemas
+- **[Deploy](docs/deployment.md)** - Deploy e produção
+- **[Monitoramento](docs/monitoring.md)** - Logs e métricas
 
-- API Gateway: `npm run services:api` (porta 4000)
-- AI Engine: `npm run services:ai` (porta 5000)
+### **📊 Métricas e Analytics**
+- **[KPIs](docs/kpis.md)** - Indicadores de performance
+- **[Analytics](docs/analytics.md)** - Dashboard de métricas
+- **[Performance](docs/performance.md)** - Otimizações
 
 ## 🔒 Segurança e Privacidade
 
@@ -249,12 +281,23 @@ Contribuições são bem-vindas! Para contribuir:
 
 Este projeto está licenciado sob a Licença MIT - veja o arquivo [LICENSE](LICENSE) para detalhes.
 
-## 🆘 Suporte
+## 🆘 **Suporte e Contato**
 
-- **Documentação**: [Wiki do Projeto](https://github.com/seu-usuario/healplus/wiki)
-- **Issues**: [GitHub Issues](https://github.com/seu-usuario/healplus/issues)
+### **📚 Documentação**
+- **Wiki Completa**: [docs/README.md](docs/README.md)
+- **Guia de Instalação**: [docs/installation.md](docs/installation.md)
+- **Primeiros Passos**: [docs/getting-started.md](docs/getting-started.md)
+- **Troubleshooting**: [docs/troubleshooting.md](docs/troubleshooting.md)
+
+### **🐛 Reportar Problemas**
+- **GitHub Issues**: [Abrir Issue](https://github.com/seu-usuario/healplus/issues)
 - **Email**: suporte@healplus.com
-- **Discord**: [Comunidade HealPlus](https://discord.gg/healplus)
+- **Discord**: [Comunidade Heal+](https://discord.gg/healplus)
+
+### **💡 Sugestões e Melhorias**
+- **Feature Requests**: Use o template de feature request
+- **Bug Reports**: Use o template de bug report
+- **Contribuições**: Veja o [Guia de Contribuição](CONTRIBUTING.md)
 
 ## 🙏 Agradecimentos
 
@@ -272,5 +315,18 @@ Este projeto está licenciado sob a Licença MIT - veja o arquivo [LICENSE](LICE
 [![Made with Next.js](https://img.shields.io/badge/Made%20with-Next.js-black?style=for-the-badge&logo=next.js)](https://nextjs.org/)
 [![Powered by Firebase](https://img.shields.io/badge/Powered%20by-Firebase-orange?style=for-the-badge&logo=firebase)](https://firebase.google.com/)
 [![AI Powered](https://img.shields.io/badge/AI%20Powered-Google%20Gemini-purple?style=for-the-badge&logo=google)](https://ai.google.dev/)
+[![TypeScript](https://img.shields.io/badge/TypeScript-5.0-blue?style=for-the-badge&logo=typescript)](https://www.typescriptlang.org/)
+[![Tailwind CSS](https://img.shields.io/badge/Tailwind%20CSS-3.4-blue?style=for-the-badge&logo=tailwindcss)](https://tailwindcss.com/)
 
 </div>
+
+---
+
+## 🚀 **Começar Agora**
+
+1. **📖 Leia a [Documentação](docs/README.md)**
+2. **⚡ [Instale o Sistema](docs/installation.md)**
+3. **🎯 [Primeiros Passos](docs/getting-started.md)**
+4. **💻 [Guia de Desenvolvimento](docs/development.md)**
+
+**🎉 Pronto para revolucionar o cuidado de feridas com IA!**
