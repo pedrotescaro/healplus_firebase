@@ -20,7 +20,7 @@ export function WoundBedProgress({ data }: WoundBedProgressProps) {
   const total = data.reduce((sum, item) => sum + item.value, 0);
 
   return (
-    <div>
+    <div className="w-full">
       <TooltipProvider>
         <div className="flex h-8 w-full overflow-hidden rounded-md bg-muted text-xs font-semibold text-white">
           {data.map((item) => {

@@ -43,7 +43,7 @@ export default function DashboardLayout({
       <div className="hidden border-r bg-card md:block">
         <AppSidebar />
       </div>
-      <div className="flex flex-col h-screen">
+      <div className="flex flex-col min-h-screen">
         <header className="flex h-14 items-center gap-4 border-b bg-card px-4 lg:h-[60px] lg:px-6 md:hidden">
           <MobileNav />
         </header>

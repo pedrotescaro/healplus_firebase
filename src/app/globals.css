@@ -116,3 +116,82 @@ body {
 ::-webkit-scrollbar-thumb:hover {
   background: hsl(var(--primary));
 }
+
+/* Fix for duplicate sliders and layout issues */
+.radix-slider-root {
+  position: relative;
+  display: flex;
+  width: 100%;
+  touch-action: none;
+  user-select: none;
+  align-items: center;
+}
+
+.radix-slider-track {
+  position: relative;
+  height: 8px;
+  width: 100%;
+  flex-grow: 1;
+  overflow: hidden;
+  border-radius: 9999px;
+  background-color: hsl(var(--secondary));
+}
+
+.radix-slider-range {
+  position: absolute;
+  height: 100%;
+  background-color: hsl(var(--primary));
+}
+
+.radix-slider-thumb {
+  display: block;
+  height: 20px;
+  width: 20px;
+  border-radius: 50%;
+  border: 2px solid hsl(var(--primary));
+  background-color: hsl(var(--background));
+  box-shadow: 0 0 0 2px hsl(var(--background));
+  transition: colors;
+}
+
+.radix-slider-thumb:focus-visible {
+  outline: 2px solid hsl(var(--ring));
+  outline-offset: 2px;
+}
+
+/* Prevent duplicate sliders */
+[data-radix-slider-root] {
+  position: relative;
+  display: flex;
+  width: 100%;
+  touch-action: none;
+  user-select: none;
+  align-items: center;
+}
+
+[data-radix-slider-track] {
+  position: relative;
+  height: 8px;
+  width: 100%;
+  flex-grow: 1;
+  overflow: hidden;
+  border-radius: 9999px;
+  background-color: hsl(var(--secondary));
+}
+
+[data-radix-slider-range] {
+  position: absolute;
+  height: 100%;
+  background-color: hsl(var(--primary));
+}
+
+[data-radix-slider-thumb] {
+  display: block;
+  height: 20px;
+  width: 20px;
+  border-radius: 50%;
+  border: 2px solid hsl(var(--primary));
+  background-color: hsl(var(--background));
+  box-shadow: 0 0 0 2px hsl(var(--background));
+  transition: colors;
+}

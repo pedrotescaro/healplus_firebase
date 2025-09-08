@@ -390,8 +390,8 @@ export function AnamnesisForm() {
 
   return (
     <Form {...form}>
-      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
-        <Accordion type="multiple" defaultValue={['item-0']} className="w-full">
+      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8 w-full max-w-full">
+        <Accordion type="multiple" defaultValue={['item-0']} className="w-full max-w-full">
           <AccordionItem value="item-0">
             <AccordionTrigger className="text-lg font-semibold"><User className="mr-2 text-primary" /> Dados Pessoais</AccordionTrigger>
             <AccordionContent className="space-y-4 p-2 border-l-2 border-primary/20">
@@ -559,7 +559,7 @@ export function AnamnesisForm() {
                     const painValue = field.value ?? 0;
                     const colors = getPainColorClasses(painValue);
                     return (
-                      <FormItem>
+                      <FormItem className="w-full">
                         <FormLabel>Intensidade da Dor (0-10): {painValue}</FormLabel>
                         <FormControl>
                         <Slider
@@ -570,6 +570,7 @@ export function AnamnesisForm() {
                             onValueChange={(value) => field.onChange(value[0])}
                             rangeClassName={colors.range}
                             thumbClassName={colors.thumb}
+                            className="w-full"
                           />
                         </FormControl>
                         <FormMessage />
