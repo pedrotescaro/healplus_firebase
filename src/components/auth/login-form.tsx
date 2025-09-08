@@ -19,7 +19,7 @@ import {
 } from "@/components/ui/form";
 import { loginSchema } from "@/lib/schemas";
 import Link from "next/link";
-import { Loader2, Eye, EyeOff } from "lucide-react";
+import { Loader2, Eye, EyeOff, Mail, Lock } from "lucide-react";
 import { DisclaimerDialog } from "./disclaimer-dialog";
 import { useToast } from "@/hooks/use-toast";
 import { useTranslation } from "@/contexts/app-provider";
@@ -45,14 +45,23 @@ const MicrosoftIcon = () => (
     </svg>
 );
 
+const AppleIcon = () => (
+    <svg className="h-5 w-5" viewBox="0 0 24 24" fill="currentColor">
+        <path d="M18.71 19.5c-.83 1.24-1.71 2.45-3.05 2.47-1.34.03-1.77-.79-3.29-.79-1.53 0-2 .77-3.27.82-1.31.05-2.3-1.32-3.14-2.53C4.25 17 2.94 12.45 4.7 9.39c.87-1.52 2.43-2.48 4.12-2.51 1.28-.02 2.5.87 3.29.87.78 0 2.26-1.07 3.81-.91.65.03 2.47.26 3.64 1.98-.09.06-2.17 1.28-2.15 3.81.03 3.02 2.65 4.03 2.68 4.04-.03.07-.42 1.44-1.38 2.83M13 3.5c.73-.83 1.94-1.46 2.94-1.5.13 1.17-.34 2.35-1.04 3.19-.69.85-1.83 1.51-2.95 1.42-.15-1.15.41-2.35 1.05-3.11z"/>
+    </svg>
+);
+
+
+
 export function LoginForm() {
   const router = useRouter();
-  const { login, loginWithGoogle, loginWithMicrosoft, setUserRoleAndRefresh } = useAuth();
+  const { login, loginWithGoogle, loginWithMicrosoft, loginWithApple, setUserRoleAndRefresh } = useAuth();
   const { t } = useTranslation();
   const { toast } = useToast();
   const [loading, setLoading] = useState(false);
   const [googleLoading, setGoogleLoading] = useState(false);
   const [microsoftLoading, setMicrosoftLoading] = useState(false);
+  const [appleLoading, setAppleLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [showDisclaimer, setShowDisclaimer] = useState(false);
   const [pendingUser, setPendingUser] = useState<UserCredential | null>(null);
@@ -130,6 +139,26 @@ export function LoginForm() {
         setMicrosoftLoading(false);
     }
   }
+
+  async function handleAppleClick() {
+    setAppleLoading(true);
+    try {
+      const userCredential = await loginWithApple();
+      await checkUserRoleAndProceed(userCredential);
+    } catch (error: any) {
+        toast({
+            title: "Erro no Login",
+            description: error.code === 'auth/popup-closed-by-user' 
+                ? "Login cancelado pelo usuário"
+                : error.message || "Erro ao fazer login com Apple",
+            variant: "destructive",
+        });
+    } finally {
+        setAppleLoading(false);
+    }
+  }
+
+
   
   async function handleDisclaimerAgree(isProfessional: boolean) {
     setShowDisclaimer(false);
@@ -155,7 +184,10 @@ export function LoginForm() {
             name="email"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Email</FormLabel>
+                <FormLabel className="flex items-center gap-2">
+                  <Mail className="h-4 w-4" />
+                  Email
+                </FormLabel>
                 <FormControl>
                   <Input placeholder="name@example.com" {...field} />
                 </FormControl>
@@ -168,7 +200,10 @@ export function LoginForm() {
             name="password"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>{t.password}</FormLabel>
+                <FormLabel className="flex items-center gap-2">
+                  <Lock className="h-4 w-4" />
+                  {t.password}
+                </FormLabel>
                 <FormControl>
                   <div className="relative">
                     <Input type={showPassword ? "text" : "password"} placeholder="••••••••" {...field} />
@@ -202,12 +237,33 @@ export function LoginForm() {
           </span>
         </div>
       </div>
-      <div className="flex justify-center gap-4">
-        <Button variant="outline" size="icon" onClick={handleGoogleClick} disabled={googleLoading || microsoftLoading} aria-label={t.loginWithGoogle}>
-            {googleLoading ? <Loader2 className="animate-spin" /> : <GoogleIcon />}
+      <div className="grid grid-cols-2 gap-3">
+        <Button 
+          variant="outline" 
+          onClick={handleGoogleClick} 
+          disabled={googleLoading || microsoftLoading || appleLoading}
+          className="flex items-center gap-2"
+        >
+          {googleLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : <GoogleIcon />}
+          <span className="hidden sm:inline">Google</span>
         </Button>
-        <Button variant="outline" size="icon" onClick={handleMicrosoftClick} disabled={googleLoading || microsoftLoading} aria-label={t.loginWithMicrosoft}>
-            {microsoftLoading ? <Loader2 className="animate-spin" /> : <MicrosoftIcon />}
+        <Button 
+          variant="outline" 
+          onClick={handleMicrosoftClick} 
+          disabled={googleLoading || microsoftLoading || appleLoading}
+          className="flex items-center gap-2"
+        >
+          {microsoftLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : <MicrosoftIcon />}
+          <span className="hidden sm:inline">Microsoft</span>
+        </Button>
+        <Button 
+          variant="outline" 
+          onClick={handleAppleClick} 
+          disabled={googleLoading || microsoftLoading || appleLoading}
+          className="flex items-center gap-2 col-span-2"
+        >
+          {appleLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : <AppleIcon />}
+          <span className="hidden sm:inline">Apple</span>
         </Button>
       </div>
       <div className="mt-4 text-center text-sm text-muted-foreground">

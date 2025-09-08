@@ -38,6 +38,7 @@ interface AuthContextType {
   logout: () => Promise<void>;
   loginWithGoogle: () => Promise<UserCredential>;
   loginWithMicrosoft: () => Promise<UserCredential>;
+  loginWithApple: () => Promise<UserCredential>;
   refreshUser: () => Promise<void>;
   setUserRoleAndRefresh: (firebaseUser: FirebaseUser, role: UserRole) => Promise<void>;
   deleteAccount: () => Promise<void>;
@@ -146,6 +147,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     return handleAuthSuccess(userCredential);
   };
 
+  const loginWithApple = async (): Promise<UserCredential> => {
+    const provider = new OAuthProvider('apple.com');
+    const userCredential = await signInWithPopup(auth, provider);
+    return handleAuthSuccess(userCredential);
+  };
+
+
+
   const logout = async () => {
     await signOut(auth);
   };
@@ -165,7 +174,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   return (
-    <AuthContext.Provider value={{ user, loading, login, signup, logout, loginWithGoogle, loginWithMicrosoft, refreshUser, setUserRoleAndRefresh, deleteAccount }}>
+    <AuthContext.Provider value={{ user, loading, login, signup, logout, loginWithGoogle, loginWithMicrosoft, loginWithApple, refreshUser, setUserRoleAndRefresh, deleteAccount }}>
       {children}
     </AuthContext.Provider>
   );
