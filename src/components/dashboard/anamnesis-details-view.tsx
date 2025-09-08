@@ -3,7 +3,6 @@ import type { AnamnesisFormValues } from "@/lib/anamnesis-schema";
 import { Card, CardContent, CardHeader, CardTitle } from "../ui/card";
 import { Separator } from "../ui/separator";
 import Image from "next/image";
-import { ImageRetrievalService } from "@/lib/image-retrieval";
 import { useAuth } from "@/hooks/use-auth";
 
 interface AnamnesisDetailsViewProps {
@@ -45,15 +44,9 @@ const Section = ({ title, children }: { title: string, children: React.ReactNode
 
 export function AnamnesisDetailsView({ record }: AnamnesisDetailsViewProps) {
     const { user } = useAuth();
-    const [imageSrc, setImageSrc] = React.useState<string>('');
-
-    React.useEffect(() => {
-        if (record.woundImageUri && user) {
-            ImageRetrievalService.getDisplayImage(user.uid, record.woundImageUri)
-                .then(setImageSrc)
-                .catch(console.error);
-        }
-    }, [record.woundImageUri, user]);
+    
+    // Use the image URI directly - it's now stored as data URI in Firestore
+    const imageSrc = record.woundImageUri || '';
     const personalDataKeys: (keyof AnamnesisFormValues)[] = ['data_nascimento', 'telefone', 'email', 'profissao', 'estado_civil'];
     const socialDataKeys: (keyof AnamnesisFormValues)[] = ['nivel_atividade', 'suporte_social', 'compreensao_adesao', 'fumante', 'ingestao_alcool', 'frequencia_alcool', 'pratica_atividade_fisica', 'qual_atividade', 'frequencia_atividade', 'estado_nutricional', 'ingestao_agua_dia'];
     const clinicalDataKeys: (keyof AnamnesisFormValues)[] = ['objetivo_tratamento', 'historico_cicrizacao', 'possui_alergia', 'qual_alergia', 'realizou_cirurgias', 'quais_cirurgias', 'claudicacao_intermitente', 'dor_repouso', 'pulsos_perifericos'];

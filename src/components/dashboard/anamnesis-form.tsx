@@ -51,7 +51,6 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useState } from "react";
 import { useAuth } from "@/hooks/use-auth";
 import { db } from "@/firebase/client-app";
-import { ImageStorageService } from "@/lib/image-storage";
 import { collection, addDoc, getDoc, doc, updateDoc, query, where, getDocs, limit } from "firebase/firestore";
 import { v4 as uuidv4 } from 'uuid';
 
@@ -323,25 +322,8 @@ export function AnamnesisForm() {
        data.patientId = `unregistered_${uuidv4()}`;
     }
 
-    // Save image to Realtime Database if it's a data URI
-    try {
-      if (data.woundImageUri && data.woundImageUri.startsWith('data:')) {
-        const imageId = await ImageStorageService.saveImageWithPath(
-          data.woundImageUri,
-          user.uid,
-          'anamnesis',
-          {
-            fileName: `anamnesis-${Date.now()}.jpg`,
-            mimeType: 'image/jpeg'
-          }
-        );
-        // Store the image ID instead of URL
-        data.woundImageUri = imageId;
-      }
-    } catch (e) {
-      toast({ title: "Falha ao salvar imagem", description: "Tente novamente.", variant: "destructive" });
-      return;
-    }
+    // Keep the image as data URI or path - no need to save to storage
+    // The image will be stored directly in Firestore as part of the document
 
     // Sanitize data to ensure no undefined values are sent to Firestore
     const sanitizedData = Object.fromEntries(

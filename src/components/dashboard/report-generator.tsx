@@ -22,12 +22,10 @@ import autoTable from 'jspdf-autotable';
 import { useAuth } from "@/hooks/use-auth";
 import { db } from "@/firebase/client-app";
 import { collection, query, getDocs, orderBy, addDoc, serverTimestamp, where, getDoc, doc } from "firebase/firestore";
-import { ImageStorageService } from "@/lib/image-storage";
 import { Alert, AlertDescription, AlertTitle } from "../ui/alert";
 import Link from "next/link";
 import { Input } from "../ui/input";
 import { getRisk, createAssessment, getAnalysis, fhirPush, fhirPull } from "@/lib/api-client";
-import { getRisk, getAnalysis } from "@/lib/api-client";
 
 type StoredAnamnesis = AnamnesisFormValues & { id: string };
 
@@ -80,7 +78,6 @@ export function ReportGenerator() {
   const [visionResult, setVisionResult] = useState<null | { mask?: string; tissue?: string }>(null);
   const [maskOpacity, setMaskOpacity] = useState<number>(50);
   const [fhirStatus, setFhirStatus] = useState<string | null>(null);
-  const [aiPreview, setAiPreview] = useState<any | null>(null);
   const [loading, setLoading] = useState(false);
   const [pdfLoading, setPdfLoading] = useState(false);
   const { toast } = useToast();
@@ -183,37 +180,12 @@ export function ReportGenerator() {
       toast({ title: "Análise de imagem (mock)", description: tissue });
 
       if (user) {
-        // Persist mask if it's a data URI
-        let maskId = analysis.segmentationMaskUri;
-        if (maskId?.startsWith('data:')) {
-          maskId = await ImageStorageService.saveImageWithPath(
-            maskId,
-            user.uid,
-            `assessments/${assessmentId}`,
-            {
-              fileName: 'mask.png',
-              mimeType: 'image/png'
-            }
-          );
-        }
-        // Persist original image if data URI
-        let imageId = selectedRecord.woundImageUri;
-        if (imageId?.startsWith('data:')) {
-          imageId = await ImageStorageService.saveImageWithPath(
-            imageId,
-            user.uid,
-            `assessments/${assessmentId}`,
-            {
-              fileName: 'image.png',
-              mimeType: 'image/png'
-            }
-          );
-        }
+        // Store images directly as data URIs in Firestore
         await addDoc(collection(db, "users", user.uid, "assessments"), {
           anamnesisId: selectedAnamnesisId,
           woundId: selectedRecord.id,
-          imageUri: imageId,
-          analysis: { ...analysis, segmentationMaskUri: maskId, modelVersion: analysis.modelVersion || 'vision-0.1.0', createdAt: serverTimestamp() },
+          imageUri: selectedRecord.woundImageUri,
+          analysis: { ...analysis, createdAt: serverTimestamp() },
           createdAt: serverTimestamp(),
         });
       }
@@ -251,16 +223,6 @@ export function ReportGenerator() {
       });
     } catch (e) {
       toast({ title: "FHIR Pull falhou", variant: "destructive" });
-    }
-  };
-
-  const handleTestAI = async () => {
-    try {
-      const risk = await getRisk({ demo: true });
-      setAiPreview(risk);
-      toast({ title: "Risco (mock)", description: `Infecção: ${risk.infection.level} (${Math.round(risk.infection.score * 100)}%)` });
-    } catch (e) {
-      toast({ title: "Falha ao consultar AI (mock)", variant: "destructive" });
     }
   };
 
@@ -315,9 +277,9 @@ export function ReportGenerator() {
 
         const anamnesisBody = [
             ['Histórico Médico', anamnesisRecord.historico_cicrizacao || 'Nenhum relatado'],
-            ['Alergias', anamnesisRecord.possui_alergia ? anamnesisRecord.qual_alergia : 'Nenhuma relatada'],
+            ['Alergias', anamnesisRecord.possui_alergia ? anamnesisRecord.qual_alergia || 'Nenhuma relatada' : 'Nenhuma relatada'],
             ['Hábitos', `Atividade Física: ${anamnesisRecord.pratica_atividade_fisica ? 'Sim' : 'Não'}\nÁlcool: ${anamnesisRecord.ingestao_alcool ? 'Sim' : 'Não'}\nFumante: ${anamnesisRecord.fumante ? 'Sim' : 'Não'}`],
-            ['Queixa Principal', `Ferida em ${anamnesisRecord.localizacao_ferida} com ${anamnesisRecord.tempo_evolucao} de evolução.`],
+            ['Queixa Principal', `Ferida em ${anamnesisRecord.localizacao_ferida || 'Não informado'} com ${anamnesisRecord.tempo_evolucao || 'Não informado'} de evolução.`],
         ];
 
         autoTable(doc_, {
