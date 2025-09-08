@@ -2,6 +2,8 @@
 
 <div align="center">
 
+<img src=".idx/icon.png" alt="Heal+ Logo" width="120" height="120" />
+
 ![Heal+ Logo](https://img.shields.io/badge/Heal+-Healthcare%20AI-blue?style=for-the-badge&logo=medical-cross)
 
 **Sistema de análise de feridas com Inteligência Artificial para profissionais de saúde**
