@@ -537,13 +537,6 @@ export default function Home() {
                 </a>
               </div>
               <p className="text-xs sm:text-sm text-gray-300">Siga-nos para atualizações</p>
-              
-              {/* Botão de Acessibilidade */}
-              <div className="flex justify-end">
-                <button className="w-8 h-8 sm:w-10 sm:h-10 bg-primary rounded flex items-center justify-center hover:bg-primary/80 transition-colors" aria-label="Acessibilidade">
-                  <Accessibility className="w-4 h-4 sm:w-5 sm:h-5 text-white" />
-                </button>
-              </div>
             </div>
           </div>
           
