@@ -50,8 +50,8 @@ import {
 import { useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useState } from "react";
 import { useAuth } from "@/hooks/use-auth";
-import { db, storage } from "@/firebase/client-app";
-import { ref, uploadString, getDownloadURL } from "firebase/storage";
+import { db } from "@/firebase/client-app";
+import { ImageStorageService } from "@/lib/image-storage";
 import { collection, addDoc, getDoc, doc, updateDoc, query, where, getDocs, limit } from "firebase/firestore";
 import { v4 as uuidv4 } from 'uuid';
 
@@ -322,17 +322,23 @@ export function AnamnesisForm() {
        data.patientId = `unregistered_${uuidv4()}`;
     }
 
-    // Upload imagem ao Storage se for data URI
+    // Save image to Realtime Database if it's a data URI
     try {
       if (data.woundImageUri && data.woundImageUri.startsWith('data:')) {
-        const imagePath = `users/${user.uid}/anamnesis/${uuidv4()}.png`;
-        const sref = ref(storage, imagePath);
-        await uploadString(sref, data.woundImageUri, 'data_url');
-        const imageUrl = await getDownloadURL(sref);
-        data.woundImageUri = imageUrl;
+        const imageId = await ImageStorageService.saveImageWithPath(
+          data.woundImageUri,
+          user.uid,
+          'anamnesis',
+          {
+            fileName: `anamnesis-${Date.now()}.jpg`,
+            mimeType: 'image/jpeg'
+          }
+        );
+        // Store the image ID instead of URL
+        data.woundImageUri = imageId;
       }
     } catch (e) {
-      toast({ title: "Falha ao enviar imagem", description: "Tente novamente.", variant: "destructive" });
+      toast({ title: "Falha ao salvar imagem", description: "Tente novamente.", variant: "destructive" });
       return;
     }
 

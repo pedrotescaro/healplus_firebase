@@ -3,6 +3,8 @@ import type { AnamnesisFormValues } from "@/lib/anamnesis-schema";
 import { Card, CardContent, CardHeader, CardTitle } from "../ui/card";
 import { Separator } from "../ui/separator";
 import Image from "next/image";
+import { ImageRetrievalService } from "@/lib/image-retrieval";
+import { useAuth } from "@/hooks/use-auth";
 
 interface AnamnesisDetailsViewProps {
   record: AnamnesisFormValues;
@@ -42,6 +44,16 @@ const Section = ({ title, children }: { title: string, children: React.ReactNode
 
 
 export function AnamnesisDetailsView({ record }: AnamnesisDetailsViewProps) {
+    const { user } = useAuth();
+    const [imageSrc, setImageSrc] = React.useState<string>('');
+
+    React.useEffect(() => {
+        if (record.woundImageUri && user) {
+            ImageRetrievalService.getDisplayImage(user.uid, record.woundImageUri)
+                .then(setImageSrc)
+                .catch(console.error);
+        }
+    }, [record.woundImageUri, user]);
     const personalDataKeys: (keyof AnamnesisFormValues)[] = ['data_nascimento', 'telefone', 'email', 'profissao', 'estado_civil'];
     const socialDataKeys: (keyof AnamnesisFormValues)[] = ['nivel_atividade', 'suporte_social', 'compreensao_adesao', 'fumante', 'ingestao_alcool', 'frequencia_alcool', 'pratica_atividade_fisica', 'qual_atividade', 'frequencia_atividade', 'estado_nutricional', 'ingestao_agua_dia'];
     const clinicalDataKeys: (keyof AnamnesisFormValues)[] = ['objetivo_tratamento', 'historico_cicrizacao', 'possui_alergia', 'qual_alergia', 'realizou_cirurgias', 'quais_cirurgias', 'claudicacao_intermitente', 'dor_repouso', 'pulsos_perifericos'];
@@ -61,12 +73,12 @@ export function AnamnesisDetailsView({ record }: AnamnesisDetailsViewProps) {
             {personalDataKeys.map(key => <DetailItem key={key} label={key} value={record[key]} />)}
         </Section>
         <Section title="T - Tecido">
-             {record.woundImageUri && (
+             {record.woundImageUri && imageSrc && (
                 <div className="mb-4">
                     <h3 className="font-semibold text-sm mb-2 text-center text-muted-foreground">Imagem da Ferida</h3>
                      <div className="relative w-full max-w-sm mx-auto aspect-square">
                         <Image
-                            src={record.woundImageUri}
+                            src={imageSrc}
                             alt={`Wound for ${record.nome_cliente}`}
                             layout="fill"
                             className="rounded-md object-contain"

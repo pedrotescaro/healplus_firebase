@@ -20,7 +20,7 @@ import {
 import { profileSchema } from "@/lib/schemas";
 import { Loader2, Camera } from "lucide-react";
 import { getAuth, updateProfile } from "firebase/auth";
-import { getStorage, ref as storageRef, uploadBytes, getDownloadURL, uploadString } from "firebase/storage";
+import { ImageStorageService } from "@/lib/image-storage";
 import { Avatar, AvatarImage, AvatarFallback } from "../ui/avatar";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import ReactCrop, { type Crop, centerCrop, makeAspectCrop } from 'react-image-crop';
@@ -84,7 +84,6 @@ export function ProfileForm() {
   const imgRef = useRef<HTMLImageElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const auth = getAuth();
-  const storage = getStorage();
 
   const form = useForm<z.infer<typeof profileSchema>>({
     resolver: zodResolver(profileSchema),
@@ -140,23 +139,35 @@ export function ProfileForm() {
 
     try {
         const croppedImageDataUrl = await getCroppedImg(imgRef.current, completedCrop);
-        const filePath = `profile-pictures/${auth.currentUser.uid}/profile.jpg`;
-        const fileRef = storageRef(storage, filePath);
         
-        const snapshot = await uploadString(fileRef, croppedImageDataUrl, 'data_url');
-        const photoURL = await getDownloadURL(snapshot.ref);
+        // Save image to Realtime Database
+        const imageId = await ImageStorageService.saveImageWithPath(
+          croppedImageDataUrl,
+          auth.currentUser.uid,
+          'profile-pictures',
+          {
+            fileName: 'profile.jpg',
+            mimeType: 'image/jpeg'
+          }
+        );
 
-        await updateProfile(auth.currentUser, { photoURL });
-        await refreshUser(); // Refresh user state in context
+        // Get the image data to use as photoURL
+        const imageData = await ImageStorageService.getImage(auth.currentUser.uid, imageId);
+        const photoURL = imageData?.dataUri;
 
-        toast({
-            title: "Foto de Perfil Atualizada",
-            description: "Sua nova foto de perfil foi salva.",
-        });
+        if (photoURL) {
+          await updateProfile(auth.currentUser, { photoURL });
+          await refreshUser(); // Refresh user state in context
+
+          toast({
+              title: "Foto de Perfil Atualizada",
+              description: "Sua nova foto de perfil foi salva no banco de dados.",
+          });
+        }
     } catch (error: any) {
         toast({
             title: "Erro no Upload",
-            description: error.message || "Não foi possível carregar a nova foto.",
+            description: error.message || "Não foi possível salvar a nova foto.",
             variant: "destructive",
         });
     } finally {

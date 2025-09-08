@@ -22,8 +22,7 @@ import autoTable from 'jspdf-autotable';
 import { useAuth } from "@/hooks/use-auth";
 import { db } from "@/firebase/client-app";
 import { collection, query, getDocs, orderBy, addDoc, serverTimestamp, where, getDoc, doc } from "firebase/firestore";
-import { storage } from "@/firebase/client-app";
-import { ref, uploadString, getDownloadURL } from "firebase/storage";
+import { ImageStorageService } from "@/lib/image-storage";
 import { Alert, AlertDescription, AlertTitle } from "../ui/alert";
 import Link from "next/link";
 import { Input } from "../ui/input";
@@ -185,26 +184,36 @@ export function ReportGenerator() {
 
       if (user) {
         // Persist mask if it's a data URI
-        let maskUrl = analysis.segmentationMaskUri;
-        if (maskUrl?.startsWith('data:')) {
-          const path = `users/${user.uid}/assessments/${assessmentId}/mask.png`;
-          const sref = ref(storage, path);
-          await uploadString(sref, maskUrl, 'data_url');
-          maskUrl = await getDownloadURL(sref);
+        let maskId = analysis.segmentationMaskUri;
+        if (maskId?.startsWith('data:')) {
+          maskId = await ImageStorageService.saveImageWithPath(
+            maskId,
+            user.uid,
+            `assessments/${assessmentId}`,
+            {
+              fileName: 'mask.png',
+              mimeType: 'image/png'
+            }
+          );
         }
         // Persist original image if data URI
-        if (selectedRecord.woundImageUri?.startsWith('data:')) {
-          const ipath = `users/${user.uid}/assessments/${assessmentId}/image.png`;
-          const iref = ref(storage, ipath);
-          await uploadString(iref, selectedRecord.woundImageUri, 'data_url');
-          const imageUrl = await getDownloadURL(iref);
-          (selectedRecord as any).woundImageUri = imageUrl;
+        let imageId = selectedRecord.woundImageUri;
+        if (imageId?.startsWith('data:')) {
+          imageId = await ImageStorageService.saveImageWithPath(
+            imageId,
+            user.uid,
+            `assessments/${assessmentId}`,
+            {
+              fileName: 'image.png',
+              mimeType: 'image/png'
+            }
+          );
         }
         await addDoc(collection(db, "users", user.uid, "assessments"), {
           anamnesisId: selectedAnamnesisId,
           woundId: selectedRecord.id,
-          imageUri: selectedRecord.woundImageUri,
-          analysis: { ...analysis, segmentationMaskUri: maskUrl, modelVersion: analysis.modelVersion || 'vision-0.1.0', createdAt: serverTimestamp() },
+          imageUri: imageId,
+          analysis: { ...analysis, segmentationMaskUri: maskId, modelVersion: analysis.modelVersion || 'vision-0.1.0', createdAt: serverTimestamp() },
           createdAt: serverTimestamp(),
         });
       }
