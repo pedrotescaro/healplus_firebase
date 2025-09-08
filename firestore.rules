@@ -6,35 +6,40 @@ service cloud.firestore {
   
     // Regras para a coleção 'users'
     match /users/{userId} {
+      // Usuários podem ler/escrever seus próprios documentos
       allow read, write: if request.auth.uid == userId;
 
-      // Allow professionals to read patient data
+      // Profissionais podem ler dados de pacientes
       allow read: if request.auth.uid == userId || 
                   (exists(/databases/$(database)/documents/users/$(request.auth.uid)) && 
                    get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'professional');
+
+      // Profissionais podem consultar a coleção de usuários (para encontrar pacientes)
+      allow list: if exists(/databases/$(database)/documents/users/$(request.auth.uid)) && 
+                  get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'professional';
     }
 
-    // Rules for subcollections within 'users'
+    // Regras para subcoleções dentro de 'users'
     match /users/{userId}/{collection}/{docId} {
-      // Allow users to read/write their own subcollections
+      // Usuários podem ler/escrever suas próprias subcoleções
       allow read, write: if request.auth.uid == userId;
 
-      // Allow professionals to read patient data in subcollections
+      // Profissionais podem ler dados de pacientes em subcoleções
       allow read: if request.auth.uid == userId || 
                   (exists(/databases/$(database)/documents/users/$(request.auth.uid)) && 
                    get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'professional');
 
-      // Allow patients to read reports created for them by professionals
+      // Pacientes podem ler relatórios criados para eles por profissionais
       allow read: if collection == 'reports' && 
                   request.auth.uid == resource.data.patientId;
     }
     
-    // Rules for the 'chats' collection
+    // Regras para a coleção 'chats'
     match /chats/{chatId} {
     	allow read, update, delete: if request.auth.uid in resource.data.participants;
       allow create: if request.auth.uid in request.resource.data.participants;
       
-      // Rules for the 'messages' subcollection
+      // Regras para a subcoleção 'messages'
       match /messages/{messageId} {
       	allow read: if get(/databases/$(database)/documents/chats/$(chatId)).data.participants.hasAny([request.auth.uid]);
         allow create: if get(/databases/$(database)/documents/chats/$(chatId)).data.participants.hasAny([request.auth.uid])

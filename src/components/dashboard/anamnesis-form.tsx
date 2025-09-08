@@ -314,11 +314,12 @@ export function AnamnesisForm() {
             const patientDoc = querySnapshot.docs[0];
             data.patientId = patientDoc.id;
         } else {
-            console.error("Error querying for patient, assigning placeholder ID: FirebaseError: Missing or insufficient permissions.");
+            console.log("Patient not found in database, creating unregistered patient ID");
             data.patientId = `unregistered_${uuidv4()}`;
         }
     } catch (error) {
-       console.error("Error querying for patient, assigning placeholder ID:", error);
+       console.error("Error querying for patient:", error);
+       console.log("Creating unregistered patient ID due to query error");
        data.patientId = `unregistered_${uuidv4()}`;
     }
 
