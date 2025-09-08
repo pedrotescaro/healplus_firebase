@@ -9,6 +9,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { FeatureCard } from "@/components/ui/feature-card";
 import { LoadingPage } from "@/components/ui/loading-spinner";
 import { ThemeToggle } from "@/components/ui/theme-toggle";
+import { FAQAccordion } from "@/components/ui/faq-accordion";
 import { Logo } from "@/components/logo";
 import { 
   Brain, 
@@ -30,7 +31,15 @@ import {
   Linkedin,
   Youtube,
   Instagram,
-  Accessibility
+  Accessibility,
+  ChevronDown,
+  ChevronUp,
+  Crown,
+  Calendar,
+  UserCheck,
+  Lock,
+  Smartphone,
+  Headphones
 } from "lucide-react";
 import Link from "next/link";
 
@@ -349,6 +358,130 @@ export default function Home() {
             <div className="pt-8 text-white/80 text-sm">
               ✨ Sem compromisso • 🚀 Configuração em 5 minutos • 💯 Suporte 24/7
             </div>
+          </div>
+        </div>
+      </section>
+
+      {/* FAQ Section */}
+      <section id="faq" className="py-24 px-4 sm:px-6 lg:px-8 bg-muted/20">
+        <div className="container mx-auto">
+          <div className="text-center mb-16">
+            <h2 className="text-4xl sm:text-5xl font-bold text-foreground mb-6">
+              Perguntas Frequentes
+            </h2>
+            <p className="text-xl text-muted-foreground">
+              Tire suas dúvidas sobre o Heal
+            </p>
+          </div>
+          
+          <div className="max-w-4xl mx-auto">
+            <FAQAccordion items={[
+              {
+                question: "Como o Heal ajuda no acompanhamento de feridas?",
+                answer: "O Heal permite registrar fotos, medidas e observações de cada ferida, criando um histórico completo e organizado. O app também gera relatórios automáticos de evolução e oferece lembretes para próximos atendimentos."
+              },
+              {
+                question: "Quais profissionais podem utilizar o Heal?",
+                answer: "Médicos, enfermeiros e profissionais de saúde especializados em tratamento de feridas."
+              },
+              {
+                question: "Os dados dos pacientes ficam seguros?",
+                answer: "Utilizamos criptografia de ponta a ponta e seguimos rigorosamente as normas da LGPD para garantir total segurança das informações."
+              },
+              {
+                question: "Posso usar o Heal em mais de um dispositivo?",
+                answer: "Sim! Seus dados são sincronizados em tempo real entre todos os dispositivos conectados à sua conta."
+              },
+              {
+                question: "Como funciona o suporte técnico?",
+                answer: "Nossa equipe está disponível 24/7 por chat, e-mail e telefone para auxiliar com qualquer necessidade."
+              }
+            ]} />
+          </div>
+        </div>
+      </section>
+
+      {/* Plans Section */}
+      <section id="planos" className="py-24 px-4 sm:px-6 lg:px-8 bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 text-white">
+        <div className="container mx-auto">
+          <div className="text-center mb-16">
+            <h2 className="text-4xl sm:text-5xl font-bold text-white mb-6">
+              Nossos Planos
+            </h2>
+            <p className="text-xl text-gray-300">
+              Escolha o plano ideal para suas necessidades
+            </p>
+          </div>
+          
+          <div className="max-w-4xl mx-auto grid grid-cols-1 md:grid-cols-2 gap-8">
+            {/* Plano Básico */}
+            <Card className="bg-slate-800 border-slate-700 text-white">
+              <CardContent className="p-8">
+                <div className="text-center space-y-6">
+                  <h3 className="text-2xl font-bold text-white">Básico</h3>
+                  <div className="text-3xl font-bold text-primary">Grátis</div>
+                  
+                  <div className="space-y-4">
+                    <div className="flex items-center space-x-3">
+                      <CheckCircle className="w-5 h-5 text-green-500" />
+                      <span className="text-white">Até 10 pacientes</span>
+                    </div>
+                    <div className="flex items-center space-x-3">
+                      <CheckCircle className="w-5 h-5 text-green-500" />
+                      <span className="text-white">Registro básico de feridas</span>
+                    </div>
+                    <div className="flex items-center space-x-3">
+                      <CheckCircle className="w-5 h-5 text-green-500" />
+                      <span className="text-white">Calendário simples</span>
+                    </div>
+                  </div>
+                  
+                  <Button 
+                    variant="outline" 
+                    className="w-full border-primary text-primary hover:bg-primary hover:text-white transition-colors"
+                    asChild
+                  >
+                    <Link href="/signup">Começar Agora</Link>
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Plano Premium */}
+            <Card className="bg-slate-800 border-slate-700 text-white">
+              <CardContent className="p-8">
+                <div className="text-center space-y-6">
+                  <h3 className="text-2xl font-bold text-white">Premium</h3>
+                  <div className="text-3xl font-bold text-primary">R$ 99/mês</div>
+                  
+                  <div className="space-y-4">
+                    <div className="flex items-center space-x-3">
+                      <CheckCircle className="w-5 h-5 text-green-500" />
+                      <span className="text-white">Pacientes ilimitados</span>
+                    </div>
+                    <div className="flex items-center space-x-3">
+                      <CheckCircle className="w-5 h-5 text-green-500" />
+                      <span className="text-white">Análise avançada de feridas</span>
+                    </div>
+                    <div className="flex items-center space-x-3">
+                      <CheckCircle className="w-5 h-5 text-green-500" />
+                      <span className="text-white">Relatórios personalizados</span>
+                    </div>
+                    <div className="flex items-center space-x-3">
+                      <CheckCircle className="w-5 h-5 text-green-500" />
+                      <span className="text-white">Suporte prioritário</span>
+                    </div>
+                  </div>
+                  
+                  <Button 
+                    className="w-full bg-primary text-white hover:bg-primary/90 transition-colors"
+                    asChild
+                  >
+                    <Link href="/signup">Começar Agora</Link>
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
           </div>
         </div>
       </section>
