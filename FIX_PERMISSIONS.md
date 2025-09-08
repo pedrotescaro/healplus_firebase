@@ -16,22 +16,25 @@ Error querying for patient, assigning placeholder ID: FirebaseError: Missing or 
 
 ### 1. **Regras do Firestore Atualizadas**
 
-As regras foram atualizadas em `firestore.rules` para permitir que profissionais consultem a coleção de usuários:
+As regras foram simplificadas em `firestore.rules` para permitir operações básicas para usuários autenticados:
 
 ```javascript
 // Regras para a coleção 'users'
 match /users/{userId} {
-  // Usuários podem ler/escrever seus próprios documentos
-  allow read, write: if request.auth.uid == userId;
+  // Usuários autenticados podem ler/escrever seus próprios documentos
+  allow read, write: if request.auth != null && request.auth.uid == userId;
+  
+  // Permitir listagem para usuários autenticados (para busca de pacientes)
+  allow list: if request.auth != null;
+}
 
-  // Profissionais podem ler dados de pacientes
-  allow read: if request.auth.uid == userId || 
-              (exists(/databases/$(database)/documents/users/$(request.auth.uid)) && 
-               get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'professional');
-
-  // Profissionais podem consultar a coleção de usuários (para encontrar pacientes)
-  allow list: if exists(/databases/$(database)/documents/users/$(request.auth.uid)) && 
-              get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'professional';
+// Regras para subcoleções dentro de 'users' (anamnesis, reports, assessments, etc.)
+match /users/{userId}/{collection}/{docId} {
+  // Usuários autenticados podem ler/escrever suas próprias subcoleções
+  allow read, write: if request.auth != null && request.auth.uid == userId;
+  
+  // Permitir listagem para usuários autenticados
+  allow list: if request.auth != null;
 }
 ```
 
