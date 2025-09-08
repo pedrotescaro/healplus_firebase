@@ -1,5 +1,6 @@
 import { realtimeDb } from "@/firebase/client-app";
 import { ref, push, set, get, child } from "firebase/database";
+import { FallbackStorageService } from "./fallback-storage";
 
 export interface ImageData {
   id: string;
@@ -40,9 +41,19 @@ export class ImageStorageService {
 
       await set(newImageRef, imageData);
       return newImageRef.key!;
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error saving image to Realtime Database:', error);
-      throw new Error('Failed to save image');
+      console.log('Falling back to localStorage storage...');
+      
+      // Fallback to localStorage
+      try {
+        const fallbackId = FallbackStorageService.saveImage(dataUri, userId, metadata);
+        console.log('Image saved to fallback storage with ID:', fallbackId);
+        return fallbackId;
+      } catch (fallbackError) {
+        console.error('Fallback storage also failed:', fallbackError);
+        throw new Error('Failed to save image: ' + (error.message || 'Unknown error'));
+      }
     }
   }
 
@@ -60,7 +71,19 @@ export class ImageStorageService {
       return null;
     } catch (error) {
       console.error('Error getting image from Realtime Database:', error);
-      throw new Error('Failed to get image');
+      console.log('Falling back to localStorage...');
+      
+      // Fallback to localStorage
+      try {
+        const fallbackImage = FallbackStorageService.getImage(imageId);
+        if (fallbackImage) {
+          return fallbackImage as ImageData;
+        }
+        return null;
+      } catch (fallbackError) {
+        console.error('Fallback retrieval also failed:', fallbackError);
+        return null;
+      }
     }
   }
 
@@ -108,9 +131,12 @@ export class ImageStorageService {
 
       await set(newImageRef, imageData);
       return newImageRef.key!;
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error saving image with path to Realtime Database:', error);
-      throw new Error('Failed to save image');
+      if (error.code === 'PERMISSION_DENIED') {
+        throw new Error('Permissão negada. Verifique se o Realtime Database está configurado corretamente.');
+      }
+      throw new Error('Failed to save image: ' + (error.message || 'Unknown error'));
     }
   }
 

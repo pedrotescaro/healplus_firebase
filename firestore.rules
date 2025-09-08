@@ -8,19 +8,21 @@ service cloud.firestore {
     match /users/{userId} {
       allow read, write: if request.auth.uid == userId;
 
-      // Allow professionals to be read by others for chat contact lists, for example.
-      // allow read: if resource.data.role == 'professional';
-      
-      // Allow patients to read their own data, and professionals to read patient data
-      // allow read: if request.auth.uid == userId || 
-      //             (exists(/databases/$(database)/documents/users/$(request.auth.uid)) && 
-      //              get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'professional');
+      // Allow professionals to read patient data
+      allow read: if request.auth.uid == userId || 
+                  (exists(/databases/$(database)/documents/users/$(request.auth.uid)) && 
+                   get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'professional');
     }
 
     // Rules for subcollections within 'users'
     match /users/{userId}/{collection}/{docId} {
       // Allow users to read/write their own subcollections
       allow read, write: if request.auth.uid == userId;
+
+      // Allow professionals to read patient data in subcollections
+      allow read: if request.auth.uid == userId || 
+                  (exists(/databases/$(database)/documents/users/$(request.auth.uid)) && 
+                   get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'professional');
 
       // Allow patients to read reports created for them by professionals
       allow read: if collection == 'reports' && 

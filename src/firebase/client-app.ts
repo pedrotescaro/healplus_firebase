@@ -11,9 +11,10 @@ const firebaseConfig = {
   apiKey: "AIzaSyDX0mJJt5SW2L55Fs5SPWHsXP2gQHFbRPY",
   authDomain: "woundwise-g3zb9.firebaseapp.com",
   projectId: "woundwise-g3zb9",
-  storageBucket: "woundwise-g3zb9.appspot.com",
+  storageBucket: "woundwise-g3zb9.firebasestorage.app",
   messagingSenderId: "315167035013",
-  appId: "1:315167035013:web:189654d5723c779cf963ec"
+  appId: "1:315167035013:web:189654d5723c779cf963ec",
+  databaseURL: "https://woundwise-g3zb9-default-rtdb.firebaseio.com/"
 };
 
 

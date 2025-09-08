@@ -1,0 +1,26 @@
+{
+  "rules": {
+    "images": {
+      "$userId": {
+        ".read": "auth != null && auth.uid == $userId",
+        ".write": "auth != null && auth.uid == $userId",
+        "$imageId": {
+          ".read": "auth != null && auth.uid == $userId",
+          ".write": "auth != null && auth.uid == $userId"
+        }
+      }
+    },
+    "conversations": {
+      "$conversationId": {
+        ".read": "auth != null && (data.participants[auth.uid] == true || data.professionalId == auth.uid)",
+        ".write": "auth != null && (data.participants[auth.uid] == true || data.professionalId == auth.uid)",
+        "messages": {
+          "$messageId": {
+            ".read": "auth != null && (parent().parent().participants[auth.uid] == true || parent().parent().professionalId == auth.uid)",
+            ".write": "auth != null && (parent().parent().participants[auth.uid] == true || parent().parent().professionalId == auth.uid)"
+          }
+        }
+      }
+    }
+  }
+}
