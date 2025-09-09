@@ -1,8 +1,9 @@
 
 "use client";
 
-import { useEffect, useRef, useState } from "react";
-import { Camera, RefreshCcw, Check, X } from "lucide-react";
+// @ts-ignore
+import React, { useEffect, useRef, useState, ReactNode } from "react";
+import { Camera, Loader2, CheckCircle, XCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -18,7 +19,7 @@ import { Alert, AlertTitle, AlertDescription } from "@/components/ui/alert";
 
 interface ImageCaptureProps {
   onCapture: (fileOrUrl: File | string) => void;
-  children: React.ReactNode;
+  children: ReactNode;
 }
 
 export function ImageCapture({ onCapture, children }: ImageCaptureProps) {
@@ -131,10 +132,10 @@ export function ImageCapture({ onCapture, children }: ImageCaptureProps) {
             {capturedImage ? (
                 <>
                     <Button variant="outline" onClick={() => setCapturedImage(null)} className="w-full sm:w-auto">
-                        <RefreshCcw className="mr-2" /> Tentar Novamente
+                        <Loader2 className="mr-2" /> Tentar Novamente
                     </Button>
                     <Button onClick={handleConfirm} className="w-full sm:w-auto">
-                        <Check className="mr-2" /> Usar esta Foto
+                        <CheckCircle className="mr-2" /> Usar esta Foto
                     </Button>
                 </>
             ) : (
@@ -144,7 +145,7 @@ export function ImageCapture({ onCapture, children }: ImageCaptureProps) {
             )}
             <DialogClose asChild>
                  <Button variant="secondary" className="w-full sm:w-auto mt-2 sm:mt-0">
-                    <X className="mr-2" /> Cancelar
+                    <XCircle className="mr-2" /> Cancelar
                 </Button>
             </DialogClose>
         </DialogFooter>

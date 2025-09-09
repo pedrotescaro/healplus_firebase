@@ -357,12 +357,12 @@ export function ImageComparator() {
             </label>
             <div className="my-2 text-xs text-muted-foreground">OU</div>
             <div onClick={(e: any) => e.stopPropagation()}>
-              <ImageCapture onCapture={onCapture}>
+              <ImageCapture onCapture={onCapture} children={
                 <Button type="button" variant="outline" size="sm">
                   <Camera className="mr-2" />
                   Tirar Foto
                 </Button>
-              </ImageCapture>
+              } />
             </div>
           </>
         )}
