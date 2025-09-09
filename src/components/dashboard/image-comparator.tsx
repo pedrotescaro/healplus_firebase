@@ -196,27 +196,38 @@ export function ImageComparator() {
       setProgressMetrics(metrics);
       
       if (user) {
-        await addDoc(collection(db, "users", user.uid, "comparisons"), {
-          ...result,
-          image1Metadata: { id: image1.id, datetime: image1.datetime, url: image1DataUri },
-          image2Metadata: { id: image2.id, datetime: image2.datetime, url: image2DataUri },
-          progressMetrics: metrics,
-          createdAt: serverTimestamp(),
-        });
-        toast({
-          title: "Comparação Salva",
-          description: "O resultado da análise foi salvo no seu histórico.",
-        });
-        
-        // Atualizar histórico local
-        setComparisonHistory((prev: any) => [{
-          id: Date.now().toString(),
-          image1Metadata: { id: image1.id, datetime: image1.datetime, url: image1DataUri },
-          image2Metadata: { id: image2.id, datetime: image2.datetime, url: image2DataUri },
-          relatorio_comparativo: result.relatorio_comparativo,
-          createdAt: new Date(),
-          progressMetrics: metrics
-        }, ...prev.slice(0, 9)]);
+        try {
+          const docRef = await addDoc(collection(db, "users", user.uid, "comparisons"), {
+            ...result,
+            image1Metadata: { id: image1.id, datetime: image1.datetime, url: image1DataUri },
+            image2Metadata: { id: image2.id, datetime: image2.datetime, url: image2DataUri },
+            progressMetrics: metrics,
+            createdAt: serverTimestamp(),
+          });
+          
+          toast({
+            title: "Comparação Salva",
+            description: "O resultado da análise foi salvo no seu histórico.",
+          });
+          
+          // Atualizar histórico local
+          setComparisonHistory((prev: any) => [{
+            id: docRef.id,
+            image1Metadata: { id: image1.id, datetime: image1.datetime, url: image1DataUri },
+            image2Metadata: { id: image2.id, datetime: image2.datetime, url: image2DataUri },
+            relatorio_comparativo: result.relatorio_comparativo,
+            createdAt: new Date(),
+            progressMetrics: metrics
+          }, ...prev.slice(0, 9)]);
+          
+        } catch (saveError) {
+          console.error("Erro ao salvar comparação:", saveError);
+          toast({
+            title: "Erro ao Salvar",
+            description: "A análise foi realizada, mas não foi possível salvar no histórico. Tente novamente.",
+            variant: "destructive",
+          });
+        }
       }
 
       if (!isQualityGood) {
@@ -240,7 +251,15 @@ export function ImageComparator() {
   };
   
   const handleSavePdf = async () => {
-    if (!comparison || !image1.preview || !image2.preview) return;
+    if (!comparison || !image1.preview || !image2.preview) {
+      toast({
+        title: "Dados Incompletos",
+        description: "Não é possível gerar o PDF sem as imagens e análise.",
+        variant: "destructive",
+      });
+      return;
+    }
+    
     setPdfLoading(true);
     
     try {
@@ -248,77 +267,98 @@ export function ImageComparator() {
         const margin = 15;
         const pageWidth = doc.internal.pageSize.getWidth();
         
+        // Título
         doc.setFont('helvetica', 'bold');
         doc.setFontSize(16);
         doc.text("Relatório Comparativo de Progressão de Ferida", pageWidth / 2, 20, { align: 'center' });
 
+        // Período de análise
         doc.setFont('helvetica', 'normal');
         doc.setFontSize(10);
-        const analysisPeriod = comparison.relatorio_comparativo.periodo_analise || `De ${image1.datetime} a ${image2.datetime}`;
+        const analysisPeriod = comparison.relatorio_comparativo?.periodo_analise || `De ${image1.datetime} a ${image2.datetime}`;
         doc.text(`Período de Análise: ${analysisPeriod}`, pageWidth / 2, 28, { align: 'center' });
         
         let finalY = 35;
         
-        // Add images side by side
+        // Imagens lado a lado
         doc.setFontSize(12);
         doc.setFont('helvetica', 'bold');
         doc.text("Imagens Comparadas", margin, finalY);
         finalY += 8;
 
         const imgWidth = (pageWidth - margin * 3) / 2;
-        const img1Props = doc.getImageProperties(image1.preview);
-        const img2Props = doc.getImageProperties(image2.preview);
-        const img1Height = (img1Props.height * imgWidth) / img1Props.width;
-        const img2Height = (img2Props.height * imgWidth) / img2Props.width;
-        const maxHeight = Math.max(img1Height, img2Height);
+        
+        try {
+          const img1Props = doc.getImageProperties(image1.preview);
+          const img2Props = doc.getImageProperties(image2.preview);
+          const img1Height = (img1Props.height * imgWidth) / img1Props.width;
+          const img2Height = (img2Props.height * imgWidth) / img2Props.width;
+          const maxHeight = Math.max(img1Height, img2Height);
 
-        doc.addImage(image1.preview, 'PNG', margin, finalY, imgWidth, img1Height);
-        doc.addImage(image2.preview, 'PNG', margin + imgWidth + margin, finalY, imgWidth, img2Height);
+          doc.addImage(image1.preview, 'PNG', margin, finalY, imgWidth, img1Height);
+          doc.addImage(image2.preview, 'PNG', margin + imgWidth + margin, finalY, imgWidth, img2Height);
+          
+          doc.setFontSize(8);
+          doc.setFont('helvetica', 'normal');
+          doc.text(`Imagem 1 (${image1.id})`, margin, finalY + maxHeight + 4);
+          doc.text(`Imagem 2 (${image2.id})`, margin + imgWidth + margin, finalY + maxHeight + 4);
+          
+          finalY += maxHeight + 10;
+        } catch (imgError) {
+          console.warn("Erro ao adicionar imagens:", imgError);
+          doc.text("Imagens não puderam ser incluídas no PDF", margin, finalY);
+          finalY += 10;
+        }
         
-        doc.setFontSize(8);
-        doc.setFont('helvetica', 'normal');
-        doc.text(`Imagem 1 (${image1.id})`, margin, finalY + maxHeight + 4);
-        doc.text(`Imagem 2 (${image2.id})`, margin + imgWidth + margin, finalY + maxHeight + 4);
-        
-        finalY += maxHeight + 10;
-        
-        const summaryText = doc.splitTextToSize(comparison.relatorio_comparativo.resumo_descritivo_evolucao, pageWidth - margin * 2);
-        
-        autoTable(doc, {
-            startY: finalY,
-            head: [['Resumo Descritivo da Evolução']],
-            body: [[summaryText]],
-            theme: 'grid',
-            headStyles: { fontStyle: 'bold', fillColor: [22, 160, 133] },
-        });
-        
-        finalY = (doc as any).lastAutoTable.finalY + 10;
+        // Resumo descritivo
+        if (comparison.relatorio_comparativo?.resumo_descritivo_evolucao) {
+          const summaryText = doc.splitTextToSize(comparison.relatorio_comparativo.resumo_descritivo_evolucao, pageWidth - margin * 2);
+          
+          autoTable(doc, {
+              startY: finalY,
+              head: [['Resumo Descritivo da Evolução']],
+              body: [[summaryText]],
+              theme: 'grid',
+              headStyles: { fontStyle: 'bold', fillColor: [22, 160, 133] },
+          });
+          
+          finalY = (doc as any).lastAutoTable.finalY + 10;
+        }
 
-        const delta = comparison.relatorio_comparativo.analise_quantitativa_progressao;
-        const tableBody = [
-            ["Δ Área Total Afetada", delta.delta_area_total_afetada],
-            ["Δ Coloração (Hiperpigmentação)", delta.delta_coloracao.mudanca_area_hiperpigmentacao],
-            ["Δ Coloração (Eritema/Rubor)", delta.delta_coloracao.mudanca_area_eritema_rubor],
-            ["Δ Edema", delta.delta_edema],
-            ["Δ Textura", delta.delta_textura],
-        ];
+        // Análise quantitativa
+        if (comparison.relatorio_comparativo?.analise_quantitativa_progressao) {
+          const delta = comparison.relatorio_comparativo.analise_quantitativa_progressao;
+          const tableBody = [
+              ["Δ Área Total Afetada", delta.delta_area_total_afetada || "N/A"],
+              ["Δ Coloração (Hiperpigmentação)", delta.delta_coloracao?.mudanca_area_hiperpigmentacao || "N/A"],
+              ["Δ Coloração (Eritema/Rubor)", delta.delta_coloracao?.mudanca_area_eritema_rubor || "N/A"],
+              ["Δ Edema", delta.delta_edema || "N/A"],
+              ["Δ Textura", delta.delta_textura || "N/A"],
+          ];
 
-        autoTable(doc, {
-            startY: finalY,
-            head: [['Análise Quantitativa (Delta Δ)', 'Variação']],
-            body: tableBody,
-            theme: 'striped',
-            headStyles: { fontStyle: 'bold', fillColor: [22, 160, 133] },
-        });
+          autoTable(doc, {
+              startY: finalY,
+              head: [['Análise Quantitativa (Delta Δ)', 'Variação']],
+              body: tableBody,
+              theme: 'striped',
+              headStyles: { fontStyle: 'bold', fillColor: [22, 160, 133] },
+          });
+        }
 
-        const fileName = `Comparativo_${image1.id}_vs_${image2.id}.pdf`;
+        // Salvar arquivo
+        const fileName = `Comparativo_${image1.id}_vs_${image2.id}_${new Date().toISOString().split('T')[0]}.pdf`;
         doc.save(fileName);
+        
+        toast({
+          title: "PDF Gerado",
+          description: "O relatório foi baixado com sucesso.",
+        });
 
     } catch (error) {
       console.error("Erro ao gerar PDF:", error);
       toast({
           title: "Erro ao Gerar PDF",
-          description: "Não foi possível criar o arquivo PDF. Tente novamente.",
+          description: "Não foi possível criar o arquivo PDF. Verifique se as imagens estão carregadas e tente novamente.",
           variant: "destructive",
       });
     } finally {

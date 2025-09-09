@@ -143,7 +143,14 @@ export function AgendaView() {
       };
 
       setAppointments((prev: any) => [...prev, newAppointmentWithId]);
-      await createSmartReminders(newAppointmentWithId);
+      
+      // Criar lembretes (não crítico se falhar)
+      try {
+        await createSmartReminders(newAppointmentWithId);
+      } catch (reminderError) {
+        console.warn("Erro ao criar lembretes:", reminderError);
+        // Não mostrar erro para o usuário, pois o agendamento foi criado
+      }
       
       setNewAppointment({
         status: 'agendado',
@@ -153,13 +160,13 @@ export function AgendaView() {
       
       toast({
         title: "Agendamento Criado",
-        description: "O agendamento foi criado com sucesso e lembretes foram configurados.",
+        description: "O agendamento foi criado com sucesso.",
       });
     } catch (error) {
       console.error("Erro ao criar agendamento:", error);
       toast({
         title: "Erro",
-        description: "Não foi possível criar o agendamento.",
+        description: "Não foi possível criar o agendamento. Verifique sua conexão e tente novamente.",
         variant: "destructive"
       });
     }
