@@ -1,7 +1,7 @@
 
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Image from "next/image";
 import { compareWoundImages, CompareWoundImagesOutput } from "@/ai/flows/compare-wound-images";
 import { useToast } from "@/hooks/use-toast";
@@ -10,19 +10,21 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { fileToDataUri } from "@/lib/file-to-data-uri";
-import { UploadCloud, Loader2, GitCompareArrows, Camera, AlertCircle, Sparkles, FileImage, ClipboardCheck, FileDown } from "lucide-react";
+import { UploadCloud, Loader2, GitCompareArrows, Camera, AlertCircle, Sparkles, FileImage, ClipboardCheck, FileDown, TrendingUp, TrendingDown, Minus, Calendar, Clock, BarChart3, Download, Share2 } from "lucide-react";
 import { Separator } from "@/components/ui/separator";
 import { ImageCapture } from "@/components/dashboard/image-capture";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { useAuth } from "@/hooks/use-auth";
 import { db } from "@/firebase/client-app";
-import { collection, addDoc, serverTimestamp } from "firebase/firestore";
+import { collection, addDoc, serverTimestamp, query, orderBy, limit, getDocs } from "firebase/firestore";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { useTranslation } from "@/contexts/app-provider";
 import jsPDF from "jspdf";
 import autoTable from 'jspdf-autotable';
+import { Progress } from "@/components/ui/progress";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 
 const isAIEnabled = !!process.env.NEXT_PUBLIC_GEMINI_API_KEY;
@@ -34,15 +36,99 @@ type ImageFileState = {
     datetime: string;
 }
 
+type ComparisonHistory = {
+    id: string;
+    image1Metadata: any;
+    image2Metadata: any;
+    createdAt: any;
+    relatorio_comparativo: any;
+}
+
+type ProgressMetrics = {
+    areaChange: number;
+    healingScore: number;
+    tissueImprovement: number;
+    overallProgress: 'melhora' | 'piora' | 'estavel';
+}
+
 export function ImageComparator() {
   const [image1, setImage1] = useState<ImageFileState>({ file: null, preview: null, id: '', datetime: '' });
   const [image2, setImage2] = useState<ImageFileState>({ file: null, preview: null, id: '', datetime: '' });
   const [comparison, setComparison] = useState<CompareWoundImagesOutput | null>(null);
   const [loading, setLoading] = useState(false);
   const [pdfLoading, setPdfLoading] = useState(false);
+  const [comparisonHistory, setComparisonHistory] = useState<ComparisonHistory[]>([]);
+  const [selectedHistoryItem, setSelectedHistoryItem] = useState<ComparisonHistory | null>(null);
+  const [showHistory, setShowHistory] = useState(false);
+  const [progressMetrics, setProgressMetrics] = useState<ProgressMetrics | null>(null);
   const { toast } = useToast();
   const { user } = useAuth();
   const { t } = useTranslation();
+
+  // Carregar histórico de comparações
+  useEffect(() => {
+    const fetchComparisonHistory = async () => {
+      if (!user) return;
+      
+      try {
+        const q = query(
+          collection(db, "users", user.uid, "comparisons"),
+          orderBy("createdAt", "desc"),
+          limit(10)
+        );
+        const querySnapshot = await getDocs(q);
+        const history = querySnapshot.docs.map((doc: any) => ({
+          id: doc.id,
+          ...doc.data()
+        } as ComparisonHistory));
+        setComparisonHistory(history);
+      } catch (error) {
+        console.error("Erro ao carregar histórico:", error);
+      }
+    };
+
+    fetchComparisonHistory();
+  }, [user]);
+
+  // Calcular métricas de progresso
+  const calculateProgressMetrics = (comparison: CompareWoundImagesOutput): ProgressMetrics => {
+    const delta = comparison.relatorio_comparativo.analise_quantitativa_progressao;
+    
+    // Extrair mudança de área (assumindo formato como "-15.2%" ou "+5.1%")
+    const areaChangeText = delta.delta_area_total_afetada;
+    const areaChange = parseFloat(areaChangeText.replace(/[^\d.-]/g, '')) || 0;
+    
+    // Calcular score de cicatrização baseado em múltiplos fatores
+    let healingScore = 50; // Base score
+    
+    // Área: redução é boa
+    if (areaChange < 0) healingScore += Math.abs(areaChange) * 2;
+    else healingScore -= areaChange * 2;
+    
+    // Edema: redução é boa
+    const edemaText = delta.delta_edema;
+    if (edemaText.includes('redução') || edemaText.includes('diminuição')) healingScore += 15;
+    else if (edemaText.includes('aumento')) healingScore -= 15;
+    
+    // Textura: melhora é boa
+    const texturaText = delta.delta_textura;
+    if (texturaText.includes('melhora') || texturaText.includes('melhor')) healingScore += 10;
+    else if (texturaText.includes('piora')) healingScore -= 10;
+    
+    healingScore = Math.max(0, Math.min(100, healingScore));
+    
+    // Determinar progresso geral
+    let overallProgress: 'melhora' | 'piora' | 'estavel' = 'estavel';
+    if (healingScore > 60) overallProgress = 'melhora';
+    else if (healingScore < 40) overallProgress = 'piora';
+    
+    return {
+      areaChange,
+      healingScore,
+      tissueImprovement: healingScore,
+      overallProgress
+    };
+  };
 
   const handleFileSelect = (file: File, imageNumber: 1 | 2) => {
     const reader = new FileReader();
@@ -64,14 +150,14 @@ export function ImageComparator() {
     reader.readAsDataURL(file);
   };
   
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>, imageNumber: 1 | 2) => {
+  const handleFileChange = (e: any, imageNumber: 1 | 2) => {
     const file = e.target.files?.[0];
     if (file) {
       handleFileSelect(file, imageNumber);
     }
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = async (e: any) => {
     e.preventDefault();
     if (!image1.file || !image2.file) {
       toast({
@@ -103,17 +189,33 @@ export function ImageComparator() {
                             quality2.iluminacao === "Adequada" && quality2.foco === "Nítido";
 
       setComparison(result);
+      
+      // Calcular métricas de progresso
+      const metrics = calculateProgressMetrics(result);
+      setProgressMetrics(metrics);
+      
       if (user) {
         await addDoc(collection(db, "users", user.uid, "comparisons"), {
           ...result,
           image1Metadata: { id: image1.id, datetime: image1.datetime, url: image1DataUri },
           image2Metadata: { id: image2.id, datetime: image2.datetime, url: image2DataUri },
+          progressMetrics: metrics,
           createdAt: serverTimestamp(),
         });
         toast({
           title: "Comparação Salva",
           description: "O resultado da análise foi salvo no seu histórico.",
         });
+        
+        // Atualizar histórico local
+        setComparisonHistory((prev: any) => [{
+          id: Date.now().toString(),
+          image1Metadata: { id: image1.id, datetime: image1.datetime, url: image1DataUri },
+          image2Metadata: { id: image2.id, datetime: image2.datetime, url: image2DataUri },
+          relatorio_comparativo: result.relatorio_comparativo,
+          createdAt: new Date(),
+          progressMetrics: metrics
+        }, ...prev.slice(0, 9)]);
       }
 
       if (!isQualityGood) {
@@ -290,6 +392,112 @@ export function ImageComparator() {
     return <Badge variant={variant(value)}>{label}: {value}</Badge>;
   };
 
+  const ProgressIndicator = ({ metrics }: { metrics: ProgressMetrics }) => {
+    const getProgressIcon = () => {
+      switch (metrics.overallProgress) {
+        case 'melhora': return <TrendingUp className="h-4 w-4 text-green-600" />;
+        case 'piora': return <TrendingDown className="h-4 w-4 text-red-600" />;
+        default: return <Minus className="h-4 w-4 text-yellow-600" />;
+      }
+    };
+
+    const getProgressColor = () => {
+      switch (metrics.overallProgress) {
+        case 'melhora': return 'bg-green-500';
+        case 'piora': return 'bg-red-500';
+        default: return 'bg-yellow-500';
+      }
+    };
+
+    return (
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <BarChart3 className="h-5 w-5" />
+            Métricas de Progresso
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="flex items-center justify-between">
+            <span className="text-sm font-medium">Score de Cicatrização</span>
+            <div className="flex items-center gap-2">
+              {getProgressIcon()}
+              <span className="text-sm font-bold">{metrics.healingScore.toFixed(0)}/100</span>
+            </div>
+          </div>
+          <Progress value={metrics.healingScore} className="h-2" />
+          
+          <div className="grid grid-cols-2 gap-4">
+            <div className="text-center">
+              <div className="text-2xl font-bold text-blue-600">{metrics.areaChange.toFixed(1)}%</div>
+              <div className="text-xs text-muted-foreground">Mudança de Área</div>
+            </div>
+            <div className="text-center">
+              <div className="text-2xl font-bold text-green-600">{metrics.tissueImprovement.toFixed(0)}%</div>
+              <div className="text-xs text-muted-foreground">Melhora Tecidual</div>
+            </div>
+          </div>
+          
+          <div className="flex items-center justify-center gap-2 p-2 rounded-lg bg-muted">
+            {getProgressIcon()}
+            <span className="font-medium capitalize">{metrics.overallProgress}</span>
+          </div>
+        </CardContent>
+      </Card>
+    );
+  };
+
+  const HistorySelector = () => (
+    <Card>
+      <CardHeader>
+        <CardTitle className="flex items-center gap-2">
+          <Clock className="h-5 w-5" />
+          Histórico de Comparações
+        </CardTitle>
+      </CardHeader>
+      <CardContent>
+        <Select onValueChange={(value: any) => {
+          const item = comparisonHistory.find((h: any) => h.id === value);
+          setSelectedHistoryItem(item || null);
+          if (item) {
+            setImage1({
+              file: null,
+              preview: item.image1Metadata.url,
+              id: item.image1Metadata.id,
+              datetime: item.image1Metadata.datetime
+            });
+            setImage2({
+              file: null,
+              preview: item.image2Metadata.url,
+              id: item.image2Metadata.id,
+              datetime: item.image2Metadata.datetime
+            });
+            setProgressMetrics(item.progressMetrics);
+          }
+        }}>
+          <SelectTrigger>
+            <SelectValue placeholder="Selecione uma comparação anterior" />
+          </SelectTrigger>
+          <SelectContent>
+            {comparisonHistory.map((item: any) => (
+              <SelectItem key={item.id} value={item.id}>
+                <div className="flex items-center gap-2">
+                  <Calendar className="h-4 w-4" />
+                  <span>{new Date(item.createdAt.seconds * 1000).toLocaleDateString()}</span>
+                  {item.progressMetrics && (
+                    <Badge variant={item.progressMetrics.overallProgress === 'melhora' ? 'default' : 'destructive'}>
+                      {item.progressMetrics.overallProgress}
+                    </Badge>
+                  )}
+                </div>
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+      </CardContent>
+    </Card>
+  );
+
   const IndividualAnalysisCard = ({ analysis }: { analysis: CompareWoundImagesOutput['analise_imagem_1'] }) => {
       const { avaliacao_qualidade, analise_dimensional, analise_colorimetrica, analise_textura_e_caracteristicas } = analysis;
       return (
@@ -329,7 +537,7 @@ export function ImageComparator() {
                        <Table>
                           <TableHeader><TableRow><TableHead>Cor</TableHead><TableHead>Hex</TableHead><TableHead className="text-right">% Área</TableHead></TableRow></TableHeader>
                           <TableBody>
-                              {analise_colorimetrica.cores_dominantes.map(c => (
+                              {analise_colorimetrica.cores_dominantes.map((c: any) => (
                                   <TableRow key={c.hex_aproximado}>
                                       <TableCell className="font-medium flex items-center gap-2"><div className="w-4 h-4 rounded-full border" style={{ backgroundColor: c.hex_aproximado }}></div> {c.cor}</TableCell>
                                       <TableCell>{c.hex_aproximado}</TableCell>
@@ -358,6 +566,11 @@ export function ImageComparator() {
 
   return (
     <div className="space-y-8">
+      {/* Histórico de Comparações */}
+      {comparisonHistory.length > 0 && (
+        <HistorySelector />
+      )}
+
       <form onSubmit={handleSubmit} className="space-y-6">
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           <ImageUploader 
@@ -377,10 +590,18 @@ export function ImageComparator() {
             label="Imagem 2 (ex: mais recente)" 
           />
         </div>
-        <Button type="submit" disabled={loading} className="w-full md:w-auto">
-          {loading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Sparkles className="mr-2 h-4 w-4" />}
-          Analisar Progressão
-        </Button>
+        <div className="flex gap-2">
+          <Button type="submit" disabled={loading} className="flex-1 md:flex-none">
+            {loading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Sparkles className="mr-2 h-4 w-4" />}
+            Analisar Progressão
+          </Button>
+          {comparison && (
+            <Button onClick={handleSavePdf} disabled={pdfLoading} variant="outline">
+              {pdfLoading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Download className="mr-2 h-4 w-4" />}
+              Exportar PDF
+            </Button>
+          )}
+        </div>
       </form>
 
       {loading && (
@@ -392,14 +613,9 @@ export function ImageComparator() {
 
       {comparison && (
         <Tabs defaultValue="comparativo" className="w-full">
-            <div className="flex justify-end mb-2">
-                <Button onClick={handleSavePdf} disabled={pdfLoading} variant="outline" size="sm">
-                    {pdfLoading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <FileDown className="mr-2 h-4 w-4" />}
-                    PDF
-                </Button>
-            </div>
-            <TabsList className="grid w-full grid-cols-3">
+            <TabsList className="grid w-full grid-cols-4">
                 <TabsTrigger value="comparativo"><GitCompareArrows className="mr-2" />Comparativo</TabsTrigger>
+                <TabsTrigger value="metricas"><BarChart3 className="mr-2" />Métricas</TabsTrigger>
                 <TabsTrigger value="imagem1"><FileImage className="mr-2" />Análise Imagem 1</TabsTrigger>
                 <TabsTrigger value="imagem2"><FileImage className="mr-2" />Análise Imagem 2</TabsTrigger>
             </TabsList>
@@ -436,6 +652,9 @@ export function ImageComparator() {
                         </div>
                     </CardContent>
                 </Card>
+            </TabsContent>
+            <TabsContent value="metricas" className="mt-4">
+                {progressMetrics && <ProgressIndicator metrics={progressMetrics} />}
             </TabsContent>
             <TabsContent value="imagem1" className="mt-4">
                  <IndividualAnalysisCard analysis={comparison.analise_imagem_1} />
