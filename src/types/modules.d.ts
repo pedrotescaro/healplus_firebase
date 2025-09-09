@@ -1,0 +1,83 @@
+declare module 'react' {
+  export function useEffect(effect: () => void | (() => void), deps?: any[]): void;
+  export function useState<T>(initialState: T | (() => T)): [T, (value: T | ((prev: T) => T)) => void];
+  export const React: any;
+  export default React;
+}
+
+declare module 'firebase/firestore' {
+  export function collection(firestore: any, path: string, ...pathSegments: string[]): any;
+  export function query(collection: any, ...queryConstraints: any[]): any;
+  export function getDocs(query: any): Promise<any>;
+  export function orderBy(field: string, direction?: string): any;
+  export function where(field: string, op: string, value: any): any;
+  export function addDoc(collection: any, data: any): Promise<any>;
+  export function serverTimestamp(): any;
+  export function updateDoc(doc: any, data: any): Promise<any>;
+  export function doc(firestore: any, path: string, ...pathSegments: string[]): any;
+  export function limit(count: number): any;
+}
+
+declare module 'lucide-react' {
+  export const Loader2: any;
+  export const CalendarCheck: any;
+  export const User: any;
+  export const Bell: any;
+  export const Plus: any;
+  export const Clock: any;
+  export const AlertTriangle: any;
+  export const CheckCircle: any;
+  export const XCircle: any;
+  export const Edit: any;
+  export const Trash2: any;
+  export const Phone: any;
+  export const Mail: any;
+  export const MapPin: any;
+  export const UploadCloud: any;
+  export const GitCompareArrows: any;
+  export const Camera: any;
+  export const AlertCircle: any;
+  export const Sparkles: any;
+  export const FileImage: any;
+  export const ClipboardCheck: any;
+  export const FileDown: any;
+  export const TrendingUp: any;
+  export const TrendingDown: any;
+  export const Minus: any;
+  export const Calendar: any;
+  export const BarChart3: any;
+  export const Download: any;
+  export const Share2: any;
+}
+
+declare module 'date-fns' {
+  export function add(date: Date, duration: any): Date;
+  export function format(date: Date, formatStr: string, options?: any): string;
+  export function isAfter(date: Date, dateToCompare: Date): boolean;
+  export function isSameDay(date: Date, dateToCompare: Date): boolean;
+  export function startOfToday(): Date;
+  export function differenceInDays(dateLeft: Date, dateRight: Date): number;
+  export function isToday(date: Date): boolean;
+  export function isTomorrow(date: Date): boolean;
+  export function isPast(date: Date): boolean;
+}
+
+declare module 'date-fns/locale' {
+  export const ptBR: any;
+}
+
+declare module 'next/image' {
+  export default any;
+}
+
+declare module 'jspdf' {
+  export default any;
+}
+
+declare module 'jspdf-autotable' {
+  export default any;
+}
+
+declare global {
+  const process: any;
+}

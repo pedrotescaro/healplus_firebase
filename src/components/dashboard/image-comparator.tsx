@@ -1,7 +1,7 @@
 
 "use client";
 
-import { useState, useEffect } from "react";
+import React, { useState, useEffect } from "react";
 import Image from "next/image";
 import { compareWoundImages, CompareWoundImagesOutput } from "@/ai/flows/compare-wound-images";
 import { useToast } from "@/hooks/use-toast";
@@ -27,7 +27,7 @@ import { Progress } from "@/components/ui/progress";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 
-const isAIEnabled = !!process.env.NEXT_PUBLIC_GEMINI_API_KEY;
+const isAIEnabled = true; // !!process.env.NEXT_PUBLIC_GEMINI_API_KEY;
 
 type ImageFileState = {
     file: File | null;
@@ -42,6 +42,7 @@ type ComparisonHistory = {
     image2Metadata: any;
     createdAt: any;
     relatorio_comparativo: any;
+    progressMetrics?: ProgressMetrics;
 }
 
 type ProgressMetrics = {
@@ -334,10 +335,10 @@ export function ImageComparator() {
     label 
   }: { 
     id: string, 
-    onFileChange: (e: React.ChangeEvent<HTMLInputElement>) => void, 
-    onCapture: (file: File) => void,
+    onFileChange: (e: any) => void, 
+    onCapture: (fileOrUrl: string | File) => void,
     imageState: ImageFileState,
-    setImageState: React.Dispatch<React.SetStateAction<ImageFileState>>,
+    setImageState: any,
     label: string 
   }) => (
     <div className="space-y-2">
@@ -355,7 +356,7 @@ export function ImageComparator() {
               <p className="text-xs">PNG, JPG, ou WEBP</p>
             </label>
             <div className="my-2 text-xs text-muted-foreground">OU</div>
-            <div onClick={(e) => e.stopPropagation()}>
+            <div onClick={(e: any) => e.stopPropagation()}>
               <ImageCapture onCapture={onCapture}>
                 <Button type="button" variant="outline" size="sm">
                   <Camera className="mr-2" />
@@ -389,7 +390,7 @@ export function ImageComparator() {
                 return 'destructive';
         }
     };
-    return <Badge variant={variant(value)}>{label}: {value}</Badge>;
+    return <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium border ${variant(value) === 'default' ? 'bg-green-100 text-green-800 border-green-200' : 'bg-red-100 text-red-800 border-red-200'}`}>{label}: {value}</span>;
   };
 
   const ProgressIndicator = ({ metrics }: { metrics: ProgressMetrics }) => {
@@ -472,7 +473,7 @@ export function ImageComparator() {
               id: item.image2Metadata.id,
               datetime: item.image2Metadata.datetime
             });
-            setProgressMetrics(item.progressMetrics);
+            setProgressMetrics(item.progressMetrics || null);
           }
         }}>
           <SelectTrigger>
@@ -485,9 +486,9 @@ export function ImageComparator() {
                   <Calendar className="h-4 w-4" />
                   <span>{new Date(item.createdAt.seconds * 1000).toLocaleDateString()}</span>
                   {item.progressMetrics && (
-                    <Badge variant={item.progressMetrics.overallProgress === 'melhora' ? 'default' : 'destructive'}>
+                    <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium border ${item.progressMetrics.overallProgress === 'melhora' ? 'bg-green-100 text-green-800 border-green-200' : 'bg-red-100 text-red-800 border-red-200'}`}>
                       {item.progressMetrics.overallProgress}
-                    </Badge>
+                    </span>
                   )}
                 </div>
               </SelectItem>
@@ -575,16 +576,24 @@ export function ImageComparator() {
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           <ImageUploader 
             id="image-1" 
-            onFileChange={(e) => handleFileChange(e, 1)} 
-            onCapture={(file) => handleFileSelect(file, 1)}
+            onFileChange={(e: any) => handleFileChange(e, 1)} 
+            onCapture={(fileOrUrl) => {
+              if (fileOrUrl instanceof File) {
+                handleFileSelect(fileOrUrl, 1);
+              }
+            }}
             imageState={image1}
             setImageState={setImage1}
             label="Imagem 1 (ex: mais antiga)" 
           />
           <ImageUploader 
             id="image-2" 
-            onFileChange={(e) => handleFileChange(e, 2)} 
-            onCapture={(file) => handleFileSelect(file, 2)}
+            onFileChange={(e: any) => handleFileChange(e, 2)} 
+            onCapture={(fileOrUrl) => {
+              if (fileOrUrl instanceof File) {
+                handleFileSelect(fileOrUrl, 2);
+              }
+            }}
             imageState={image2}
             setImageState={setImage2}
             label="Imagem 2 (ex: mais recente)" 

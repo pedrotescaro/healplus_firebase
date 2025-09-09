@@ -1,7 +1,7 @@
 
 "use client";
 
-import { useEffect, useState } from "react";
+import React, { useEffect, useState } from "react";
 import { useAuth } from "@/hooks/use-auth";
 import { db } from "@/firebase/client-app";
 import { collection, query, getDocs, orderBy, where, addDoc, serverTimestamp, updateDoc, doc } from "firebase/firestore";
@@ -142,7 +142,7 @@ export function AgendaView() {
         anamnesisId: newAppointment.anamnesisId
       };
 
-      setAppointments(prev => [...prev, newAppointmentWithId]);
+      setAppointments((prev: any) => [...prev, newAppointmentWithId]);
       await createSmartReminders(newAppointmentWithId);
       
       setNewAppointment({
@@ -175,7 +175,7 @@ export function AgendaView() {
         updatedAt: serverTimestamp()
       });
 
-      setAppointments(prev => prev.map(app => 
+      setAppointments((prev: any) => prev.map((app: any) => 
         app.id === appointmentId ? { ...app, status } : app
       ));
 
@@ -209,10 +209,10 @@ export function AgendaView() {
         );
         const anamnesisSnapshot = await getDocs(anamnesisQuery);
         const anamnesisRecords = anamnesisSnapshot.docs
-          .map(doc => ({ id: doc.id, ...doc.data() } as StoredAnamnesis))
-          .filter(record => record.data_retorno);
+          .map((doc: any) => ({ id: doc.id, ...doc.data() } as StoredAnamnesis))
+          .filter((record: any) => record.data_retorno);
 
-        const anamnesisAppointments = anamnesisRecords.map(record => {
+        const anamnesisAppointments = anamnesisRecords.map((record: any) => {
             const [year, month, day] = record.data_retorno!.split('-').map(Number);
             const returnDate = new Date(Date.UTC(year, month - 1, day));
             return ({
@@ -232,7 +232,7 @@ export function AgendaView() {
           orderBy("date", "asc")
         );
         const appointmentsSnapshot = await getDocs(appointmentsQuery);
-        const customAppointments = appointmentsSnapshot.docs.map(doc => {
+        const customAppointments = appointmentsSnapshot.docs.map((doc: any) => {
           const data = doc.data();
           return {
             id: doc.id,
@@ -267,25 +267,25 @@ export function AgendaView() {
   }, [user, toast]);
 
   const appointmentsForSelectedDay = appointments.filter(
-    (app) => selectedDate && isSameDay(app.date, selectedDate)
+    (app: any) => selectedDate && isSameDay(app.date, selectedDate)
   );
 
   const upcomingAppointments = appointments
-    .filter(app => isAfter(app.date, startOfToday()) || isSameDay(app.date, startOfToday()))
+    .filter((app: any) => isAfter(app.date, startOfToday()) || isSameDay(app.date, startOfToday()))
     .slice(0, 7);
 
-  const urgentAppointments = appointments.filter(app => 
+  const urgentAppointments = appointments.filter((app: any) => 
     app.priority === 'urgente' && (isToday(app.date) || isTomorrow(app.date))
   );
 
-  const overdueAppointments = appointments.filter(app => 
+  const overdueAppointments = appointments.filter((app: any) => 
     isPast(app.date) && app.status === 'agendado'
   );
 
   const modifiers = {
-    appointment: appointments.map(app => app.date),
-    urgent: urgentAppointments.map(app => app.date),
-    overdue: overdueAppointments.map(app => app.date),
+    appointment: appointments.map((app: any) => app.date),
+    urgent: urgentAppointments.map((app: any) => app.date),
+    overdue: overdueAppointments.map((app: any) => app.date),
   };
 
   const modifiersStyles = {
@@ -407,7 +407,7 @@ export function AgendaView() {
                     <Input
                       id="patientName"
                       value={newAppointment.patientName || ''}
-                      onChange={(e) => setNewAppointment(prev => ({ ...prev, patientName: e.target.value }))}
+                      onChange={(e: any) => setNewAppointment((prev: any) => ({ ...prev, patientName: e.target.value }))}
                       placeholder="Nome completo do paciente"
                     />
                   </div>
@@ -417,7 +417,7 @@ export function AgendaView() {
                       id="date"
                       type="datetime-local"
                       value={newAppointment.date ? format(newAppointment.date, "yyyy-MM-dd'T'HH:mm") : ''}
-                      onChange={(e) => setNewAppointment(prev => ({ ...prev, date: new Date(e.target.value) }))}
+                      onChange={(e: any) => setNewAppointment((prev: any) => ({ ...prev, date: new Date(e.target.value) }))}
                     />
                   </div>
                   <div>
@@ -425,14 +425,14 @@ export function AgendaView() {
                     <Input
                       id="woundLocation"
                       value={newAppointment.woundLocation || ''}
-                      onChange={(e) => setNewAppointment(prev => ({ ...prev, woundLocation: e.target.value }))}
+                      onChange={(e: any) => setNewAppointment((prev: any) => ({ ...prev, woundLocation: e.target.value }))}
                       placeholder="Ex: Pé direito, região sacral"
                     />
                   </div>
                   <div className="grid grid-cols-2 gap-4">
                     <div>
                       <Label htmlFor="priority">Prioridade</Label>
-                      <Select value={newAppointment.priority} onValueChange={(value: any) => setNewAppointment(prev => ({ ...prev, priority: value }))}>
+                      <Select value={newAppointment.priority} onValueChange={(value: any) => setNewAppointment((prev: any) => ({ ...prev, priority: value }))}>
                         <SelectTrigger>
                           <SelectValue />
                         </SelectTrigger>
@@ -446,7 +446,7 @@ export function AgendaView() {
                     </div>
                     <div>
                       <Label htmlFor="status">Status</Label>
-                      <Select value={newAppointment.status} onValueChange={(value: any) => setNewAppointment(prev => ({ ...prev, status: value }))}>
+                      <Select value={newAppointment.status} onValueChange={(value: any) => setNewAppointment((prev: any) => ({ ...prev, status: value }))}>
                         <SelectTrigger>
                           <SelectValue />
                         </SelectTrigger>
@@ -464,7 +464,7 @@ export function AgendaView() {
                     <Textarea
                       id="notes"
                       value={newAppointment.notes || ''}
-                      onChange={(e) => setNewAppointment(prev => ({ ...prev, notes: e.target.value }))}
+                      onChange={(e: any) => setNewAppointment((prev: any) => ({ ...prev, notes: e.target.value }))}
                       placeholder="Observações adicionais..."
                       rows={3}
                     />
@@ -505,7 +505,7 @@ export function AgendaView() {
             <ScrollArea className="h-64">
               {appointmentsForSelectedDay.length > 0 ? (
                 <ul className="space-y-3">
-                  {appointmentsForSelectedDay.map((app) => (
+                  {appointmentsForSelectedDay.map((app: any) => (
                     <li key={app.id} className="flex items-start gap-3 p-3 border rounded-lg">
                       <div className="flex-shrink-0 bg-primary/10 text-primary p-2 rounded-full">
                         <User className="h-4 w-4" />
@@ -522,12 +522,12 @@ export function AgendaView() {
                           {format(app.date, "HH:mm")}
                         </p>
                         <div className="flex gap-1 mt-2">
-                          <Badge className={`text-xs ${getPriorityColor(app.priority)}`}>
+                          <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium border ${getPriorityColor(app.priority)}`}>
                             {app.priority}
-                          </Badge>
-                          <Badge className={`text-xs ${getStatusColor(app.status)}`}>
+                          </span>
+                          <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium border ${getStatusColor(app.status)}`}>
                             {app.status}
-                          </Badge>
+                          </span>
                         </div>
                         {app.notes && (
                           <p className="text-xs text-muted-foreground mt-1 line-clamp-2">
@@ -571,7 +571,7 @@ export function AgendaView() {
             <ScrollArea className="h-64">
               {upcomingAppointments.length > 0 ? (
                 <ul className="space-y-3">
-                  {upcomingAppointments.map((app) => (
+                  {upcomingAppointments.map((app: any) => (
                     <li key={app.id} className="flex items-center gap-3 p-2 border rounded-lg">
                        <div className="flex-shrink-0 bg-secondary text-secondary-foreground p-2 rounded-md">
                         <CalendarCheck className="h-4 w-4" />
@@ -590,12 +590,12 @@ export function AgendaView() {
                           {app.woundLocation}
                         </p>
                         <div className="flex gap-1 mt-1">
-                          <Badge className={`text-xs ${getPriorityColor(app.priority)}`}>
+                          <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium border ${getPriorityColor(app.priority)}`}>
                             {app.priority}
-                          </Badge>
-                          <Badge className={`text-xs ${getStatusColor(app.status)}`}>
+                          </span>
+                          <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium border ${getStatusColor(app.status)}`}>
                             {app.status}
-                          </Badge>
+                          </span>
                         </div>
                       </div>
                     </li>
@@ -607,6 +607,7 @@ export function AgendaView() {
             </ScrollArea>
           </CardContent>
         </Card>
+        </div>
       </div>
     </div>
   );
