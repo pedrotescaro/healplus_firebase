@@ -1,4 +1,7 @@
 
+// @ts-ignore
+import React, { ReactNode } from "react";
+// @ts-ignore
 import type { Metadata } from "next";
 import "./globals.css";
 import { AuthProvider } from "@/contexts/auth-context";
@@ -15,22 +18,27 @@ const inter = Inter({ subsets: ['latin'], variable: '--font-body' })
 export const metadata: Metadata = {
   title: "Heal+",
   description: "Cuidado aprimorado para feridas crônicas por telessaúde.",
+  icons: {
+    icon: '/icon.png',
+  },
 };
 
 export default function RootLayout({
   children,
 }: Readonly<{
-  children: React.ReactNode;
+  children: ReactNode;
 }>) {
   return (
     <html lang="en">
       <body className={cn("font-body antialiased", inter.variable)} suppressHydrationWarning>
-        <AppProvider>
-          <AuthProvider>
-            {children}
-            <Toaster />
-          </AuthProvider>
-        </AppProvider>
+        <AppProvider children={
+          <AuthProvider children={
+            <>
+              {children}
+              <Toaster />
+            </>
+          } />
+        } /> 
       </body>
     </html>
   );
