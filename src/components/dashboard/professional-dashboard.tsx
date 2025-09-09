@@ -136,8 +136,8 @@ export function ProfessionalDashboard() {
   return (
     <div className="space-y-6">
       <div className="container mx-auto px-4 sm:px-6 lg:px-8">
-        <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold tracking-tight">Zelo, seu assistente Heal+: cuidado inteligente, decisões seguras.</h1>
-        <p className="text-muted-foreground text-sm sm:text-base">Relatórios estruturados em minutos, com linguagem clínica e apoio à decisão.</p>
+        <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold tracking-tight">Dashboard Profissional</h1>
+        <p className="text-muted-foreground text-sm sm:text-base">Gerencie suas avaliações, relatórios e pacientes em um só lugar.</p>
       </div>
       
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">

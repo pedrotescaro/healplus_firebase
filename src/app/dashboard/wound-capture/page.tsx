@@ -144,24 +144,24 @@ export default function WoundCapturePage() {
   };
 
   return (
-    <div className="min-h-screen bg-background text-foreground p-6">
+    <div className="min-h-screen bg-background text-foreground p-4 sm:p-6">
       <div className="max-w-7xl mx-auto">
         {/* Header */}
-        <div className="mb-8">
-          <h1 className="text-4xl font-bold mb-2">Captura Inteligente de Feridas</h1>
-          <p className="text-lg text-muted-foreground">
+        <div className="mb-6 sm:mb-8">
+          <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold mb-2">Captura Inteligente de Feridas</h1>
+          <p className="text-sm sm:text-base lg:text-lg text-muted-foreground">
             Registre fotos da sua ferida para análise automática com IA e acompanhamento médico.
           </p>
         </div>
 
         {/* Progress Indicator */}
-        <div className="mb-8">
-          <div className="flex items-center justify-between mb-4">
+        <div className="mb-6 sm:mb-8">
+          <div className="flex flex-col sm:flex-row items-center justify-between mb-4 space-y-4 sm:space-y-0">
             {steps.map((step, index) => (
-              <div key={step.id} className="flex items-center">
+              <div key={step.id} className="flex items-center w-full sm:w-auto">
                 <div
                   className={cn(
-                    "w-10 h-10 rounded-full flex items-center justify-center text-sm font-semibold",
+                    "w-8 h-8 sm:w-10 sm:h-10 rounded-full flex items-center justify-center text-xs sm:text-sm font-semibold flex-shrink-0",
                     currentStep >= step.id
                       ? "bg-blue-500 text-white"
                       : "bg-gray-600 text-gray-300"
@@ -169,14 +169,14 @@ export default function WoundCapturePage() {
                 >
                   {step.id}
                 </div>
-                <div className="ml-3">
-                  <p className="font-medium">{step.title}</p>
-                  <p className="text-sm text-gray-400">{step.description}</p>
+                <div className="ml-2 sm:ml-3 min-w-0 flex-1">
+                  <p className="font-medium text-sm sm:text-base truncate">{step.title}</p>
+                  <p className="text-xs sm:text-sm text-gray-400 hidden sm:block">{step.description}</p>
                 </div>
                 {index < steps.length - 1 && (
                   <div
                     className={cn(
-                      "flex-1 h-0.5 mx-4",
+                      "hidden sm:block flex-1 h-0.5 mx-4",
                       currentStep > step.id ? "bg-blue-500" : "bg-gray-600"
                     )}
                   />
@@ -188,21 +188,21 @@ export default function WoundCapturePage() {
         </div>
 
         {/* Main Content */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6 lg:gap-8">
           {/* Left Card - Wound Capture */}
           <Card className="bg-card border-border">
-            <CardHeader>
-              <CardTitle className="text-card-foreground">Captura da Ferida</CardTitle>
+            <CardHeader className="pb-4">
+              <CardTitle className="text-card-foreground text-lg sm:text-xl">Captura da Ferida</CardTitle>
             </CardHeader>
-            <CardContent>
-              <p className="text-muted-foreground mb-6">
+            <CardContent className="pt-0">
+              <p className="text-muted-foreground mb-4 sm:mb-6 text-sm sm:text-base">
                 Posicione a câmera sobre a ferida para captura automática.
               </p>
               
               {/* Image Capture Area */}
               <div
                 className={cn(
-                  "border-2 border-dashed border-primary rounded-lg p-8 text-center cursor-pointer transition-colors",
+                  "border-2 border-dashed border-primary rounded-lg p-4 sm:p-6 lg:p-8 text-center cursor-pointer transition-colors",
                   "hover:border-primary/70 hover:bg-primary/5"
                 )}
                 onDragOver={handleDragOver}
@@ -210,39 +210,42 @@ export default function WoundCapturePage() {
                 onClick={() => fileInputRef.current?.click()}
               >
                 {capturedImage ? (
-                  <div className="space-y-4">
+                  <div className="space-y-3 sm:space-y-4">
                     <img
                       src={capturedImage}
                       alt="Captured wound"
-                      className="max-w-full h-64 object-contain rounded-lg mx-auto"
+                      className="max-w-full h-48 sm:h-56 lg:h-64 object-contain rounded-lg mx-auto"
                     />
-                    <p className="text-green-400">✓ Imagem capturada com sucesso!</p>
+                    <p className="text-green-400 text-sm sm:text-base">✓ Imagem capturada com sucesso!</p>
                   </div>
                 ) : (
-                  <div className="space-y-4">
-                    <div className="w-16 h-16 bg-primary rounded-full flex items-center justify-center mx-auto">
-                      <Camera className="w-8 h-8 text-primary-foreground" />
+                  <div className="space-y-3 sm:space-y-4">
+                    <div className="w-12 h-12 sm:w-16 sm:h-16 bg-primary rounded-full flex items-center justify-center mx-auto">
+                      <Camera className="w-6 h-6 sm:w-8 sm:h-8 text-primary-foreground" />
                     </div>
-                    <p className="text-foreground font-medium">Clique para capturar</p>
-                    <p className="text-muted-foreground">ou arraste uma imagem aqui</p>
+                    <p className="text-foreground font-medium text-sm sm:text-base">Clique para capturar</p>
+                    <p className="text-muted-foreground text-xs sm:text-sm">ou arraste uma imagem aqui</p>
                   </div>
                 )}
               </div>
 
               {/* Action Buttons */}
-              <div className="flex gap-4 mt-6">
+              <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 mt-4 sm:mt-6">
                 <Button
                   onClick={handleCapture}
                   disabled={isCapturing}
                   className="flex-1"
+                  size="sm"
                 >
                   <Camera className="w-4 h-4 mr-2" />
-                  {isCapturing ? "Capturando..." : "Capturar Foto"}
+                  <span className="hidden sm:inline">{isCapturing ? "Capturando..." : "Capturar Foto"}</span>
+                  <span className="sm:hidden">{isCapturing ? "Capturando..." : "Capturar"}</span>
                 </Button>
                 <Button
                   variant="outline"
                   onClick={() => fileInputRef.current?.click()}
                   className="flex-1"
+                  size="sm"
                 >
                   <Upload className="w-4 h-4 mr-2" />
                   Upload
@@ -261,6 +264,7 @@ export default function WoundCapturePage() {
                 <Button
                   onClick={startAnalysis}
                   className="w-full mt-4"
+                  size="sm"
                 >
                   Iniciar Análise IA
                 </Button>
@@ -270,15 +274,15 @@ export default function WoundCapturePage() {
 
           {/* Right Card - Capture Instructions */}
           <Card className="bg-card border-border">
-            <CardHeader>
-              <CardTitle className="text-card-foreground">Instruções de Captura</CardTitle>
+            <CardHeader className="pb-4">
+              <CardTitle className="text-card-foreground text-lg sm:text-xl">Instruções de Captura</CardTitle>
             </CardHeader>
-            <CardContent>
-              <p className="text-muted-foreground mb-6">
+            <CardContent className="pt-0">
+              <p className="text-muted-foreground mb-4 sm:mb-6 text-sm sm:text-base">
                 Siga estas diretrizes para obter a melhor análise.
               </p>
 
-              <div className="space-y-4">
+              <div className="space-y-3 sm:space-y-4">
                 {[
                   {
                     title: "Iluminação Adequada",
@@ -297,25 +301,25 @@ export default function WoundCapturePage() {
                     description: "Centralize a ferida na imagem, com margem ao redor."
                   }
                 ].map((instruction, index) => (
-                  <div key={index} className="flex items-start space-x-3">
-                    <div className="w-6 h-6 bg-primary rounded-full flex items-center justify-center text-xs font-semibold text-primary-foreground flex-shrink-0 mt-0.5">
+                  <div key={index} className="flex items-start space-x-2 sm:space-x-3">
+                    <div className="w-5 h-5 sm:w-6 sm:h-6 bg-primary rounded-full flex items-center justify-center text-xs font-semibold text-primary-foreground flex-shrink-0 mt-0.5">
                       {index + 1}
                     </div>
-                    <div>
-                      <h4 className="font-medium text-foreground">{instruction.title}</h4>
-                      <p className="text-sm text-muted-foreground">{instruction.description}</p>
+                    <div className="min-w-0 flex-1">
+                      <h4 className="font-medium text-foreground text-sm sm:text-base">{instruction.title}</h4>
+                      <p className="text-xs sm:text-sm text-muted-foreground">{instruction.description}</p>
                     </div>
                   </div>
                 ))}
               </div>
 
               {/* Pro Tip */}
-              <div className="mt-6 p-4 bg-accent border border-border rounded-lg">
-                <div className="flex items-start space-x-3">
-                  <CheckCircle className="w-5 h-5 text-accent-foreground flex-shrink-0 mt-0.5" />
-                  <div>
-                    <h4 className="font-medium text-accent-foreground">Dica Pro</h4>
-                    <p className="text-sm text-muted-foreground">
+              <div className="mt-4 sm:mt-6 p-3 sm:p-4 bg-accent border border-border rounded-lg">
+                <div className="flex items-start space-x-2 sm:space-x-3">
+                  <CheckCircle className="w-4 h-4 sm:w-5 sm:h-5 text-accent-foreground flex-shrink-0 mt-0.5" />
+                  <div className="min-w-0 flex-1">
+                    <h4 className="font-medium text-accent-foreground text-sm sm:text-base">Dica Pro</h4>
+                    <p className="text-xs sm:text-sm text-muted-foreground">
                       Use uma régua ou moeda como referência de escala para medições mais precisas.
                     </p>
                   </div>
@@ -327,20 +331,20 @@ export default function WoundCapturePage() {
 
         {/* Analysis Results */}
         {currentStep === 3 && (
-          <Card className="mt-8 bg-card border-border">
-            <CardContent className="p-8 text-center">
-              <div className="animate-spin w-12 h-12 border-4 border-primary border-t-transparent rounded-full mx-auto mb-4"></div>
-              <h3 className="text-xl font-semibold mb-2 text-foreground">Analisando com IA...</h3>
-              <p className="text-muted-foreground">Processando a imagem da ferida para análise detalhada.</p>
+          <Card className="mt-6 sm:mt-8 bg-card border-border">
+            <CardContent className="p-4 sm:p-6 lg:p-8 text-center">
+              <div className="animate-spin w-10 h-10 sm:w-12 sm:h-12 border-4 border-primary border-t-transparent rounded-full mx-auto mb-3 sm:mb-4"></div>
+              <h3 className="text-lg sm:text-xl font-semibold mb-2 text-foreground">Analisando com IA...</h3>
+              <p className="text-muted-foreground text-sm sm:text-base">Processando a imagem da ferida para análise detalhada.</p>
             </CardContent>
           </Card>
         )}
 
         {currentStep === 4 && (
-          <Card className="mt-8 bg-card border-border">
-            <CardContent className="p-8">
-              <h3 className="text-xl font-semibold mb-4 text-green-600 dark:text-green-400">✓ Análise Concluída!</h3>
-              <p className="text-muted-foreground mb-4">
+          <Card className="mt-6 sm:mt-8 bg-card border-border">
+            <CardContent className="p-4 sm:p-6 lg:p-8">
+              <h3 className="text-lg sm:text-xl font-semibold mb-3 sm:mb-4 text-green-600 dark:text-green-400">✓ Análise Concluída!</h3>
+              <p className="text-muted-foreground mb-4 text-sm sm:text-base">
                 A análise da ferida foi concluída com sucesso. Os resultados foram salvos e estão disponíveis no seu painel.
               </p>
               <Button
@@ -348,6 +352,8 @@ export default function WoundCapturePage() {
                   setCurrentStep(1);
                   setCapturedImage(null);
                 }}
+                size="sm"
+                className="w-full sm:w-auto"
               >
                 Nova Captura
               </Button>
@@ -358,10 +364,10 @@ export default function WoundCapturePage() {
 
       {/* Floating Action Button */}
       <Button
-        className="fixed bottom-6 right-6 w-14 h-14 rounded-full shadow-lg"
+        className="fixed bottom-4 right-4 sm:bottom-6 sm:right-6 w-12 h-12 sm:w-14 sm:h-14 rounded-full shadow-lg"
         size="icon"
       >
-        <MessageCircle className="w-6 h-6" />
+        <MessageCircle className="w-5 h-5 sm:w-6 sm:h-6" />
       </Button>
     </div>
   );
