@@ -48,6 +48,41 @@ declare module 'lucide-react' {
   export const BarChart3: any;
   export const Download: any;
   export const Share2: any;
+  export const LayoutDashboard: any;
+  export const FileText: any;
+  export const X: any;
+  export const ClipboardList: any;
+  export const Archive: any;
+  export const CopyCheck: any;
+  export const Users: any;
+  export const ChevronRight: any;
+  export const Menu: any;
+  export const PlusCircle: any;
+  export const MoreHorizontal: any;
+  export const Eye: any;
+  export const CalendarDays: any;
+  export const MessageSquare: any;
+  export const Stethoscope: any;
+  export const HeartPulse: any;
+  export const Pill: any;
+  export const Microscope: any;
+  export const FilePlus: any;
+  export const Info: any;
+  export const RefreshCw: any;
+  export const Syringe: any;
+  export const Droplets: any;
+  export const Ruler: any;
+  export const RedoDot: any;
+  export const Languages: any;
+  export const Moon: any;
+  export const Sun: any;
+  export const Contrast: any;
+  export const Text: any;
+  export const Cat: any;
+  export const Bot: any;
+  export const X: any;
+  export const Filter: any;
+  export const RefreshCw: any;
 }
 
 declare module 'date-fns' {
@@ -68,6 +103,15 @@ declare module 'date-fns/locale' {
 
 declare module 'next/image' {
   export default any;
+}
+
+declare module 'next/link' {
+  export default any;
+}
+
+declare module 'next/navigation' {
+  export function usePathname(): string;
+  export function useRouter(): any;
 }
 
 declare module 'jspdf' {
