@@ -15,10 +15,10 @@ import {
 } from "@/components/ui/select";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import { Loader2, Sparkles, AlertCircle, TrendingUp, TrendingDown, Minus, PencilLine, GitCompareArrows, FileImage, ClipboardCheck, ImageOff, FileDown, BarChart3 } from "lucide-react";
+import { Loader2, Sparkles, AlertCircle, TrendingUp, TrendingDown, Minus, PencilLine, GitCompareArrows, FileImage, ClipboardCheck, ImageOff, FileDown, BarChart3, Clock, Calendar } from "lucide-react";
 import { useAuth } from "@/hooks/use-auth";
 import { db } from "@/firebase/client-app";
-import { collection, query, getDocs, orderBy, Timestamp, addDoc, serverTimestamp } from "firebase/firestore";
+import { collection, query, getDocs, orderBy, Timestamp, addDoc, serverTimestamp, getDoc, doc } from "firebase/firestore";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Badge } from "@/components/ui/badge";
@@ -29,6 +29,8 @@ import jsPDF from "jspdf";
 import autoTable from 'jspdf-autotable';
 import { useTranslation } from "@/contexts/app-provider";
 import { Progress } from "@/components/ui/progress";
+import type { AnamnesisFormValues } from "@/lib/anamnesis-schema";
+
 
 interface StoredReport {
   id: string;
@@ -36,6 +38,8 @@ interface StoredReport {
   reportContent: string;
   woundImageUri: string;
   createdAt: Timestamp;
+  anamnesisId: string;
+  professionalId: string;
 }
 
 const isAIEnabled = !!process.env.NEXT_PUBLIC_GEMINI_API_KEY;
@@ -54,6 +58,8 @@ export function ReportComparator() {
   const [comparisonResult, setComparisonResult] = useState<CompareWoundReportsOutput | null>(null);
   const [loading, setLoading] = useState(false);
   const [pdfLoading, setPdfLoading] = useState(false);
+  const [comparisonHistory, setComparisonHistory] = useState<any[]>([]);
+  const [selectedHistoryItem, setSelectedHistoryItem] = useState<any>(null);
   const [progressMetrics, setProgressMetrics] = useState<ProgressMetrics | null>(null);
   const { toast } = useToast();
   const { user } = useAuth();
@@ -76,7 +82,7 @@ export function ReportComparator() {
       fetchReports();
     }
   }, [user, toast, t]);
-
+  
   const calculateProgressMetrics = (comparison: CompareWoundReportsOutput): ProgressMetrics => {
     const delta = comparison.relatorio_comparativo.analise_quantitativa_progressao;
     
@@ -166,160 +172,102 @@ export function ReportComparator() {
     }
   };
   
-    const handleSavePdf = async () => {
-    const selectedReport1 = reports.find(r => r.id === selectedReport1Id);
-    const selectedReport2 = reports.find(r => r.id === selectedReport2Id);
-    if (!comparisonResult || !selectedReport1?.woundImageUri || !selectedReport2?.woundImageUri || !progressMetrics) return;
+  const handleSavePdf = async () => {
+    const report1 = reports.find(r => r.id === selectedReport1Id);
+    const report2 = reports.find(r => r.id === selectedReport2Id);
+    if (!comparisonResult || !report1 || !report2 || !user) return;
     setPdfLoading(true);
-    
+
     try {
-        const doc = new jsPDF('p', 'mm', 'a4');
+        const anamnesisSnap1 = await getDoc(doc(db, "users", report1.professionalId, "anamnesis", report1.anamnesisId));
+        const anamnesisSnap2 = await getDoc(doc(db, "users", report2.professionalId, "anamnesis", report2.anamnesisId));
+        if (!anamnesisSnap1.exists() || !anamnesisSnap2.exists()) {
+            toast({ title: "Erro", description: "Ficha de anamnese não encontrada.", variant: "destructive" });
+            setPdfLoading(false);
+            return;
+        }
+        const anamnesis1 = anamnesisSnap1.data() as AnamnesisFormValues;
+
+        const doc_ = new jsPDF('p', 'mm', 'a4');
         const margin = 15;
-        const pageWidth = doc.internal.pageSize.getWidth();
-        let finalY = 0;
+        const pageWidth = doc_.internal.pageSize.getWidth();
+        let finalY = margin;
 
-        const addPageIfNeeded = (requiredSpace: number) => {
-            if (finalY + requiredSpace > doc.internal.pageSize.getHeight() - margin) {
-                doc.addPage();
-                finalY = margin;
-            }
-        };
+        // --- Cabeçalho e Identificação ---
+        doc_.setFont('helvetica', 'bold');
+        doc_.setFontSize(16);
+        doc_.text("Relatório Comparativo de Progressão de Ferida", pageWidth / 2, finalY, { align: 'center' });
+        finalY += 10;
         
-        const drawHistogramChart = (doc: jsPDF, x: number, y: number, width: number, height: number, data: any[], title: string) => {
-            doc.setFontSize(12);
-            doc.setFont('helvetica', 'bold');
-            doc.text(title, x, y);
-            y += 5;
-
-            doc.setDrawColor(150);
-            doc.line(x, y + height, x + width, y + height); // X-axis
-            doc.line(x, y, x, y + height); // Y-axis
-
-            const maxPercent = 100;
-            const barCount = data.length;
-            const barWidth = (width - 10) / barCount;
-            const barSpacing = 5;
-
-            doc.setFontSize(8);
-            doc.setTextColor(100);
-
-            const colorMap: { [key: string]: string } = {
-                'Vermelhos': '#e53e3e',
-                'Amarelos': '#f6e05e',
-                'Pretos': '#2d3748',
-                'Brancos/Ciano': '#fbb6ce',
-            };
-
-            data.forEach((item, index) => {
-                const barHeight = (item.contagem_pixels_percentual / maxPercent) * height;
-                const barX = x + barSpacing + index * barWidth;
-                const barY = y + height - barHeight;
-                
-                doc.setFillColor(colorMap[item.faixa_cor] || '#cccccc');
-                doc.rect(barX, barY, barWidth - barSpacing, barHeight, 'F');
-                
-                doc.setFont('helvetica', 'normal');
-                const label = item.faixa_cor.substring(0, 4) + '.';
-                doc.text(label, barX + (barWidth - barSpacing) / 2, y + height + 4, { align: 'center' });
-                doc.setFont('helvetica', 'bold');
-                doc.text(`${item.contagem_pixels_percentual.toFixed(1)}%`, barX + (barWidth - barSpacing) / 2, barY - 2, { align: 'center' });
-            });
-            return y + height + 10;
-        };
-
-        // --- Título e Cabeçalho ---
-        doc.setFont('helvetica', 'bold');
-        doc.setFontSize(16);
-        doc.text("Relatório Comparativo de Progressão de Ferida", pageWidth / 2, margin, { align: 'center' });
-        finalY = margin + 10;
-
-        // --- Imagens Comparativas e Métricas de Progresso ---
-        const imgWidth = (pageWidth - margin * 3) / 2;
-        const img1Props = doc.getImageProperties(selectedReport1.woundImageUri);
-        const img2Props = doc.getImageProperties(selectedReport2.woundImageUri);
-        const img1Height = (img1Props.height * imgWidth) / img1Props.width;
-        const img2Height = (img2Props.height * imgWidth) / img2Props.width;
-        const maxHeight = Math.max(img1Height, img2Height);
-
-        addPageIfNeeded(maxHeight + 100);
-        
-        doc.setFontSize(12);
-        doc.text("Imagens Comparadas", margin, finalY);
-        finalY += 8;
-        
-        doc.addImage(selectedReport1.woundImageUri, 'PNG', margin, finalY, imgWidth, img1Height);
-        doc.addImage(selectedReport2.woundImageUri, 'PNG', margin + imgWidth + margin, finalY, imgWidth, img2Height);
-        
-        doc.setFontSize(8);
-        doc.setFont('helvetica', 'normal');
-        doc.text(`Imagem 1 (${selectedReport1.createdAt.toDate().toLocaleDateString()})`, margin, finalY + maxHeight + 4);
-        doc.text(`Imagem 2 (${selectedReport2.createdAt.toDate().toLocaleDateString()})`, margin + imgWidth + margin, finalY + maxHeight + 4);
-        finalY += maxHeight + 10;
-        
-        autoTable(doc, {
+        autoTable(doc_, {
             startY: finalY,
-            head: [['Métricas de Progresso', 'Valor']],
+            head: [['Paciente e Profissional']],
             body: [
-                ['Score de Cicatrização', `${progressMetrics.healingScore.toFixed(0)}/100`],
-                ['Variação da Área', `${progressMetrics.areaChange.toFixed(1)}%`],
-                ['Progresso Geral', progressMetrics.overallProgress.charAt(0).toUpperCase() + progressMetrics.overallProgress.slice(1)],
+                [`Paciente: ${anamnesis1.nome_cliente}`],
+                [`Profissional: ${user.name || user.email}`],
             ],
             theme: 'striped',
-            headStyles: { fontStyle: 'bold', fillColor: [44, 62, 80] },
         });
-        finalY = (doc as any).lastAutoTable.finalY + 10;
+        finalY = (doc_ as any).lastAutoTable.finalY + 10;
 
-        autoTable(doc, {
+        // --- Histórico Clínico ---
+        autoTable(doc_, {
             startY: finalY,
-            head: [['Resumo Descritivo da Evolução']],
-            body: [[comparisonResult.relatorio_comparativo.resumo_descritivo_evolucao]],
+            head: [['Histórico Clínico Relevante']],
+            body: [
+                [`${anamnesis1.historico_cicrizacao || 'Nenhum histórico de cicatrização relatado.'}`]
+            ],
             theme: 'grid',
-            headStyles: { fontStyle: 'bold', fillColor: [22, 160, 133] },
         });
-        finalY = (doc as any).lastAutoTable.finalY;
+        finalY = (doc_ as any).lastAutoTable.finalY + 10;
 
-        // --- Análise Detalhada ---
-        const createDetailedTables = (analysis: typeof comparisonResult.analise_imagem_1, title: string) => {
-            doc.addPage();
-            finalY = margin;
-            doc.setFontSize(14);
-            doc.setFont('helvetica', 'bold');
-            doc.text(title, margin, finalY);
-            finalY += 10;
-
-            const qualityBody = Object.entries(analysis.avaliacao_qualidade).map(([key, value]) => [key.replace(/_/g, ' '), value]);
-            autoTable(doc, { startY: finalY, head: [['Qualidade da Imagem', 'Avaliação']], body: qualityBody, theme: 'striped', headStyles: { fillColor: [52, 73, 94] } });
-            finalY = (doc as any).lastAutoTable.finalY + 8;
-            addPageIfNeeded(60);
-
-            const dimBody = [
-                ['Área Afetada', `${analysis.analise_dimensional.area_total_afetada} ${analysis.analise_dimensional.unidade_medida}`],
-                ...Object.entries(analysis.analise_textura_e_caracteristicas).map(([key, value]) => [key.replace(/_/g, ' '), value])
-            ];
-            autoTable(doc, { startY: finalY, head: [['Análise Dimensional e Textura', 'Valor']], body: dimBody, theme: 'striped', headStyles: { fillColor: [52, 73, 94] } });
-            finalY = (doc as any).lastAutoTable.finalY + 8;
-            addPageIfNeeded(60);
-
-            const colorBody = analysis.analise_colorimetrica.cores_dominantes.map(c => [c.cor, c.hex_aproximado, `${c.area_percentual}%`]);
-            autoTable(doc, { startY: finalY, head: [['Análise Colorimétrica - Cor', 'Hex', '% Área']], body: colorBody, theme: 'striped', headStyles: { fillColor: [52, 73, 94] } });
-            finalY = (doc as any).lastAutoTable.finalY + 10;
-            addPageIfNeeded(80);
-
-            if (analysis.analise_histograma) {
-                finalY = drawHistogramChart(doc, margin, finalY, pageWidth - margin * 2, 50, analysis.analise_histograma.distribuicao_cores, 'Histograma de Cores');
-            }
-        };
-
-        createDetailedTables(comparisonResult.analise_imagem_1, "Análise Detalhada - Imagem 1");
-        createDetailedTables(comparisonResult.analise_imagem_2, "Análise Detalhada - Imagem 2");
-
-        const fileName = `Comparativo_${selectedReport1.patientName.replace(/\s/g, '_')}.pdf`;
-        doc.save(fileName);
+        // --- Resumo e Imagens ---
+        const imgWidth = (pageWidth - margin * 3) / 2;
+        const img1Props = doc_.getImageProperties(report1.woundImageUri);
+        const img1Height = (img1Props.height * imgWidth) / img1Props.width;
+        doc_.addImage(report1.woundImageUri, 'PNG', margin, finalY, imgWidth, img1Height);
+        doc_.addImage(report2.woundImageUri, 'PNG', margin * 2 + imgWidth, finalY, imgWidth, img1Height);
+        finalY += img1Height + 5;
         
-        toast({ title: "PDF Gerado", description: "O relatório detalhado foi baixado." });
+        // --- Conclusões e Evolução ---
+        autoTable(doc_, {
+            startY: finalY,
+            head: [['Evolução e Conclusões']],
+            body: [
+                [comparisonResult.relatorio_comparativo.resumo_descritivo_evolucao]
+            ],
+            theme: 'grid',
+        });
+        finalY = (doc_ as any).lastAutoTable.finalY + 10;
+
+        // --- Plano de Cuidados e Intervenções ---
+        autoTable(doc_, {
+            startY: finalY,
+            head: [['Plano de Cuidados e Intervenções']],
+            body: [
+                [anamnesis1.objetivo_tratamento || 'Plano de tratamento a ser definido pelo profissional.']
+            ],
+            theme: 'grid',
+        });
+        finalY = (doc_ as any).lastAutoTable.finalY + 10;
+
+        // --- Referências ---
+        autoTable(doc_, {
+            startY: finalY,
+            head: [['Referências']],
+            body: [
+                ['Borges, Eline Lima; Souza, Perla Oliveira Soares de. Feridas: como tratar – 3 ed. Rio de Janeiro: Rubio 2024. 61-88 p.'],
+                ['Menoita,E; Seara, a.; Santos, V. Plano de Tratamento dirigido aos Sinais Clínicos da Infecção da Ferida, Journal of Aging & Inovation, 3 (2):62-73, 2014.']
+            ],
+            theme: 'grid',
+        });
+
+        const fileName = `Comparativo_${report1.patientName.replace(/\s/g, '_')}.pdf`;
+        doc_.save(fileName);
+
     } catch (error) {
         console.error("Erro ao gerar PDF:", error);
-        toast({ title: "Erro ao Gerar PDF", description: "Não foi possível criar o arquivo.", variant: "destructive" });
+        toast({ title: t.pdfErrorTitle, description: t.pdfErrorDescription, variant: "destructive" });
     } finally {
         setPdfLoading(false);
     }
