@@ -100,9 +100,6 @@ export default function AppSidebar({ className, onLinkClick }: AppSidebarProps) 
             <Logo />
             <div className="absolute -top-1 -right-1 w-3 h-3 bg-gradient-to-r from-blue-500 to-purple-500 rounded-full animate-pulse" />
           </div>
-          <span className="bg-gradient-to-r from-foreground to-foreground/70 bg-clip-text text-transparent group-hover:from-primary group-hover:to-primary/70 transition-all duration-300">
-            Heal+
-          </span>
         </Link>
       </div>
 
