@@ -19,7 +19,6 @@ import { db } from "@/firebase/client-app";
 import { collection, addDoc, serverTimestamp, query, orderBy, limit, getDocs } from "firebase/firestore";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Badge } from "@/components/ui/badge";
 import { useTranslation } from "@/contexts/app-provider";
 import jsPDF from "jspdf";
 import autoTable from 'jspdf-autotable';
@@ -275,119 +274,126 @@ export function ImageComparator() {
   
   const handleSavePdf = async () => {
     if (!comparison || !image1.preview || !image2.preview) {
-      toast({
-        title: "Dados Incompletos",
-        description: "Não é possível gerar o PDF sem as imagens e análise.",
-        variant: "destructive",
-      });
-      return;
+        toast({
+            title: "Dados Incompletos",
+            description: "Não é possível gerar o PDF sem as imagens e análise.",
+            variant: "destructive",
+        });
+        return;
     }
-    
+
     setPdfLoading(true);
-    
+
     try {
         const doc = new jsPDF('p', 'mm', 'a4');
         const margin = 15;
         const pageWidth = doc.internal.pageSize.getWidth();
-        
-        // Título
+        let finalY = 20;
+
+        // Título e Período
         doc.setFont('helvetica', 'bold');
         doc.setFontSize(16);
-        doc.text("Relatório Comparativo de Progressão de Ferida", pageWidth / 2, 20, { align: 'center' });
-
-        // Período de análise
+        doc.text("Relatório Comparativo de Progressão de Ferida", pageWidth / 2, finalY, { align: 'center' });
+        finalY += 8;
         doc.setFont('helvetica', 'normal');
         doc.setFontSize(10);
-        const analysisPeriod = comparison.relatorio_comparativo?.periodo_analise || `De ${image1.datetime} a ${image2.datetime}`;
-        doc.text(`Período de Análise: ${analysisPeriod}`, pageWidth / 2, 28, { align: 'center' });
-        
-        let finalY = 35;
-        
-        // Imagens lado a lado
-        doc.setFontSize(12);
+        doc.text(`Período de Análise: ${comparison.relatorio_comparativo.periodo_analise}`, pageWidth / 2, finalY, { align: 'center' });
+        finalY += 15;
+
+        // Resumo Descritivo
+        const summaryText = doc.splitTextToSize(comparison.relatorio_comparativo.resumo_descritivo_evolucao, pageWidth - margin * 2);
+        autoTable(doc, {
+            startY: finalY,
+            head: [['Resumo Descritivo da Evolução']],
+            body: [[summaryText]],
+            theme: 'grid',
+            headStyles: { fontStyle: 'bold', fillColor: [22, 160, 133] },
+        });
+        finalY = (doc as any).lastAutoTable.finalY + 10;
+
+        // Análise Detalhada
+        doc.addPage();
+        finalY = 20;
         doc.setFont('helvetica', 'bold');
-        doc.text("Imagens Comparadas", margin, finalY);
-        finalY += 8;
+        doc.setFontSize(14);
+        doc.text("Análise Detalhada das Imagens", margin, finalY);
+        finalY += 10;
 
-        const imgWidth = (pageWidth - margin * 3) / 2;
+        const addAnalysisSection = (title: string, analysis: any) => {
+            doc.setFontSize(12);
+            doc.setFont('helvetica', 'bold');
+            doc.text(title, margin, finalY);
+            finalY += 8;
+
+            // Qualidade da Imagem
+            autoTable(doc, {
+                startY: finalY,
+                head: [['Qualidade da Imagem', 'Avaliação']],
+                body: Object.entries(analysis.avaliacao_qualidade).map(([key, value]) => [key, String(value)]),
+                theme: 'striped',
+            });
+            finalY = (doc as any).lastAutoTable.finalY + 8;
+
+            // Dimensional e Textura
+            autoTable(doc, {
+                startY: finalY,
+                head: [['Análise Dimensional e Textura', 'Valor']],
+                body: [
+                    ["Área Afetada", `${analysis.analise_dimensional.area_total_afetada} ${analysis.analise_dimensional.unidade_medida}`],
+                    ...Object.entries(analysis.analise_textura_e_caracteristicas).map(([key, value]) => [key, String(value)])
+                ],
+                theme: 'striped',
+            });
+            finalY = (doc as any).lastAutoTable.finalY + 8;
+
+            // Colorimetria
+            autoTable(doc, {
+                startY: finalY,
+                head: [['Análise Colorimétrica - Cor', 'Hex', '% Área']],
+                body: analysis.analise_colorimetrica.cores_dominantes.map((c: any) => [c.cor, c.hex_aproximado, `${c.area_percentual}%`]),
+                theme: 'striped',
+            });
+            finalY = (doc as any).lastAutoTable.finalY + 8;
+
+            // Histograma
+            autoTable(doc, {
+                startY: finalY,
+                head: [['Histograma de Cores - Faixa', '% Pixels']],
+                body: analysis.analise_histograma.distribuicao_cores.map((h: any) => [h.faixa_cor, `${h.contagem_pixels_percentual}%`]),
+                theme: 'striped',
+            });
+            finalY = (doc as any).lastAutoTable.finalY + 15;
+        };
+
+        addAnalysisSection("Análise - Imagem 1", comparison.analise_imagem_1);
         
-        try {
-          const img1Props = doc.getImageProperties(image1.preview);
-          const img2Props = doc.getImageProperties(image2.preview);
-          const img1Height = (img1Props.height * imgWidth) / img1Props.width;
-          const img2Height = (img2Props.height * imgWidth) / img2Props.width;
-          const maxHeight = Math.max(img1Height, img2Height);
-
-          doc.addImage(image1.preview, 'PNG', margin, finalY, imgWidth, img1Height);
-          doc.addImage(image2.preview, 'PNG', margin + imgWidth + margin, finalY, imgWidth, img2Height);
-          
-          doc.setFontSize(8);
-          doc.setFont('helvetica', 'normal');
-          doc.text(`Imagem 1 (${image1.id})`, margin, finalY + maxHeight + 4);
-          doc.text(`Imagem 2 (${image2.id})`, margin + imgWidth + margin, finalY + maxHeight + 4);
-          
-          finalY += maxHeight + 10;
-        } catch (imgError) {
-          console.warn("Erro ao adicionar imagens:", imgError);
-          doc.text("Imagens não puderam ser incluídas no PDF", margin, finalY);
-          finalY += 10;
-        }
-        
-        // Resumo descritivo
-        if (comparison.relatorio_comparativo?.resumo_descritivo_evolucao) {
-          const summaryText = doc.splitTextToSize(comparison.relatorio_comparativo.resumo_descritivo_evolucao, pageWidth - margin * 2);
-          
-          autoTable(doc, {
-              startY: finalY,
-              head: [['Resumo Descritivo da Evolução']],
-              body: [[summaryText]],
-              theme: 'grid',
-              headStyles: { fontStyle: 'bold', fillColor: [22, 160, 133] },
-          });
-          
-          finalY = (doc as any).lastAutoTable.finalY + 10;
+        if (finalY > 200) {
+            doc.addPage();
+            finalY = 20;
         }
 
-        // Análise quantitativa
-        if (comparison.relatorio_comparativo?.analise_quantitativa_progressao) {
-          const delta = comparison.relatorio_comparativo.analise_quantitativa_progressao;
-          const tableBody = [
-              ["Δ Área Total Afetada", delta.delta_area_total_afetada || "N/A"],
-              ["Δ Coloração (Hiperpigmentação)", delta.delta_coloracao?.mudanca_area_hiperpigmentacao || "N/A"],
-              ["Δ Coloração (Eritema/Rubor)", delta.delta_coloracao?.mudanca_area_eritema_rubor || "N/A"],
-              ["Δ Edema", delta.delta_edema || "N/A"],
-              ["Δ Textura", delta.delta_textura || "N/A"],
-          ];
+        addAnalysisSection("Análise - Imagem 2", comparison.analise_imagem_2);
 
-          autoTable(doc, {
-              startY: finalY,
-              head: [['Análise Quantitativa (Delta Δ)', 'Variação']],
-              body: tableBody,
-              theme: 'striped',
-              headStyles: { fontStyle: 'bold', fillColor: [22, 160, 133] },
-          });
-        }
-
-        // Salvar arquivo
         const fileName = `Comparativo_${image1.id}_vs_${image2.id}_${new Date().toISOString().split('T')[0]}.pdf`;
         doc.save(fileName);
-        
+
         toast({
-          title: "PDF Gerado",
-          description: "O relatório foi baixado com sucesso.",
+            title: "PDF Gerado",
+            description: "O relatório detalhado foi baixado com sucesso.",
         });
 
     } catch (error) {
-      console.error("Erro ao gerar PDF:", error);
-      toast({
-          title: "Erro ao Gerar PDF",
-          description: "Não foi possível criar o arquivo PDF. Verifique se as imagens estão carregadas e tente novamente.",
-          variant: "destructive",
-      });
+        console.error("Erro ao gerar PDF:", error);
+        toast({
+            title: "Erro ao Gerar PDF",
+            description: "Não foi possível criar o arquivo PDF.",
+            variant: "destructive",
+        });
     } finally {
-      setPdfLoading(false);
+        setPdfLoading(false);
     }
-  };
+};
+
 
   const ImageUploader = ({ 
     id, 
