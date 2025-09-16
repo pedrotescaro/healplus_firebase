@@ -67,21 +67,16 @@ export default function Home() {
 
       {/* Header */}
       <header className="sticky top-0 z-50 border-b border-border/50 bg-background/80 backdrop-blur-xl supports-[backdrop-filter]:bg-background/60 shadow-lg shadow-primary/5">
-        <div className="container mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex h-16 lg:h-20 items-center justify-between">
-            <div className="flex items-center space-x-3">
+        <div className="container mx-auto px-3 sm:px-4 md:px-6 lg:px-8">
+          <div className="flex h-14 sm:h-16 lg:h-20 items-center justify-between">
+            <div className="flex items-center">
               <Logo />
-              <div className="hidden sm:block">
-                <span className="text-lg font-bold bg-gradient-to-r from-primary to-primary/80 bg-clip-text text-transparent">
-                  Heal+
-                </span>
-              </div>
             </div>
             <div className="flex items-center space-x-2 sm:space-x-3">
               <div className="hidden sm:block">
                 <ThemeToggle />
               </div>
-              <Button variant="ghost" size="sm" asChild className="hidden sm:inline-flex hover:bg-primary/10 transition-all duration-300">
+              <Button variant="ghost" size="sm" asChild className="hidden sm:inline-flex text-foreground hover:bg-primary/10 hover:text-primary transition-all duration-300">
                 <Link href="/login">Entrar</Link>
               </Button>
               <Button size="sm" asChild className="bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary/70 text-sm px-3 sm:px-4 shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105">
@@ -99,7 +94,7 @@ export default function Home() {
       </header>
 
       {/* Hero Section */}
-      <section className="relative py-16 sm:py-24 lg:py-32 px-4 sm:px-6 lg:px-8 overflow-hidden">
+      <section className="relative py-12 sm:py-16 md:py-20 lg:py-24 xl:py-32 px-3 sm:px-4 md:px-6 lg:px-8 overflow-hidden">
         {/* Background decoration */}
         <div className="absolute inset-0 -z-10">
           <div className="absolute top-1/4 left-1/4 w-48 sm:w-72 lg:w-96 h-48 sm:h-72 lg:h-96 bg-gradient-to-r from-primary/20 to-primary/10 rounded-full blur-3xl animate-pulse"></div>
@@ -116,44 +111,44 @@ export default function Home() {
               <span className="sm:hidden">Sistema Inteligente</span>
             </div>
             
-            <h1 className="text-4xl sm:text-6xl lg:text-8xl font-bold text-foreground leading-tight animate-fade-in-up delay-200">
+            <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl xl:text-7xl 2xl:text-8xl font-bold text-foreground leading-tight animate-fade-in-up delay-200">
               A plataforma inteligente para{" "}
               <span className="bg-gradient-to-r from-primary via-primary/90 to-primary/70 bg-clip-text text-transparent animate-gradient">
                 gestão de feridas
               </span>
             </h1>
             
-            <p className="text-lg sm:text-2xl lg:text-3xl text-muted-foreground max-w-4xl mx-auto leading-relaxed px-4 animate-fade-in-up delay-400">
+            <p className="text-base sm:text-lg md:text-xl lg:text-2xl xl:text-3xl text-muted-foreground max-w-4xl mx-auto leading-relaxed px-3 sm:px-4 animate-fade-in-up delay-400">
               Utilize IA com Gemini para análise de imagens, 
               geração de relatórios e acompanhamento de progressão de feridas.
             </p>
             
-            <div className="flex flex-col sm:flex-row gap-4 sm:gap-6 justify-center pt-6 px-4 animate-fade-in-up delay-600">
-              <Button size="lg" asChild className="h-14 sm:h-16 px-8 sm:px-10 text-lg sm:text-xl bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary/70 shadow-xl hover:shadow-2xl transition-all duration-500 transform hover:scale-105 hover:-translate-y-1">
+            <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 md:gap-6 justify-center pt-4 sm:pt-6 px-3 sm:px-4 animate-fade-in-up delay-600">
+              <Button size="lg" asChild className="h-12 sm:h-14 md:h-16 px-6 sm:px-8 md:px-10 text-base sm:text-lg md:text-xl bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary/70 shadow-xl hover:shadow-2xl transition-all duration-500 transform hover:scale-105 hover:-translate-y-1">
                 <Link href="/signup">
                   <span className="hidden sm:inline">Começar Gratuitamente</span>
                   <span className="sm:hidden">Começar Grátis</span>
                   <ArrowRight className="ml-2 h-5 w-5 sm:h-6 sm:w-6 animate-pulse" />
                 </Link>
               </Button>
-              <Button size="lg" variant="outline" asChild className="h-14 sm:h-16 px-8 sm:px-10 text-lg sm:text-xl border-2 hover:bg-primary/10 transition-all duration-300 transform hover:scale-105">
+              <Button size="lg" variant="outline" asChild className="h-12 sm:h-14 md:h-16 px-6 sm:px-8 md:px-10 text-base sm:text-lg md:text-xl border-2 border-primary text-primary hover:bg-primary hover:text-white transition-all duration-300 transform hover:scale-105">
                 <Link href="/login">Já tenho conta</Link>
               </Button>
             </div>
             
             {/* Stats */}
-            <div className="grid grid-cols-3 gap-6 sm:gap-12 pt-12 sm:pt-20 max-w-3xl mx-auto animate-fade-in-up delay-800">
+            <div className="grid grid-cols-3 gap-4 sm:gap-6 md:gap-8 lg:gap-12 pt-8 sm:pt-12 md:pt-16 lg:pt-20 max-w-3xl mx-auto animate-fade-in-up delay-800">
               <div className="text-center group">
-                <div className="text-3xl sm:text-4xl lg:text-5xl font-bold text-primary group-hover:scale-110 transition-transform duration-300">IA</div>
-                <div className="text-sm sm:text-base text-muted-foreground font-medium">Gemini 2.0</div>
+                <div className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold text-primary group-hover:scale-110 transition-transform duration-300">IA</div>
+                <div className="text-xs sm:text-sm md:text-base text-muted-foreground font-medium">Gemini 2.0</div>
               </div>
               <div className="text-center group">
-                <div className="text-3xl sm:text-4xl lg:text-5xl font-bold text-primary group-hover:scale-110 transition-transform duration-300">TIMERS</div>
-                <div className="text-sm sm:text-base text-muted-foreground font-medium">Framework</div>
+                <div className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold text-primary group-hover:scale-110 transition-transform duration-300">TIMERS</div>
+                <div className="text-xs sm:text-sm md:text-base text-muted-foreground font-medium">Framework</div>
               </div>
               <div className="text-center group">
-                <div className="text-3xl sm:text-4xl lg:text-5xl font-bold text-primary group-hover:scale-110 transition-transform duration-300">PDF</div>
-                <div className="text-sm sm:text-base text-muted-foreground font-medium">Relatórios</div>
+                <div className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold text-primary group-hover:scale-110 transition-transform duration-300">PDF</div>
+                <div className="text-xs sm:text-sm md:text-base text-muted-foreground font-medium">Relatórios</div>
               </div>
             </div>
           </div>
@@ -161,7 +156,7 @@ export default function Home() {
       </section>
 
       {/* Features Section */}
-      <section className="py-20 sm:py-32 px-4 sm:px-6 lg:px-8 bg-gradient-to-br from-muted/10 via-background to-muted/20 relative overflow-hidden">
+      <section className="py-12 sm:py-16 md:py-20 lg:py-24 xl:py-32 px-3 sm:px-4 md:px-6 lg:px-8 bg-gradient-to-br from-muted/10 via-background to-muted/20 relative overflow-hidden">
         {/* Background decoration */}
         <div className="absolute inset-0 -z-10">
           <div className="absolute top-0 left-0 w-full h-full bg-gradient-to-br from-primary/5 via-transparent to-primary/10"></div>
@@ -187,7 +182,7 @@ export default function Home() {
             </p>
           </div>
           
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8 sm:gap-10 lg:gap-12">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8 md:gap-10 lg:gap-12">
             <FeatureCard
               icon={Brain}
               title="Análise com IA"

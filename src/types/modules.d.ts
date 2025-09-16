@@ -98,6 +98,8 @@ declare module 'lucide-react' {
   export const Accessibility: any;
   export const ChevronDown: any;
   export const ChevronUp: any;
+  export const ChevronLeft: any;
+  export const ChevronRight: any;
   export const Crown: any;
   export const UserCheck: any;
   export const Lock: any;
