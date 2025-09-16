@@ -2,7 +2,7 @@
  * @fileOverview Shared Zod schemas for AI flows.
  */
 
-import { z } from 'genkit';
+import { z } from 'zod';
 
 export const ImageAnalysisSchema = z.object({
     id_imagem: z.string(),

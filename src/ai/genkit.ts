@@ -1,11 +1,11 @@
-import {genkit, GenkitPlugin} from 'genkit';
+import {genkit} from 'genkit';
 import {googleAI} from '@genkit-ai/googleai';
 
 // The googleAI() plugin automatically looks for a GEMINI_API_KEY
 // in the environment variables. This is configured in apphosting.yaml for production
 // and in the .env file for local development.
 
-const plugins: GenkitPlugin[] = [];
+const plugins: any[] = [];
 
 // Only initialize the Google AI plugin if the API key is available.
 // This prevents the application from crashing during deployment if the secret is not yet configured.

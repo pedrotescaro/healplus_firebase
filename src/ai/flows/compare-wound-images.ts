@@ -10,7 +10,7 @@
  */
 
 import {ai} from '@/ai/genkit';
-import {z} from 'genkit';
+import {z} from 'zod';
 import { CompareWoundImagesOutputSchema } from '../schemas';
 
 const CompareWoundImagesInputSchema = z.object({
