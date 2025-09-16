@@ -192,7 +192,7 @@ export function ReportComparator() {
         const pageWidth = doc_.internal.pageSize.getWidth();
         let finalY = margin;
 
-        const addHeaderAndFooter = () => {
+        const addFooter = () => {
             const pageCount = (doc_ as any).internal.getNumberOfPages();
             for (let i = 1; i <= pageCount; i++) {
                 doc_.setPage(i);
@@ -326,7 +326,8 @@ export function ReportComparator() {
         finalY += 10;
         addAnalysisTables(comparisonResult.analise_imagem_2, finalY);
         
-        addHeaderAndFooter();
+        // Add footer to all pages
+        addFooter();
 
         const fileName = `Comparativo_${report1.patientName.replace(/\s/g, '_')}.pdf`;
         doc_.save(fileName);
@@ -639,7 +640,3 @@ const IndividualAnalysisCard = ({ analysis }: { analysis?: CompareWoundReportsOu
           </div>
       )
   };
-
-    
-
-    

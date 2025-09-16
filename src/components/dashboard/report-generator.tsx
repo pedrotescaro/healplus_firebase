@@ -231,20 +231,11 @@ export function ReportGenerator() {
     setPdfLoading(true);
 
     try {
-        const anamnesisDocRef = doc(db, "users", user.uid, "anamnesis", selectedRecord.id);
-        const anamnesisSnap = await getDoc(anamnesisDocRef);
-        if (!anamnesisSnap.exists()) {
-          toast({ title: "Erro", description: "Ficha de anamnese associada não encontrada.", variant: "destructive" });
-          setPdfLoading(false);
-          return;
-        }
-        const anamnesisRecord = anamnesisSnap.data() as AnamnesisFormValues;
-
         const doc_ = new jsPDF('p', 'mm', 'a4');
         const margin = 15;
         const pageWidth = doc_.internal.pageSize.getWidth();
         let finalY = margin;
-
+        
         const addFooter = () => {
             const pageCount = (doc_ as any).internal.getNumberOfPages();
             for (let i = 1; i <= pageCount; i++) {
@@ -256,7 +247,7 @@ export function ReportGenerator() {
             }
         };
 
-        // Section 1: Identificação
+        // Section 1: Identificação do Profissional
         doc_.setFont('helvetica', 'bold');
         doc_.setFontSize(16);
         doc_.text("Terapia de Cicatrização - Cuidado Especializado em Feridas", pageWidth / 2, finalY, { align: 'center' });
@@ -266,8 +257,8 @@ export function ReportGenerator() {
             startY: finalY,
             head: [['1. Identificação do Profissional']],
             body: [
-                [`Profissional: ${anamnesisRecord.profissional_responsavel || user.name || 'Não informado'}`],
-                [`COREN/CRM: ${anamnesisRecord.coren || 'Não informado'}`]
+                [`Profissional: ${selectedRecord.profissional_responsavel || user.name || 'Não informado'}`],
+                [`COREN/CRM: ${selectedRecord.coren || 'Não informado'}`]
             ],
             theme: 'striped',
         });
@@ -275,10 +266,10 @@ export function ReportGenerator() {
         
         // Section 2: Dados do Paciente
         const comorbidades = [
-            anamnesisRecord.dmi && "DMI",
-            anamnesisRecord.dmii && "DMII",
-            anamnesisRecord.has && "HAS",
-            anamnesisRecord.neoplasia && "Neoplasia",
+            selectedRecord.dmi && "DMI",
+            selectedRecord.dmii && "DMII",
+            selectedRecord.has && "HAS",
+            selectedRecord.neoplasia && "Neoplasia",
             //... add all other comorbidities
         ].filter(Boolean).join(', ');
 
@@ -286,8 +277,8 @@ export function ReportGenerator() {
             startY: finalY,
             head: [['2. Dados do Paciente']],
             body: [
-                [`Nome: ${anamnesisRecord.nome_cliente}`],
-                [`Data de Nascimento: ${anamnesisRecord.data_nascimento}`],
+                [`Nome: ${selectedRecord.nome_cliente}`],
+                [`Data de Nascimento: ${selectedRecord.data_nascimento}`],
                 [`Comorbidades: ${comorbidades || 'Nenhuma informada'}`],
             ],
             theme: 'striped',
@@ -299,9 +290,9 @@ export function ReportGenerator() {
             startY: finalY,
             head: [['3. Histórico da Lesão e Atendimento']],
             body: [
-                [`Tipo de Lesão: ${anamnesisRecord.etiologia_ferida === 'Outra' ? anamnesisRecord.etiologia_outra : anamnesisRecord.etiologia_ferida}`],
-                [`Tempo de Evolução: ${anamnesisRecord.tempo_evolucao}`],
-                [`Data da Avaliação: ${new Date(anamnesisRecord.data_consulta).toLocaleDateString('pt-BR', { timeZone: 'UTC' })}`],
+                [`Tipo de Lesão: ${selectedRecord.etiologia_ferida === 'Outra' ? selectedRecord.etiologia_outra : selectedRecord.etiologia_ferida}`],
+                [`Tempo de Evolução: ${selectedRecord.tempo_evolucao}`],
+                [`Data da Avaliação: ${new Date(selectedRecord.data_consulta).toLocaleDateString('pt-BR', { timeZone: 'UTC' })}`],
             ],
             theme: 'striped',
         });
@@ -312,27 +303,27 @@ export function ReportGenerator() {
             startY: finalY,
             head: [['4. Avaliação Inicial da Lesão']],
             body: [
-                ['Tecido', `Granulação: ${anamnesisRecord.percentual_granulacao_leito}%, Epitelização: ${anamnesisRecord.percentual_epitelizacao_leito}%, Esfacelo: ${anamnesisRecord.percentual_esfacelo_leito}%, Necrose: ${anamnesisRecord.percentual_necrose_seca_leito}%`],
-                ['Dimensões', `${anamnesisRecord.ferida_comprimento}cm x ${anamnesisRecord.ferida_largura}cm x ${anamnesisRecord.ferida_profundidade}cm`],
-                ['Exsudato', `${anamnesisRecord.quantidade_exsudato}, ${anamnesisRecord.tipo_exsudato}`],
-                ['Dor', `Escala ${anamnesisRecord.dor_escala}/10`],
+                ['Tecido', `Granulação: ${selectedRecord.percentual_granulacao_leito}%, Epitelização: ${selectedRecord.percentual_epitelizacao_leito}%, Esfacelo: ${selectedRecord.percentual_esfacelo_leito}%, Necrose: ${selectedRecord.percentual_necrose_seca_leito}%`],
+                ['Dimensões', `${selectedRecord.ferida_comprimento}cm x ${selectedRecord.ferida_largura}cm x ${selectedRecord.ferida_profundidade}cm`],
+                ['Exsudato', `${selectedRecord.quantidade_exsudato}, ${selectedRecord.tipo_exsudato}`],
+                ['Dor', `Escala ${selectedRecord.dor_escala}/10`],
             ],
             theme: 'grid',
         });
         finalY = (doc_ as any).lastAutoTable.finalY + 10;
         
         // Imagem
-        if (anamnesisRecord.woundImageUri) {
+        if (selectedRecord.woundImageUri) {
           doc_.setFont('helvetica', 'bold');
           doc_.text("Imagem da Ferida", margin, finalY);
           finalY += 5;
           const img = new (window as any).Image();
-          img.src = anamnesisRecord.woundImageUri;
+          img.src = selectedRecord.woundImageUri;
           await new Promise(resolve => { img.onload = resolve; });
-          const imgProps = doc_.getImageProperties(anamnesisRecord.woundImageUri);
+          const imgProps = doc_.getImageProperties(selectedRecord.woundImageUri);
           const imgWidth = 80;
           const imgHeight = (imgProps.height * imgWidth) / imgProps.width;
-          doc_.addImage(anamnesisRecord.woundImageUri, 'PNG', (pageWidth - imgWidth) / 2, finalY, imgWidth, imgHeight);
+          doc_.addImage(selectedRecord.woundImageUri, 'PNG', (pageWidth - imgWidth) / 2, finalY, imgWidth, imgHeight);
           finalY += imgHeight + 5;
         }
 
@@ -340,7 +331,7 @@ export function ReportGenerator() {
         autoTable(doc_, {
             startY: finalY,
             head: [['5. Conduta Terapêutica e Plano de Cuidados']],
-            body: [[anamnesisRecord.observacoes || 'Plano de cuidados a ser definido pelo profissional.']],
+            body: [[selectedRecord.observacoes || 'Plano de cuidados a ser definido pelo profissional.']],
             theme: 'grid',
         });
         finalY = (doc_ as any).lastAutoTable.finalY + 5;
@@ -357,7 +348,7 @@ export function ReportGenerator() {
         });
 
         addFooter();
-        const fileName = `Relatorio_${anamnesisRecord.nome_cliente.replace(/\s/g, '_')}_${new Date().toLocaleDateString('pt-BR').replace(/\//g, '-')}.pdf`;
+        const fileName = `Relatorio_${selectedRecord.nome_cliente.replace(/\s/g, '_')}_${new Date().toLocaleDateString('pt-BR').replace(/\//g, '-')}.pdf`;
         doc_.save(fileName);
 
     } catch (error) {
@@ -496,4 +487,3 @@ export function ReportGenerator() {
     </div>
   );
 }
-
