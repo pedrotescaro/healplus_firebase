@@ -15,7 +15,7 @@ import {
 } from "@/components/ui/select";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import { Loader2, Sparkles, AlertCircle, TrendingUp, TrendingDown, Minus, PencilLine, GitCompareArrows, FileImage, ClipboardCheck, ImageOff, FileDown } from "lucide-react";
+import { Loader2, Sparkles, AlertCircle, TrendingUp, TrendingDown, Minus, PencilLine, GitCompareArrows, FileImage, ClipboardCheck, ImageOff, FileDown, BarChart3 } from "lucide-react";
 import { useAuth } from "@/hooks/use-auth";
 import { db } from "@/firebase/client-app";
 import { collection, query, getDocs, orderBy, Timestamp, addDoc, serverTimestamp } from "firebase/firestore";
@@ -165,13 +165,13 @@ export function ReportComparator() {
       setLoading(false);
     }
   };
-
-  const handleSavePdf = async () => {
+  
+    const handleSavePdf = async () => {
     const selectedReport1 = reports.find(r => r.id === selectedReport1Id);
     const selectedReport2 = reports.find(r => r.id === selectedReport2Id);
     if (!comparisonResult || !selectedReport1?.woundImageUri || !selectedReport2?.woundImageUri || !progressMetrics) return;
     setPdfLoading(true);
-
+    
     try {
         const doc = new jsPDF('p', 'mm', 'a4');
         const margin = 15;
@@ -385,6 +385,13 @@ export function ReportComparator() {
           )}
         </div>
       </form>
+
+      {(selectedReport1 || selectedReport2) && (
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <ReportDisplay report={selectedReport1} title={t.report1LabelOldest.replace(/\s*\(.+\)$/, '')} />
+            <ReportDisplay report={selectedReport2} title={t.report2LabelNewest.replace(/\s*\(.+\)$/, '')} />
+        </div>
+       )}
 
       {loading && (
         <div className="flex items-center justify-center flex-col text-center p-8">
