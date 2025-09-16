@@ -104,16 +104,6 @@ export default function AppSidebar({ className, onLinkClick }: AppSidebarProps) 
         <Link href="/dashboard" className="relative flex items-center gap-2 lg:gap-3 font-bold text-base lg:text-lg group w-full">
           <div className="relative">
             <Logo />
-            <div className="absolute -top-1 -right-1 w-2.5 h-2.5 lg:w-3 lg:h-3 bg-gradient-to-r from-blue-500 to-purple-500 rounded-full animate-pulse shadow-lg" />
-            <div className="absolute -top-0.5 -right-0.5 w-3 h-3 lg:w-4 lg:h-4 bg-gradient-to-r from-blue-400/30 to-purple-400/30 rounded-full animate-ping" />
-          </div>
-          <div className="flex-1 min-w-0">
-            <span className="text-transparent bg-gradient-to-r from-foreground to-foreground/70 bg-clip-text group-hover:from-primary group-hover:to-primary/70 transition-all duration-300 text-sm lg:text-base font-bold">
-              Heal+
-            </span>
-            <div className="text-xs text-muted-foreground/60 font-medium">
-              Healthcare AI
-            </div>
           </div>
         </Link>
       </div>
