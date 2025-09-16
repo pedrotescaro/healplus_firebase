@@ -13,7 +13,7 @@ import { Separator } from "@/components/ui/separator";
 import { Badge } from "@/components/ui/badge";
 import { useState, useEffect } from "react";
 import { Avatar, AvatarFallback, AvatarImage } from "../ui/avatar";
-// import { AnimatePresence, motion } from "framer-motion";
+import { AnimatePresence, motion } from "framer-motion";
 import { useTranslation } from "@/contexts/app-provider";
 
 const chatTopics = {
@@ -152,7 +152,12 @@ export function CatSupport({ currentPage }: { currentPage: string }) {
     badge?: string,
     badgeColor?: string
   }) => (
-    <div className={`flex items-start gap-3 w-full animate-fade-in-up transition-all duration-300 ${isUser ? "justify-end" : ""}`}>
+    <motion.div
+      initial={{ opacity: 0, y: 10 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.3 }}
+      className={`flex items-start gap-3 w-full ${isUser ? "justify-end" : ""}`}
+    >
       {!isUser && (
         <Avatar className="h-8 w-8 border-2 border-primary/50 shadow-lg">
           <AvatarFallback className="bg-gradient-to-br from-primary/20 to-primary/10">
@@ -171,7 +176,7 @@ export function CatSupport({ currentPage }: { currentPage: string }) {
         }`}
       >
         <div className="flex items-center gap-2">
-          {Icon && <Icon className="h-4 w-4 shrink-0" />}
+            {Icon && <Icon className="h-4 w-4 shrink-0" />}
           <span className="flex-1">{text}</span>
           {badge && (
             <span className={`ml-2 ${badgeColor} text-white text-xs px-2 py-0.5 rounded-full`}>
@@ -187,23 +192,35 @@ export function CatSupport({ currentPage }: { currentPage: string }) {
             </AvatarFallback>
         </Avatar>
       )}
-    </div>
+    </motion.div>
   );
 
   const TipBlock = ({ tip, index }: { tip: string, index: number }) => (
-    <div 
-      className="flex items-start gap-2 p-3 bg-gradient-to-r from-primary/5 to-primary/10 rounded-lg border border-primary/20 animate-fade-in-up transition-all duration-300"
-      style={{ animationDelay: `${index * 0.1}s` }}
+    <motion.div
+      initial={{ opacity: 0, x: -20 }}
+      animate={{ opacity: 1, x: 0 }}
+      transition={{ duration: 0.3, delay: index * 0.1 }}
+      className="flex items-start gap-2 p-3 bg-gradient-to-r from-primary/5 to-primary/10 rounded-lg border border-primary/20"
     >
       <Star className="h-4 w-4 text-primary mt-0.5 shrink-0" />
       <span className="text-sm text-foreground">{tip}</span>
-    </div>
+    </motion.div>
   );
 
   return (
     <Popover open={isOpen} onOpenChange={setIsOpen}>
       <PopoverTrigger asChild>
-        <div className="fixed bottom-6 right-6 z-50 hover:scale-110 active:scale-95 transition-transform duration-300 animate-bounce">
+        <motion.div 
+          className="fixed bottom-6 right-6 z-50"
+          whileHover={{ scale: 1.1 }}
+          whileTap={{ scale: 0.95 }}
+          animate={{ 
+            y: [0, -5, 0],
+          }}
+          transition={{ 
+            y: { duration: 2, repeat: Infinity, ease: "easeInOut" }
+          }}
+        >
           <Button
             size="icon"
             className="rounded-full h-16 w-16 bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary/70 shadow-2xl hover:shadow-primary/25 transition-all duration-300 border-2 border-white/20"
@@ -211,8 +228,19 @@ export function CatSupport({ currentPage }: { currentPage: string }) {
             <Cat className="h-8 w-8 text-white" />
             <span className="sr-only">{t.chat}</span>
           </Button>
-          <div className="absolute -top-1 -right-1 w-4 h-4 bg-gradient-to-r from-yellow-400 to-orange-500 rounded-full animate-pulse" />
-        </div>
+          <motion.div
+            className="absolute -top-1 -right-1 w-4 h-4 bg-gradient-to-r from-yellow-400 to-orange-500 rounded-full"
+            animate={{ 
+              scale: [1, 1.2, 1],
+              opacity: [0.7, 1, 0.7]
+            }}
+            transition={{ 
+              duration: 2, 
+              repeat: Infinity, 
+              ease: "easeInOut" 
+            }}
+          />
+        </motion.div>
       </PopoverTrigger>
       <PopoverContent className="w-96 mr-4 p-0 border-none shadow-2xl bg-gradient-to-br from-background via-background to-muted/10 backdrop-blur-xl" side="top" align="end">
           <div className="flex items-center justify-between p-4 bg-gradient-to-r from-primary/10 via-primary/5 to-transparent rounded-t-lg border-b border-primary/20">
@@ -243,7 +271,15 @@ export function CatSupport({ currentPage }: { currentPage: string }) {
                </PopoverClose>
           </div>
         <div className="p-4 bg-background/95 space-y-4 h-[420px] overflow-y-auto scrollbar-thin">
-          <div className="space-y-4 flex flex-col items-start animate-fade-in-up">
+          <AnimatePresence mode="wait">
+              <motion.div
+                  key={step}
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -10 }}
+                  transition={{ duration: 0.3 }}
+                  className="space-y-4 flex flex-col items-start"
+              >
             {step === 'intro' && (
               <>
                   <ChatBlock icon={Bot} text={randomGreeting} />
@@ -264,7 +300,7 @@ export function CatSupport({ currentPage }: { currentPage: string }) {
                       {Object.entries(chatTopics).map(([key, topic]) => (
                           <ChatBlock 
                               icon={topic.icon} 
-                              text={topic.question}
+                              text={topic.question} 
                               badge={topic.badge}
                               badgeColor={topic.color}
                               onClick={() => setStep(key as ChatStep)} 
@@ -314,11 +350,12 @@ export function CatSupport({ currentPage }: { currentPage: string }) {
                       className="hover:bg-primary/10 transition-colors"
                     >
                       <RefreshCw className="h-4 w-4" />
-                    </Button>
+                  </Button>
                   </div>
               </>
             )}
-            </div>
+            </motion.div>
+          </AnimatePresence>
         </div>
       </PopoverContent>
     </Popover>
