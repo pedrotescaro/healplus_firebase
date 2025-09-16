@@ -27,7 +27,7 @@ import { Progress } from "@/components/ui/progress";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 
-const isAIEnabled = true; // !!process.env.NEXT_PUBLIC_GEMINI_API_KEY;
+const isAIEnabled = !!process.env.NEXT_PUBLIC_GEMINI_API_KEY;
 
 type ImageFileState = {
     file: File | null;
