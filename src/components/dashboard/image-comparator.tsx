@@ -19,6 +19,7 @@ import { db } from "@/firebase/client-app";
 import { collection, addDoc, serverTimestamp, query, orderBy, limit, getDocs } from "firebase/firestore";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { Badge } from "@/components/ui/badge";
 import { useTranslation } from "@/contexts/app-provider";
 import jsPDF from "jspdf";
 import autoTable from 'jspdf-autotable';
@@ -300,6 +301,21 @@ export function ImageComparator() {
         doc.text(`Período de Análise: ${comparison.relatorio_comparativo.periodo_analise}`, pageWidth / 2, finalY, { align: 'center' });
         finalY += 15;
 
+        // Imagens lado a lado
+        doc.setFontSize(12);
+        doc.setFont('helvetica', 'bold');
+        doc.text("Imagens Comparadas", margin, finalY);
+        finalY += 8;
+        const imgWidth = (pageWidth - margin * 3) / 2;
+        const img1Props = doc.getImageProperties(image1.preview);
+        const img1Height = (img1Props.height * imgWidth) / img1Props.width;
+        doc.addImage(image1.preview, 'PNG', margin, finalY, imgWidth, img1Height);
+        const img2Props = doc.getImageProperties(image2.preview);
+        const img2Height = (img2Props.height * imgWidth) / img2Props.width;
+        doc.addImage(image2.preview, 'PNG', margin + imgWidth + margin, finalY, imgWidth, img2Height);
+        const maxHeight = Math.max(img1Height, img2Height);
+        finalY += maxHeight + 10;
+
         // Resumo Descritivo
         const summaryText = doc.splitTextToSize(comparison.relatorio_comparativo.resumo_descritivo_evolucao, pageWidth - margin * 2);
         autoTable(doc, {
@@ -311,21 +327,34 @@ export function ImageComparator() {
         });
         finalY = (doc as any).lastAutoTable.finalY + 10;
 
-        // Análise Detalhada
+        // Análise Quantitativa
+        const delta = comparison.relatorio_comparativo.analise_quantitativa_progressao;
+        autoTable(doc, {
+            startY: finalY,
+            head: [['Análise Quantitativa (Delta Δ)', 'Variação']],
+            body: [
+                ["Δ Área Total Afetada", delta.delta_area_total_afetada],
+                ["Δ Coloração (Hiperpigmentação)", delta.delta_coloracao.mudanca_area_hiperpigmentacao],
+                ["Δ Coloração (Eritema/Rubor)", delta.delta_coloracao.mudanca_area_eritema_rubor],
+                ["Δ Edema", delta.delta_edema],
+                ["Δ Textura", delta.delta_textura],
+            ],
+            theme: 'striped',
+            headStyles: { fontStyle: 'bold', fillColor: [22, 160, 133] },
+        });
+        finalY = (doc as any).lastAutoTable.finalY + 10;
+        
+        // Nova página para detalhes
         doc.addPage();
         finalY = 20;
-        doc.setFont('helvetica', 'bold');
-        doc.setFontSize(14);
-        doc.text("Análise Detalhada das Imagens", margin, finalY);
-        finalY += 10;
-
+        
+        // Função para adicionar seção de análise detalhada
         const addAnalysisSection = (title: string, analysis: any) => {
-            doc.setFontSize(12);
+            doc.setFontSize(14);
             doc.setFont('helvetica', 'bold');
             doc.text(title, margin, finalY);
-            finalY += 8;
-
-            // Qualidade da Imagem
+            finalY += 10;
+        
             autoTable(doc, {
                 startY: finalY,
                 head: [['Qualidade da Imagem', 'Avaliação']],
@@ -333,8 +362,7 @@ export function ImageComparator() {
                 theme: 'striped',
             });
             finalY = (doc as any).lastAutoTable.finalY + 8;
-
-            // Dimensional e Textura
+        
             autoTable(doc, {
                 startY: finalY,
                 head: [['Análise Dimensional e Textura', 'Valor']],
@@ -345,35 +373,20 @@ export function ImageComparator() {
                 theme: 'striped',
             });
             finalY = (doc as any).lastAutoTable.finalY + 8;
-
-            // Colorimetria
+        
             autoTable(doc, {
                 startY: finalY,
                 head: [['Análise Colorimétrica - Cor', 'Hex', '% Área']],
                 body: analysis.analise_colorimetrica.cores_dominantes.map((c: any) => [c.cor, c.hex_aproximado, `${c.area_percentual}%`]),
                 theme: 'striped',
             });
-            finalY = (doc as any).lastAutoTable.finalY + 8;
-
-            // Histograma
-            autoTable(doc, {
-                startY: finalY,
-                head: [['Histograma de Cores - Faixa', '% Pixels']],
-                body: analysis.analise_histograma.distribuicao_cores.map((h: any) => [h.faixa_cor, `${h.contagem_pixels_percentual}%`]),
-                theme: 'striped',
-            });
             finalY = (doc as any).lastAutoTable.finalY + 15;
         };
 
-        addAnalysisSection("Análise - Imagem 1", comparison.analise_imagem_1);
+        addAnalysisSection("Análise Detalhada - Imagem 1", comparison.analise_imagem_1);
+        if (finalY > 200) { doc.addPage(); finalY = 20; }
+        addAnalysisSection("Análise Detalhada - Imagem 2", comparison.analise_imagem_2);
         
-        if (finalY > 200) {
-            doc.addPage();
-            finalY = 20;
-        }
-
-        addAnalysisSection("Análise - Imagem 2", comparison.analise_imagem_2);
-
         const fileName = `Comparativo_${image1.id}_vs_${image2.id}_${new Date().toISOString().split('T')[0]}.pdf`;
         doc.save(fileName);
 
@@ -392,7 +405,7 @@ export function ImageComparator() {
     } finally {
         setPdfLoading(false);
     }
-};
+  };
 
 
   const ImageUploader = ({ 

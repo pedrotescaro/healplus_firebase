@@ -1,7 +1,7 @@
 
 "use client";
 
-import { ReportComparator } from "@/components/dashboard/report-comparator";
+import { ImageComparator } from "@/components/dashboard/image-comparator";
 import { Card, CardContent } from "@/components/ui/card";
 import { useTranslation } from "@/contexts/app-provider";
 
@@ -15,7 +15,7 @@ export default function CompareReportsPage() {
       </div>
       <Card>
         <CardContent className="p-6">
-          <ReportComparator />
+          <ImageComparator />
         </CardContent>
       </Card>
     </div>

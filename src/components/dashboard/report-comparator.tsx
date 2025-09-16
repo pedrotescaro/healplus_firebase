@@ -1,406 +1,466 @@
 
 "use client";
 
-import { useState, useEffect } from "react";
+import React, { useState, useEffect } from "react";
 import Image from "next/image";
-import { compareWoundReports, CompareWoundReportsOutput } from "@/ai/flows/compare-wound-reports";
-import { getRisk } from "@/lib/api-client";
+import { compareWoundImages, CompareWoundImagesOutput } from "@/ai/flows/compare-wound-images";
 import { useToast } from "@/hooks/use-toast";
 import { Button } from "@/components/ui/button";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import { Loader2, Sparkles, AlertCircle, TrendingUp, TrendingDown, Minus, PencilLine, GitCompareArrows, FileImage, ClipboardCheck, ImageOff, FileDown } from "lucide-react";
+import { fileToDataUri } from "@/lib/file-to-data-uri";
+import { UploadCloud, Loader2, GitCompareArrows, Camera, AlertCircle, Sparkles, FileImage, ClipboardCheck, FileDown, TrendingUp, TrendingDown, Minus, Calendar, Clock, BarChart3, Download, Share2 } from "lucide-react";
+import { Separator } from "@/components/ui/separator";
+import { ImageCapture } from "@/components/dashboard/image-capture";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { useAuth } from "@/hooks/use-auth";
 import { db } from "@/firebase/client-app";
-import { collection, query, getDocs, orderBy, Timestamp, addDoc, serverTimestamp } from "firebase/firestore";
-import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { ScrollArea } from "@/components/ui/scroll-area";
-import { Badge } from "@/components/ui/badge";
+import { collection, addDoc, serverTimestamp, query, orderBy, limit, getDocs } from "firebase/firestore";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Separator } from "@/components/ui/separator";
+import { Badge } from "@/components/ui/badge";
+import { useTranslation } from "@/contexts/app-provider";
 import jsPDF from "jspdf";
 import autoTable from 'jspdf-autotable';
-import { useTranslation } from "@/contexts/app-provider";
-
-interface StoredReport {
-  id: string;
-  patientName: string;
-  reportContent: string;
-  woundImageUri: string;
-  createdAt: Timestamp;
-}
+import { Progress } from "@/components/ui/progress";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Bar, BarChart, CartesianGrid, XAxis, YAxis, ResponsiveContainer } from "recharts";
+import { ChartContainer, ChartTooltip, ChartTooltipContent, ChartConfig } from "@/components/ui/chart";
 
 const isAIEnabled = !!process.env.NEXT_PUBLIC_GEMINI_API_KEY;
-const isStubAvailable = !!process.env.NEXT_PUBLIC_AI_BASE;
 
-export function ReportComparator() {
-  const [reports, setReports] = useState<StoredReport[]>([]);
-  const [selectedReport1Id, setSelectedReport1Id] = useState<string>("");
-  const [selectedReport2Id, setSelectedReport2Id] = useState<string>("");
-  const [comparisonResult, setComparisonResult] = useState<CompareWoundReportsOutput | null>(null);
+type ImageFileState = {
+    file: File | null;
+    preview: string | null;
+    id: string;
+    datetime: string;
+}
+
+type ComparisonHistory = {
+    id: string;
+    image1Metadata: any;
+    image2Metadata: any;
+    createdAt: any;
+    relatorio_comparativo: any;
+    progressMetrics?: ProgressMetrics;
+}
+
+type ProgressMetrics = {
+    areaChange: number;
+    healingScore: number;
+    tissueImprovement: number;
+    overallProgress: 'melhora' | 'piora' | 'estavel';
+}
+
+const chartConfig = {
+  pixels: {
+    label: "Pixels",
+  },
+  Vermelhos: {
+    label: "Vermelhos",
+    color: "hsl(var(--chart-1))",
+  },
+  Amarelos: {
+    label: "Amarelos",
+    color: "hsl(var(--chart-2))",
+  },
+  Pretos: {
+    label: "Pretos",
+    color: "hsl(var(--chart-3))",
+  },
+  "Brancos/Ciano": {
+    label: "Brancos/Ciano",
+    color: "hsl(var(--chart-4))",
+  },
+} satisfies ChartConfig
+
+export function ImageComparator() {
+  const [image1, setImage1] = useState<ImageFileState>({ file: null, preview: null, id: '', datetime: '' });
+  const [image2, setImage2] = useState<ImageFileState>({ file: null, preview: null, id: '', datetime: '' });
+  const [comparison, setComparison] = useState<CompareWoundImagesOutput | null>(null);
   const [loading, setLoading] = useState(false);
   const [pdfLoading, setPdfLoading] = useState(false);
-  const [demoResult, setDemoResult] = useState<null | { risk1: any; risk2: any }>(null);
+  const [comparisonHistory, setComparisonHistory] = useState<ComparisonHistory[]>([]);
+  const [selectedHistoryItem, setSelectedHistoryItem] = useState<ComparisonHistory | null>(null);
+  const [showHistory, setShowHistory] = useState(false);
+  const [progressMetrics, setProgressMetrics] = useState<ProgressMetrics | null>(null);
   const { toast } = useToast();
   const { user } = useAuth();
   const { t } = useTranslation();
 
+  // Carregar histórico de comparações
   useEffect(() => {
-    const fetchReports = async () => {
+    const fetchComparisonHistory = async () => {
       if (!user) return;
+      
       try {
-        const q = query(collection(db, "users", user.uid, "reports"), orderBy("createdAt", "desc"));
+        const q = query(
+          collection(db, "users", user.uid, "comparisons"),
+          orderBy("createdAt", "desc"),
+          limit(10)
+        );
         const querySnapshot = await getDocs(q);
-        const fetchedReports = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as StoredReport));
-        setReports(fetchedReports);
+        const history = querySnapshot.docs.map((doc: any) => ({
+          id: doc.id,
+          ...doc.data()
+        } as ComparisonHistory));
+        setComparisonHistory(history);
       } catch (error) {
-        console.error("Error fetching reports from Firestore: ", error);
-        toast({ title: t.fetchReportsErrorTitle, description: t.fetchReportsErrorDescription, variant: "destructive" });
+        console.error("Erro ao carregar histórico:", error);
       }
     };
-    if (user) {
-      fetchReports();
-    }
-  }, [user, toast, t]);
 
-  const handleSubmit = async (e: React.FormEvent) => {
+    fetchComparisonHistory();
+  }, [user]);
+
+  // Calcular métricas de progresso
+  const calculateProgressMetrics = (comparison: CompareWoundImagesOutput): ProgressMetrics => {
+    const delta = comparison.relatorio_comparativo.analise_quantitativa_progressao;
+    
+    // Extrair mudança de área (assumindo formato como "-15.2%" ou "+5.1%")
+    const areaChangeText = delta.delta_area_total_afetada;
+    const areaChange = parseFloat(areaChangeText.replace(/[^\d.-]/g, '')) || 0;
+    
+    // Calcular score de cicatrização baseado em múltiplos fatores
+    let healingScore = 50; // Base score
+    
+    // Área: redução é boa
+    if (areaChange < 0) healingScore += Math.abs(areaChange) * 2;
+    else healingScore -= areaChange * 2;
+    
+    // Edema: redução é boa
+    const edemaText = delta.delta_edema;
+    if (edemaText.includes('redução') || edemaText.includes('diminuição')) healingScore += 15;
+    else if (edemaText.includes('aumento')) healingScore -= 15;
+    
+    // Textura: melhora é boa
+    const texturaText = delta.delta_textura;
+    if (texturaText.includes('melhora') || texturaText.includes('melhor')) healingScore += 10;
+    else if (texturaText.includes('piora')) healingScore -= 10;
+    
+    healingScore = Math.max(0, Math.min(100, healingScore));
+    
+    // Determinar progresso geral
+    let overallProgress: 'melhora' | 'piora' | 'estavel' = 'estavel';
+    if (healingScore > 60) overallProgress = 'melhora';
+    else if (healingScore < 40) overallProgress = 'piora';
+    
+    return {
+      areaChange,
+      healingScore,
+      tissueImprovement: healingScore,
+      overallProgress
+    };
+  };
+
+  const handleFileSelect = (file: File, imageNumber: 1 | 2) => {
+    const reader = new FileReader();
+    reader.onloadend = () => {
+        const now = new Date();
+        const datetime = now.toISOString().slice(0, 19);
+        const newImageState: ImageFileState = {
+            file,
+            preview: reader.result as string,
+            id: file.name || `image-${imageNumber}-${now.getTime()}`,
+            datetime,
+        };
+        if (imageNumber === 1) {
+            setImage1(newImageState);
+        } else {
+            setImage2(newImageState);
+        }
+    };
+    reader.readAsDataURL(file);
+  };
+  
+  const handleFileChange = (e: any, imageNumber: 1 | 2) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      handleFileSelect(file, imageNumber);
+    }
+  };
+
+  const handleSubmit = async (e: any) => {
     e.preventDefault();
-    if (!selectedReport1Id || !selectedReport2Id) {
-      toast({ title: t.selectionIncompleteTitle, description: t.selectionIncompleteDescription, variant: "destructive" });
-      return;
-    }
-    if (selectedReport1Id === selectedReport2Id) {
-      toast({ title: t.selectionInvalidTitle, description: t.selectionInvalidDescription, variant: "destructive" });
-      return;
-    }
-
-    const report1 = reports.find(r => r.id === selectedReport1Id);
-    const report2 = reports.find(r => r.id === selectedReport2Id);
-
-    if (!report1 || !report2 || !report1.woundImageUri || !report2.woundImageUri) {
-      toast({ title: t.incompleteDataTitle, description: t.incompleteDataDescription, variant: "destructive" });
+    if (!image1.file || !image2.file) {
+      toast({
+        title: "Imagens Faltando",
+        description: "Por favor, envie ambas as imagens da ferida para comparação.",
+        variant: "destructive",
+      });
       return;
     }
 
     setLoading(true);
-    setComparisonResult(null);
-    setDemoResult(null);
+    setComparison(null);
     try {
-      if (isAIEnabled) {
-        const result = await compareWoundReports({
-          report1Content: report1.reportContent,
-          report2Content: report2.reportContent,
-          image1DataUri: report1.woundImageUri,
-          image2DataUri: report2.woundImageUri,
-          report1Date: report1.createdAt.toDate().toISOString(),
-          report2Date: report2.createdAt.toDate().toISOString(),
-        });
-        setComparisonResult(result);
-        if (user) {
-          await addDoc(collection(db, "users", user.uid, "comparisons"), {
+      const [image1DataUri, image2DataUri] = await Promise.all([
+        fileToDataUri(image1.file),
+        fileToDataUri(image2.file),
+      ]);
+      const result = await compareWoundImages({
+        image1DataUri,
+        image2DataUri,
+        image1Metadata: { id: image1.id, datetime: image1.datetime },
+        image2Metadata: { id: image2.id, datetime: image2.datetime },
+       });
+
+      const quality1 = result.analise_imagem_1.avaliacao_qualidade;
+      const quality2 = result.analise_imagem_2.avaliacao_qualidade;
+
+      const isQualityGood = quality1.iluminacao === "Adequada" && quality1.foco === "Nítido" &&
+                            quality2.iluminacao === "Adequada" && quality2.foco === "Nítido";
+
+      setComparison(result);
+      
+      // Calcular métricas de progresso
+      const metrics = calculateProgressMetrics(result);
+      setProgressMetrics(metrics);
+      
+      if (user) {
+        try {
+          const docRef = await addDoc(collection(db, "users", user.uid, "comparisons"), {
             ...result,
-            report1Id: selectedReport1Id,
-            report2Id: selectedReport2Id,
-            patientName: report1.patientName,
+            image1Metadata: { id: image1.id, datetime: image1.datetime, url: image1DataUri },
+            image2Metadata: { id: image2.id, datetime: image2.datetime, url: image2DataUri },
+            progressMetrics: metrics,
             createdAt: serverTimestamp(),
           });
-          toast({ title: t.comparisonSavedTitle, description: t.comparisonSavedDescription });
+          
+          toast({
+            title: "Comparação Salva",
+            description: "O resultado da análise foi salvo no seu histórico.",
+          });
+          
+          // Atualizar histórico local
+          setComparisonHistory((prev: any) => [{
+            id: docRef.id,
+            image1Metadata: { id: image1.id, datetime: image1.datetime, url: image1DataUri },
+            image2Metadata: { id: image2.id, datetime: image2.datetime, url: image2DataUri },
+            relatorio_comparativo: result.relatorio_comparativo,
+            createdAt: new Date(),
+            progressMetrics: metrics
+          }, ...prev.slice(0, 9)]);
+          
+        } catch (saveError) {
+          console.error("Erro ao salvar comparação:", saveError);
+          toast({
+            title: "Erro ao Salvar",
+            description: "A análise foi realizada, mas não foi possível salvar no histórico. Tente novamente.",
+            variant: "destructive",
+          });
         }
-      } else if (isStubAvailable) {
-        const [risk1, risk2] = await Promise.all([
-          getRisk({ demo: true, image: report1.woundImageUri }),
-          getRisk({ demo: true, image: report2.woundImageUri })
-        ]);
-        setDemoResult({ risk1, risk2 });
-        toast({ title: t.comparisonSavedTitle, description: 'Análise demo (mock) concluída.' });
+      }
+
+      if (!isQualityGood) {
+        toast({
+            title: t.imageQualityAlertTitle || "Alerta de Qualidade da Imagem",
+            description: t.imageQualityAlertDescription || "Uma ou ambas as imagens têm baixa qualidade (iluminação ou foco), o que pode afetar a precisão da análise. Recomenda-se usar imagens mais nítidas e bem iluminadas.",
+            variant: "destructive",
+            duration: 8000
+        });
       }
     } catch (error) {
-      console.error("Erro ao comparar relatórios:", error);
-      toast({ title: t.analysisErrorTitle, description: t.analysisErrorDescription, variant: "destructive" });
+      console.error("Erro ao comparar imagens:", error);
+      toast({
+        title: "Erro na Análise",
+        description: "A IA não conseguiu processar a comparação. Verifique a qualidade das imagens ou tente novamente.",
+        variant: "destructive",
+      });
     } finally {
       setLoading(false);
     }
   };
   
-    const handleSavePdf = async () => {
-    const selectedReport1 = reports.find(r => r.id === selectedReport1Id);
-    const selectedReport2 = reports.find(r => r.id === selectedReport2Id);
-    if (!comparisonResult || !selectedReport1?.woundImageUri || !selectedReport2?.woundImageUri) return;
+  const handleSavePdf = async () => {
+    if (!comparison || !image1.preview || !image2.preview) {
+        toast({
+            title: "Dados Incompletos",
+            description: "Não é possível gerar o PDF sem as imagens e análise.",
+            variant: "destructive",
+        });
+        return;
+    }
+
     setPdfLoading(true);
-    
+
     try {
         const doc = new jsPDF('p', 'mm', 'a4');
         const margin = 15;
         const pageWidth = doc.internal.pageSize.getWidth();
-        
+        let finalY = 20;
+
+        // Título e Período
         doc.setFont('helvetica', 'bold');
         doc.setFontSize(16);
-        doc.text(t.pdfTitleComparativeReport, pageWidth / 2, 20, { align: 'center' });
-
+        doc.text("Relatório Comparativo de Progressão de Ferida", pageWidth / 2, finalY, { align: 'center' });
+        finalY += 8;
         doc.setFont('helvetica', 'normal');
         doc.setFontSize(10);
-        const locale = t.locale || 'pt-BR';
-        const analysisPeriod = comparisonResult.relatorio_comparativo.periodo_analise || `
-        ${selectedReport1.createdAt.toDate().toLocaleDateString(locale)} - ${selectedReport2.createdAt.toDate().toLocaleDateString(locale)}
-        `.trim();
-        doc.text(`${t.pdfAnalysisPeriodPrefix} ${analysisPeriod}`, pageWidth / 2, 28, { align: 'center' });
-        
-        let finalY = 35;
-        
+        doc.text(`Período de Análise: ${comparison.relatorio_comparativo.periodo_analise}`, pageWidth / 2, finalY, { align: 'center' });
+        finalY += 15;
+
+        // Imagens lado a lado
         doc.setFontSize(12);
         doc.setFont('helvetica', 'bold');
-        doc.text(t.pdfComparedImagesTitle, margin, finalY);
+        doc.text("Imagens Comparadas", margin, finalY);
         finalY += 8;
-
         const imgWidth = (pageWidth - margin * 3) / 2;
-        const img1Props = doc.getImageProperties(selectedReport1.woundImageUri);
-        const img2Props = doc.getImageProperties(selectedReport2.woundImageUri);
+        const img1Props = doc.getImageProperties(image1.preview);
         const img1Height = (img1Props.height * imgWidth) / img1Props.width;
+        doc.addImage(image1.preview, 'PNG', margin, finalY, imgWidth, img1Height);
+        const img2Props = doc.getImageProperties(image2.preview);
         const img2Height = (img2Props.height * imgWidth) / img2Props.width;
+        doc.addImage(image2.preview, 'PNG', margin + imgWidth + margin, finalY, imgWidth, img2Height);
         const maxHeight = Math.max(img1Height, img2Height);
-
-        doc.addImage(selectedReport1.woundImageUri, 'PNG', margin, finalY, imgWidth, img1Height);
-        doc.addImage(selectedReport2.woundImageUri, 'PNG', margin + imgWidth + margin, finalY, imgWidth, img2Height);
-        
-        doc.setFontSize(8);
-        doc.setFont('helvetica', 'normal');
-        doc.text(`${t.report1LabelOldest.replace(/\s*\(.+\)$/, '')} (${selectedReport1.createdAt.toDate().toLocaleDateString(locale)})`, margin, finalY + maxHeight + 4);
-        doc.text(`${t.report2LabelNewest.replace(/\s*\(.+\)$/, '')} (${selectedReport2.createdAt.toDate().toLocaleDateString(locale)})`, margin + imgWidth + margin, finalY + maxHeight + 4);
-        
         finalY += maxHeight + 10;
-        
-        const summaryText = doc.splitTextToSize(comparisonResult.relatorio_comparativo.resumo_descritivo_evolucao, pageWidth - margin * 2);
-        
+
+        // Resumo Descritivo
+        const summaryText = doc.splitTextToSize(comparison.relatorio_comparativo.resumo_descritivo_evolucao, pageWidth - margin * 2);
         autoTable(doc, {
             startY: finalY,
-            head: [[t.pdfDescriptiveSummaryHeader]],
+            head: [['Resumo Descritivo da Evolução']],
             body: [[summaryText]],
             theme: 'grid',
             headStyles: { fontStyle: 'bold', fillColor: [22, 160, 133] },
         });
-        
         finalY = (doc as any).lastAutoTable.finalY + 10;
 
-        const delta = comparisonResult.relatorio_comparativo.analise_quantitativa_progressao;
-        const tableBody = [
-            [t.deltaTotalAffectedArea, delta.delta_area_total_afetada],
-            [t.deltaHyperpigmentation, delta.delta_coloracao.mudanca_area_hiperpigmentacao],
-            [t.deltaErythema, delta.delta_coloracao.mudanca_area_eritema_rubor],
-            [t.deltaEdema, delta.delta_edema],
-            [t.deltaTexture, delta.delta_textura],
-        ];
-
+        // Análise Quantitativa
+        const delta = comparison.relatorio_comparativo.analise_quantitativa_progressao;
         autoTable(doc, {
             startY: finalY,
-            head: [[t.pdfDeltaHeader, t.pdfVariationHeader]],
-            body: tableBody,
+            head: [['Análise Quantitativa (Delta Δ)', 'Variação']],
+            body: [
+                ["Δ Área Total Afetada", delta.delta_area_total_afetada],
+                ["Δ Coloração (Hiperpigmentação)", delta.delta_coloracao.mudanca_area_hiperpigmentacao],
+                ["Δ Coloração (Eritema/Rubor)", delta.delta_coloracao.mudanca_area_eritema_rubor],
+                ["Δ Edema", delta.delta_edema],
+                ["Δ Textura", delta.delta_textura],
+            ],
             theme: 'striped',
             headStyles: { fontStyle: 'bold', fillColor: [22, 160, 133] },
         });
+        finalY = (doc as any).lastAutoTable.finalY + 10;
+        
+        // Nova página para detalhes
+        doc.addPage();
+        finalY = 20;
+        
+        // Função para adicionar seção de análise detalhada
+        const addAnalysisSection = (title: string, analysis: any) => {
+            doc.setFontSize(14);
+            doc.setFont('helvetica', 'bold');
+            doc.text(title, margin, finalY);
+            finalY += 10;
+        
+            autoTable(doc, {
+                startY: finalY,
+                head: [['Qualidade da Imagem', 'Avaliação']],
+                body: Object.entries(analysis.avaliacao_qualidade).map(([key, value]) => [key, String(value)]),
+                theme: 'striped',
+            });
+            finalY = (doc as any).lastAutoTable.finalY + 8;
+        
+            autoTable(doc, {
+                startY: finalY,
+                head: [['Análise Dimensional e Textura', 'Valor']],
+                body: [
+                    ["Área Afetada", `${analysis.analise_dimensional.area_total_afetada} ${analysis.analise_dimensional.unidade_medida}`],
+                    ...Object.entries(analysis.analise_textura_e_caracteristicas).map(([key, value]) => [key, String(value)])
+                ],
+                theme: 'striped',
+            });
+            finalY = (doc as any).lastAutoTable.finalY + 8;
+        
+            autoTable(doc, {
+                startY: finalY,
+                head: [['Análise Colorimétrica - Cor', 'Hex', '% Área']],
+                body: analysis.analise_colorimetrica.cores_dominantes.map((c: any) => [c.cor, c.hex_aproximado, `${c.area_percentual}%`]),
+                theme: 'striped',
+            });
+            finalY = (doc as any).lastAutoTable.finalY + 15;
+        };
 
-        const fileName = `${t.pdfFileNamePrefix}${selectedReport1.patientName.replace(/\s/g, '_')}.pdf`;
+        addAnalysisSection("Análise Detalhada - Imagem 1", comparison.analise_imagem_1);
+        if (finalY > 200) { doc.addPage(); finalY = 20; }
+        addAnalysisSection("Análise Detalhada - Imagem 2", comparison.analise_imagem_2);
+        
+        const fileName = `Comparativo_${image1.id}_vs_${image2.id}_${new Date().toISOString().split('T')[0]}.pdf`;
         doc.save(fileName);
 
+        toast({
+            title: "PDF Gerado",
+            description: "O relatório detalhado foi baixado com sucesso.",
+        });
+
     } catch (error) {
-      console.error("Erro ao gerar PDF:", error);
-      toast({
-          title: t.pdfErrorTitle,
-          description: t.pdfErrorDescription,
-          variant: "destructive",
-      });
+        console.error("Erro ao gerar PDF:", error);
+        toast({
+            title: "Erro ao Gerar PDF",
+            description: "Não foi possível criar o arquivo PDF.",
+            variant: "destructive",
+        });
     } finally {
-      setPdfLoading(false);
+        setPdfLoading(false);
     }
   };
 
-  const selectedReport1 = reports.find(r => r.id === selectedReport1Id);
-  const selectedReport2 = reports.find(r => r.id === selectedReport2Id);
 
-  if (!isAIEnabled && !isStubAvailable) {
-    return (
-      <Alert variant="destructive">
-        <AlertCircle className="h-4 w-4" />
-        <AlertTitle>{t.errorTitle}</AlertTitle>
-        <AlertDescription>Gemini API key is not configured. Please add it to enable this feature.</AlertDescription>
-      </Alert>
-    );
-  }
-
-  return (
-    <div className="space-y-8">
-      <form onSubmit={handleSubmit} className="space-y-6">
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          <div className="space-y-2">
-            <Label>{t.report1LabelOldest}</Label>
-            <Select onValueChange={setSelectedReport1Id} value={selectedReport1Id}>
-              <SelectTrigger><SelectValue placeholder={t.selectReportPlaceholder} /></SelectTrigger>
-              <SelectContent>
-                {reports.map(r => (
-                  <SelectItem key={r.id} value={r.id}>
-                    {r.patientName} - {r.createdAt.toDate().toLocaleDateString(t.locale)}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+  const ImageUploader = ({ 
+    id, 
+    onFileChange, 
+    onCapture,
+    imageState,
+    setImageState, 
+    label 
+  }: { 
+    id: string, 
+    onFileChange: (e: any) => void, 
+    onCapture: (fileOrUrl: string | File) => void,
+    imageState: ImageFileState,
+    setImageState: any,
+    label: string 
+  }) => (
+    <div className="space-y-2">
+      <Label htmlFor={id}>{label}</Label>
+       <div className="relative flex h-64 w-full flex-col items-center justify-center rounded-lg border-2 border-dashed bg-card p-4">
+        {imageState.preview ? (
+          <div className="relative h-full w-full">
+            <Image src={imageState.preview} alt="Pré-visualização da ferida" layout="fill" className="object-contain" data-ai-hint="wound" />
           </div>
-          <div className="space-y-2">
-            <Label>{t.report2LabelNewest}</Label>
-            <Select onValueChange={setSelectedReport2Id} value={selectedReport2Id}>
-              <SelectTrigger><SelectValue placeholder={t.selectReportPlaceholder} /></SelectTrigger>
-              <SelectContent>
-                {reports.map(r => (
-                  <SelectItem key={r.id} value={r.id}>
-                    {r.patientName} - {r.createdAt.toDate().toLocaleDateString(t.locale)}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-        </div>
-        <Button type="submit" disabled={loading || !selectedReport1Id || !selectedReport2Id} className="w-full md:w-auto">
-          {loading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Sparkles className="mr-2 h-4 w-4" />}
-          {t.analyzeProgressionBtn}
-        </Button>
-      </form>
-
-       {(selectedReport1 || selectedReport2) && (
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            <ReportDisplay report={selectedReport1} title={t.report1LabelOldest.replace(/\s*\(.+\)$/, '')} />
-            <ReportDisplay report={selectedReport2} title={t.report2LabelNewest.replace(/\s*\(.+\)$/, '')} />
-        </div>
-       )}
-
-      {loading && (
-        <div className="flex items-center justify-center flex-col text-center p-8">
-          <Loader2 className="h-8 w-8 animate-spin text-primary" />
-          <p className="mt-4 text-muted-foreground">{t.analyzingProgressionMessage}</p>
-        </div>
-      )}
-
-      {demoResult && (
-        <Card>
-          <CardHeader>
-            <CardTitle>{t.comparativeReportTitle} (Demo)</CardTitle>
-            <CardDescription>Resultado de risco simulado pelo stub.</CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-2 text-sm">
-            <div>Relatório 1: Infecção {demoResult.risk1.infection.level} ({Math.round(demoResult.risk1.infection.score*100)}%) • Prob. 30d {Math.round(demoResult.risk1.healing.probHeal30*100)}%</div>
-            <div>Relatório 2: Infecção {demoResult.risk2.infection.level} ({Math.round(demoResult.risk2.infection.score*100)}%) • Prob. 30d {Math.round(demoResult.risk2.healing.probHeal30*100)}%</div>
-          </CardContent>
-        </Card>
-      )}
-
-      {comparisonResult && comparisonResult.relatorio_comparativo && (
-         <Tabs defaultValue="comparativo" className="w-full">
-            <div className="flex justify-end mb-2">
-                <Button onClick={handleSavePdf} disabled={pdfLoading} variant="outline" size="sm">
-                    {pdfLoading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <FileDown className="mr-2 h-4 w-4" />}
-                    PDF
+        ) : (
+          <>
+            <label htmlFor={id} className="w-full cursor-pointer flex-grow flex flex-col items-center justify-center text-center text-muted-foreground hover:text-primary transition-colors">
+              <UploadCloud className="mb-2 h-8 w-8" />
+              <p className="font-semibold">Arraste ou clique para enviar</p>
+              <p className="text-xs">PNG, JPG, ou WEBP</p>
+            </label>
+            <div className="my-2 text-xs text-muted-foreground">OU</div>
+            <div onClick={(e: any) => e.stopPropagation()}>
+              <ImageCapture onCapture={onCapture} children={
+                <Button type="button" variant="outline" size="sm">
+                  <Camera className="mr-2" />
+                  Tirar Foto
                 </Button>
+              } />
             </div>
-            <TabsList className="grid w-full grid-cols-3">
-                <TabsTrigger value="comparativo"><GitCompareArrows className="mr-2" />{t.tabComparative}</TabsTrigger>
-                <TabsTrigger value="imagem1"><FileImage className="mr-2" />{t.tabImage1}</TabsTrigger>
-                <TabsTrigger value="imagem2"><FileImage className="mr-2" />{t.tabImage2}</TabsTrigger>
-            </TabsList>
-            <TabsContent value="comparativo" className="mt-4">
-                <Card>
-                    <CardHeader>
-                        <CardTitle className="flex items-center gap-2"><ClipboardCheck /> {t.comparativeReportTitle}</CardTitle>
-                        <CardDescription>{t.comparativeAnalysisBetween.replace('{interval}', String(comparisonResult.relatorio_comparativo.intervalo_tempo))}</CardDescription>
-                    </CardHeader>
-                    <CardContent className="space-y-4">
-                        {comparisonResult.relatorio_comparativo.consistencia_dados?.alerta_qualidade && (
-                            <Alert variant="destructive">
-                                <AlertCircle className="h-4 w-4" />
-                                <AlertTitle>{t.qualityAlertTitle}</AlertTitle>
-                                <AlertDescription>{comparisonResult.relatorio_comparativo.consistencia_dados.alerta_qualidade}</AlertDescription>
-                            </Alert>
-                        )}
-                        <div>
-                            <h3 className="font-semibold text-lg mb-2">{t.descriptiveSummaryTitle}</h3>
-                            <p className="prose prose-sm max-w-none dark:prose-invert whitespace-pre-wrap">{comparisonResult.relatorio_comparativo.resumo_descritivo_evolucao}</p>
-                        </div>
-                        <Separator />
-                        <div>
-                            <h3 className="font-semibold text-lg mb-2">{t.quantitativeAnalysisTitle}</h3>
-                            <Table>
-                                <TableBody>
-                                    <TableRow><TableCell className="font-medium">{t.deltaTotalAffectedArea}</TableCell><TableCell>{comparisonResult.relatorio_comparativo.analise_quantitativa_progressao?.delta_area_total_afetada}</TableCell></TableRow>
-                                    <TableRow><TableCell className="font-medium">{t.deltaHyperpigmentation}</TableCell><TableCell>{comparisonResult.relatorio_comparativo.analise_quantitativa_progressao?.delta_coloracao?.mudanca_area_hiperpigmentacao}</TableCell></TableRow>
-                                    <TableRow><TableCell className="font-medium">{t.deltaErythema}</TableCell><TableCell>{comparisonResult.relatorio_comparativo.analise_quantitativa_progressao?.delta_coloracao?.mudanca_area_eritema_rubor}</TableCell></TableRow>
-                                    <TableRow><TableCell className="font-medium">{t.deltaEdema}</TableCell><TableCell>{comparisonResult.relatorio_comparativo.analise_quantitativa_progressao?.delta_edema}</TableCell></TableRow>
-                                    <TableRow><TableCell className="font-medium">{t.deltaTexture}</TableCell><TableCell>{comparisonResult.relatorio_comparativo.analise_quantitativa_progressao?.delta_textura}</TableCell></TableRow>
-                                </TableBody>
-                            </Table>
-                        </div>
-                    </CardContent>
-                </Card>
-            </TabsContent>
-            <TabsContent value="imagem1" className="mt-4">
-                 <IndividualAnalysisCard analysis={comparisonResult.analise_imagem_1} />
-            </TabsContent>
-            <TabsContent value="imagem2" className="mt-4">
-                <IndividualAnalysisCard analysis={comparisonResult.analise_imagem_2} />
-            </TabsContent>
-        </Tabs>
+          </>
+        )}
+      </div>
+      <Input id={id} type="file" className="sr-only" accept="image/*" onChange={onFileChange} />
+      {imageState.preview && (
+        <Button type="button" variant="link" className="w-full" onClick={() => {
+          setImageState({ file: null, preview: null, id: '', datetime: '' });
+        }}>
+          Remover Imagem
+        </Button>
       )}
     </div>
   );
-}
 
-const ReportDisplay = ({ report, title }: { report: StoredReport | undefined, title: string }) => {
-    const { t } = useTranslation();
-    if (!report) {
-        return (
-             <Card>
-                <CardHeader>
-                    <CardTitle>{title}</CardTitle>
-                </CardHeader>
-                <CardContent className="h-64 flex items-center justify-center">
-                    <p className="text-muted-foreground">{t.selectAReportToView}</p>
-                </CardContent>
-            </Card>
-        )
-    }
-    return (
-        <Card>
-            <CardHeader>
-                <CardTitle>{title}</CardTitle>
-                <CardDescription>{report.patientName} - {report.createdAt.toDate().toLocaleDateString(t.locale)}</CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
-                <div className="relative flex h-48 w-full flex-col items-center justify-center rounded-lg border-2 border-dashed bg-card p-2">
-                    {report.woundImageUri ? (
-                        <div className="relative h-full w-full">
-                            <Image src={report.woundImageUri} alt={`Wound for ${report.patientName}`} layout="fill" className="object-contain" data-ai-hint="wound" />
-                        </div>
-                    ) : (
-                        <div className="text-center text-muted-foreground">
-                            <ImageOff className="mx-auto h-10 w-10" />
-                            <p className="mt-2 text-sm">{t.noImage}</p>
-                        </div>
-                    )}
-                </div>
-                <ScrollArea className="h-48 p-4 border rounded-md">
-                    <div className="prose prose-sm max-w-none dark:prose-invert whitespace-pre-wrap">
-                        {report.reportContent}
-                    </div>
-                </ScrollArea>
-            </CardContent>
-        </Card>
-    );
-};
-
-const QualityBadge = ({ label, value }: { label: string, value: string }) => {
+  const QualityBadge = ({ label, value }: { label: string, value: string }) => {
     const variant = (value: string) => {
         switch (value) {
             case 'Adequada':
@@ -412,73 +472,318 @@ const QualityBadge = ({ label, value }: { label: string, value: string }) => {
                 return 'destructive';
         }
     };
-    return <Badge variant={variant(value)}>{label}: {value}</Badge>;
+    return <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium border ${variant(value) === 'default' ? 'bg-green-100 text-green-800 border-green-200' : 'bg-red-100 text-red-800 border-red-200'}`}>{label}: {value}</span>;
   };
 
-const IndividualAnalysisCard = ({ analysis }: { analysis?: CompareWoundReportsOutput['analise_imagem_1'] }) => {
-      const { t } = useTranslation();
-      if (!analysis) {
-        return null;
+  const ProgressIndicator = ({ metrics }: { metrics: ProgressMetrics }) => {
+    const getProgressIcon = () => {
+      switch (metrics.overallProgress) {
+        case 'melhora': return <TrendingUp className="h-4 w-4 text-green-600" />;
+        case 'piora': return <TrendingDown className="h-4 w-4 text-red-600" />;
+        default: return <Minus className="h-4 w-4 text-yellow-600" />;
       }
-      const { avaliacao_qualidade, analise_dimensional, analise_colorimetrica, analise_textura_e_caracteristicas } = analysis;
+    };
+
+    const getProgressColor = () => {
+      switch (metrics.overallProgress) {
+        case 'melhora': return 'bg-green-500';
+        case 'piora': return 'bg-red-500';
+        default: return 'bg-yellow-500';
+      }
+    };
+
+    return (
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <BarChart3 className="h-5 w-5" />
+            Métricas de Progresso
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="flex items-center justify-between">
+            <span className="text-sm font-medium">Score de Cicatrização</span>
+            <div className="flex items-center gap-2">
+              {getProgressIcon()}
+              <span className="text-sm font-bold">{metrics.healingScore.toFixed(0)}/100</span>
+            </div>
+          </div>
+          <Progress value={metrics.healingScore} className="h-2" />
+          
+          <div className="grid grid-cols-2 gap-4">
+            <div className="text-center">
+              <div className="text-2xl font-bold text-blue-600">{metrics.areaChange.toFixed(1)}%</div>
+              <div className="text-xs text-muted-foreground">Mudança de Área</div>
+            </div>
+            <div className="text-center">
+              <div className="text-2xl font-bold text-green-600">{metrics.tissueImprovement.toFixed(0)}%</div>
+              <div className="text-xs text-muted-foreground">Melhora Tecidual</div>
+            </div>
+          </div>
+          
+          <div className="flex items-center justify-center gap-2 p-2 rounded-lg bg-muted">
+            {getProgressIcon()}
+            <span className="font-medium capitalize">{metrics.overallProgress}</span>
+          </div>
+        </CardContent>
+      </Card>
+    );
+  };
+
+  const HistorySelector = () => (
+    <Card>
+      <CardHeader>
+        <CardTitle className="flex items-center gap-2">
+          <Clock className="h-5 w-5" />
+          Histórico de Comparações
+        </CardTitle>
+      </CardHeader>
+      <CardContent>
+        <Select onValueChange={(value: any) => {
+          const item = comparisonHistory.find((h: any) => h.id === value);
+          setSelectedHistoryItem(item || null);
+          if (item) {
+            setImage1({
+              file: null,
+              preview: item.image1Metadata.url,
+              id: item.image1Metadata.id,
+              datetime: item.image1Metadata.datetime
+            });
+            setImage2({
+              file: null,
+              preview: item.image2Metadata.url,
+              id: item.image2Metadata.id,
+              datetime: item.image2Metadata.datetime
+            });
+            setProgressMetrics(item.progressMetrics || null);
+          }
+        }}>
+          <SelectTrigger>
+            <SelectValue placeholder="Selecione uma comparação anterior" />
+          </SelectTrigger>
+          <SelectContent>
+            {comparisonHistory.map((item: any) => (
+              <SelectItem key={item.id} value={item.id}>
+                <div className="flex items-center gap-2">
+                  <Calendar className="h-4 w-4" />
+                  <span>{new Date(item.createdAt.seconds * 1000).toLocaleDateString()}</span>
+                  {item.progressMetrics && (
+                    <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium border ${item.progressMetrics.overallProgress === 'melhora' ? 'bg-green-100 text-green-800 border-green-200' : 'bg-red-100 text-red-800 border-red-200'}`}>
+                      {item.progressMetrics.overallProgress}
+                    </span>
+                  )}
+                </div>
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+      </CardContent>
+    </Card>
+  );
+
+  const ColorHistogramChart = ({ data, title }: { data: any[], title: string }) => {
+    const chartData = data.map(item => ({
+      name: item.faixa_cor,
+      [item.faixa_cor]: item.contagem_pixels_percentual
+    }));
+    return (
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-base">{title}</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <ChartContainer config={chartConfig} className="w-full h-64">
+            <BarChart data={chartData} layout="vertical" margin={{ left: 20 }}>
+              <CartesianGrid strokeDasharray="3 3" horizontal={false} />
+              <XAxis type="number" dataKey="value" hide />
+              <YAxis dataKey="name" type="category" tickLine={false} axisLine={false} />
+              <ChartTooltip cursor={false} content={<ChartTooltipContent />} />
+              <Bar dataKey="Vermelhos" fill="var(--color-Vermelhos)" radius={4} />
+              <Bar dataKey="Amarelos" fill="var(--color-Amarelos)" radius={4} />
+              <Bar dataKey="Pretos" fill="var(--color-Pretos)" radius={4} />
+              <Bar dataKey="Brancos/Ciano" fill="var(--color-Brancos/Ciano)" radius={4} />
+            </BarChart>
+          </ChartContainer>
+        </CardContent>
+      </Card>
+    );
+  };
+  
+  const IndividualAnalysisCard = ({ analysis }: { analysis: CompareWoundImagesOutput['analise_imagem_1'] }) => {
+      const { avaliacao_qualidade, analise_dimensional, analise_colorimetrica, analise_textura_e_caracteristicas, analise_histograma } = analysis;
       return (
           <div className="space-y-4">
-              {avaliacao_qualidade && (
-                <Card>
-                    <CardHeader>
-                        <CardTitle className="text-base">{t.imageQualityTitle}</CardTitle>
-                    </CardHeader>
-                    <CardContent className="flex flex-wrap gap-2">
-                        <QualityBadge label={t.lighting} value={avaliacao_qualidade.iluminacao} />
-                        <QualityBadge label={t.focus} value={avaliacao_qualidade.foco} />
-                        <QualityBadge label={t.background} value={avaliacao_qualidade.fundo} />
-                        <QualityBadge label={t.scale} value={avaliacao_qualidade.escala_referencia_presente} />
-                    </CardContent>
-                </Card>
-              )}
-              {analise_dimensional && analise_textura_e_caracteristicas && (
-                <Card>
-                    <CardHeader>
-                        <CardTitle className="text-base">{t.dimensionalTextureAnalysisTitle}</CardTitle>
-                    </CardHeader>
-                    <CardContent>
-                        <Table>
-                            <TableBody>
-                                <TableRow><TableCell className="font-medium">{t.affectedArea}</TableCell><TableCell>{analise_dimensional.area_total_afetada} {analise_dimensional.unidade_medida}</TableCell></TableRow>
-                                <TableRow><TableCell className="font-medium">{t.edema}</TableCell><TableCell>{analise_textura_e_caracteristicas.edema}</TableCell></TableRow>
-                                <TableRow><TableCell className="font-medium">{t.scaling}</TableCell><TableCell>{analise_textura_e_caracteristicas.descamacao}</TableCell></TableRow>
-                                <TableRow><TableCell className="font-medium">{t.shine}</TableCell><TableCell>{analise_textura_e_caracteristicas.brilho_superficial}</TableCell></TableRow>
-                                <TableRow><TableCell className="font-medium">{t.edges}</TableCell><TableCell>{analise_textura_e_caracteristicas.bordas_lesao}</TableCell></TableRow>
-                            </TableBody>
-                        </Table>
-                    </CardContent>
-                </Card>
-              )}
-              {analise_colorimetrica && (
-                <Card>
-                    <CardHeader>
-                        <CardTitle className="text-base">{t.colorimetricAnalysisTitle}</CardTitle>
-                    </CardHeader>
-                    <CardContent>
-                        <Table>
-                            <TableHeader><TableRow><TableHead>{t.color}</TableHead><TableHead>{t.hex}</TableHead><TableHead className="text-right">{t.areaPercentage}</TableHead></TableRow></TableHeader>
-                            <TableBody>
-                                {analise_colorimetrica.cores_dominantes.map(c => (
-                                    <TableRow key={c.hex_aproximado}>
-                                        <TableCell className="font-medium flex items-center gap-2"><div className="w-4 h-4 rounded-full border" style={{ backgroundColor: c.hex_aproximado }}></div> {c.cor}</TableCell>
-                                        <TableCell>{c.hex_aproximado}</TableCell>
-                                        <TableCell className="text-right">{c.area_percentual}%</TableCell>
-                                    </TableRow>
-                                ))}
-                            </TableBody>
-                        </Table>
-                    </CardContent>
-                </Card>
-              )}
+              <Card>
+                  <CardHeader>
+                      <CardTitle className="text-base">Qualidade da Imagem</CardTitle>
+                  </CardHeader>
+                  <CardContent className="flex flex-wrap gap-2">
+                      <QualityBadge label="Iluminação" value={avaliacao_qualidade.iluminacao} />
+                      <QualityBadge label="Foco" value={avaliacao_qualidade.foco} />
+                      <QualityBadge label="Fundo" value={avaliacao_qualidade.fundo} />
+                      <QualityBadge label="Escala" value={avaliacao_qualidade.escala_referencia_presente} />
+                  </CardContent>
+              </Card>
+              <Card>
+                  <CardHeader>
+                      <CardTitle className="text-base">Análise Dimensional e Textura</CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                      <Table>
+                          <TableBody>
+                              <TableRow><TableCell className="font-medium">Área Afetada</TableCell><TableCell>{analise_dimensional.area_total_afetada} {analise_dimensional.unidade_medida}</TableCell></TableRow>
+                              <TableRow><TableCell className="font-medium">Edema</TableCell><TableCell>{analise_textura_e_caracteristicas.edema}</TableCell></TableRow>
+                              <TableRow><TableCell className="font-medium">Descamação</TableCell><TableCell>{analise_textura_e_caracteristicas.descamacao}</TableCell></TableRow>
+                              <TableRow><TableCell className="font-medium">Brilho</TableCell><TableCell>{analise_textura_e_caracteristicas.brilho_superficial}</TableCell></TableRow>
+                              <TableRow><TableCell className="font-medium">Bordas</TableCell><TableCell>{analise_textura_e_caracteristicas.bordas_lesao}</TableCell></TableRow>
+                          </TableBody>
+                      </Table>
+                  </CardContent>
+              </Card>
+              <Card>
+                  <CardHeader>
+                      <CardTitle className="text-base">Análise Colorimétrica</CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                       <Table>
+                          <TableHeader><TableRow><TableHead>Cor</TableHead><TableHead>Hex</TableHead><TableHead className="text-right">% Área</TableHead></TableRow></TableHeader>
+                          <TableBody>
+                              {analise_colorimetrica.cores_dominantes.map((c: any) => (
+                                  <TableRow key={c.hex_aproximado}>
+                                      <TableCell className="font-medium flex items-center gap-2"><div className="w-4 h-4 rounded-full border" style={{ backgroundColor: c.hex_aproximado }}></div> {c.cor}</TableCell>
+                                      <TableCell>{c.hex_aproximado}</TableCell>
+                                      <TableCell className="text-right">{c.area_percentual}%</TableCell>
+                                  </TableRow>
+                              ))}
+                          </TableBody>
+                      </Table>
+                  </CardContent>
+              </Card>
+              {analise_histograma && <ColorHistogramChart data={analise_histograma.distribuicao_cores} title="Histograma de Cores" />}
           </div>
       )
   };
 
-    
+  if (!isAIEnabled) {
+    return (
+       <Alert variant="destructive">
+        <AlertCircle className="h-4 w-4" />
+        <AlertTitle>Funcionalidade de IA Desativada</AlertTitle>
+        <AlertDescription>
+          A chave de API do Gemini não foi configurada. Por favor, adicione a `GEMINI_API_KEY` ao seu ambiente para habilitar a comparação de imagens.
+        </AlertDescription>
+      </Alert>
+    )
+  }
 
-    
+  return (
+    <div className="space-y-8">
+      {/* Histórico de Comparações */}
+      {comparisonHistory.length > 0 && (
+        <HistorySelector />
+      )}
+
+      <form onSubmit={handleSubmit} className="space-y-6">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          <ImageUploader 
+            id="image-1" 
+            onFileChange={(e: any) => handleFileChange(e, 1)} 
+            onCapture={(fileOrUrl) => {
+              if (fileOrUrl instanceof File) {
+                handleFileSelect(fileOrUrl, 1);
+              }
+            }}
+            imageState={image1}
+            setImageState={setImage1}
+            label="Imagem 1 (ex: mais antiga)" 
+          />
+          <ImageUploader 
+            id="image-2" 
+            onFileChange={(e: any) => handleFileChange(e, 2)} 
+            onCapture={(fileOrUrl) => {
+              if (fileOrUrl instanceof File) {
+                handleFileSelect(fileOrUrl, 2);
+              }
+            }}
+            imageState={image2}
+            setImageState={setImage2}
+            label="Imagem 2 (ex: mais recente)" 
+          />
+        </div>
+        <div className="flex gap-2">
+          <Button type="submit" disabled={loading} className="flex-1 md:flex-none">
+            {loading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Sparkles className="mr-2 h-4 w-4" />}
+            Analisar Progressão
+          </Button>
+          {comparison && (
+            <Button onClick={handleSavePdf} disabled={pdfLoading} variant="outline">
+              {pdfLoading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Download className="mr-2 h-4 w-4" />}
+              Exportar PDF
+            </Button>
+          )}
+        </div>
+      </form>
+
+      {loading && (
+        <div className="flex items-center justify-center flex-col text-center p-8">
+          <Loader2 className="h-8 w-8 animate-spin text-primary" />
+          <p className="mt-4 text-muted-foreground">A IA está realizando a análise tecidual... Isso pode levar um momento.</p>
+        </div>
+      )}
+
+      {comparison && (
+        <Tabs defaultValue="comparativo" className="w-full">
+            <TabsList className="grid w-full grid-cols-4">
+                <TabsTrigger value="comparativo"><GitCompareArrows className="mr-2" />Comparativo</TabsTrigger>
+                <TabsTrigger value="metricas"><BarChart3 className="mr-2" />Métricas</TabsTrigger>
+                <TabsTrigger value="imagem1"><FileImage className="mr-2" />Análise Imagem 1</TabsTrigger>
+                <TabsTrigger value="imagem2"><FileImage className="mr-2" />Análise Imagem 2</TabsTrigger>
+            </TabsList>
+            <TabsContent value="comparativo" className="mt-4">
+                <Card>
+                    <CardHeader>
+                        <CardTitle className="flex items-center gap-2"><ClipboardCheck /> Relatório Comparativo de Progressão</CardTitle>
+                        <CardDescription>Análise da evolução entre {comparison.relatorio_comparativo.intervalo_tempo}.</CardDescription>
+                    </CardHeader>
+                    <CardContent className="space-y-4">
+                        {comparison.relatorio_comparativo.consistencia_dados.alerta_qualidade && (
+                            <Alert variant="destructive">
+                                <AlertCircle className="h-4 w-4" />
+                                <AlertTitle>Alerta de Qualidade</AlertTitle>
+                                <AlertDescription>{comparison.relatorio_comparativo.consistencia_dados.alerta_qualidade}</AlertDescription>
+                            </Alert>
+                        )}
+                        <div>
+                            <h3 className="font-semibold text-lg mb-2">Resumo Descritivo da Evolução</h3>
+                            <p className="prose prose-sm max-w-none dark:prose-invert whitespace-pre-wrap">{comparison.relatorio_comparativo.resumo_descritivo_evolucao}</p>
+                        </div>
+                        <Separator />
+                        <div>
+                            <h3 className="font-semibold text-lg mb-2">Análise Quantitativa (Delta Δ)</h3>
+                            <Table>
+                                <TableBody>
+                                    <TableRow><TableCell className="font-medium">Δ Área Total Afetada</TableCell><TableCell>{comparison.relatorio_comparativo.analise_quantitativa_progressao.delta_area_total_afetada}</TableCell></TableRow>
+                                    <TableRow><TableCell className="font-medium">Δ Hiperpigmentação</TableCell><TableCell>{comparison.relatorio_comparativo.analise_quantitativa_progressao.delta_coloracao.mudanca_area_hiperpigmentacao}</TableCell></TableRow>
+                                    <TableRow><TableCell className="font-medium">Δ Eritema/Rubor</TableCell><TableCell>{comparison.relatorio_comparativo.analise_quantitativa_progressao.delta_coloracao.mudanca_area_eritema_rubor}</TableCell></TableRow>
+                                    <TableRow><TableCell className="font-medium">Δ Edema</TableCell><TableCell>{comparison.relatorio_comparativo.analise_quantitativa_progressao.delta_edema}</TableCell></TableRow>
+                                    <TableRow><TableCell className="font-medium">Δ Textura</TableCell><TableCell>{comparison.relatorio_comparativo.analise_quantitativa_progressao.delta_textura}</TableCell></TableRow>
+                                </TableBody>
+                            </Table>
+                        </div>
+                    </CardContent>
+                </Card>
+            </TabsContent>
+            <TabsContent value="metricas" className="mt-4">
+                {progressMetrics && <ProgressIndicator metrics={progressMetrics} />}
+            </TabsContent>
+            <TabsContent value="imagem1" className="mt-4">
+                 <IndividualAnalysisCard analysis={comparison.analise_imagem_1} />
+            </TabsContent>
+            <TabsContent value="imagem2" className="mt-4">
+                <IndividualAnalysisCard analysis={comparison.analise_imagem_2} />
+            </TabsContent>
+        </Tabs>
+      )}
+    </div>
+  );
+}
