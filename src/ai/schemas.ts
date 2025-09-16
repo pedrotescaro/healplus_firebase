@@ -29,6 +29,12 @@ export const ImageAnalysisSchema = z.object({
             area_percentual: z.number(),
         })),
     }),
+    analise_histograma: z.object({
+        distribuicao_cores: z.array(z.object({
+            faixa_cor: z.string().describe("Nome da faixa de cor, ex: Vermelhos, Amarelos, Pretos, Brancos/Ciano"),
+            contagem_pixels_percentual: z.number().describe("Percentual de pixels nessa faixa de cor."),
+        })).describe("Distribuição de cores para o histograma."),
+    }).describe("Análise de histograma de cores da imagem."),
     analise_textura_e_caracteristicas: z.object({
         edema: z.enum(["Ausente", "Leve", "Moderado", "Grave"]),
         descamacao: z.enum(["Ausente", "Presente"]),

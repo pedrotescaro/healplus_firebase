@@ -25,7 +25,8 @@ import jsPDF from "jspdf";
 import autoTable from 'jspdf-autotable';
 import { Progress } from "@/components/ui/progress";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-
+import { Bar, BarChart, CartesianGrid, XAxis, YAxis, ResponsiveContainer } from "recharts";
+import { ChartContainer, ChartTooltip, ChartTooltipContent, ChartConfig } from "@/components/ui/chart";
 
 const isAIEnabled = !!process.env.NEXT_PUBLIC_GEMINI_API_KEY;
 
@@ -51,6 +52,28 @@ type ProgressMetrics = {
     tissueImprovement: number;
     overallProgress: 'melhora' | 'piora' | 'estavel';
 }
+
+const chartConfig = {
+  pixels: {
+    label: "Pixels",
+  },
+  Vermelhos: {
+    label: "Vermelhos",
+    color: "hsl(var(--chart-1))",
+  },
+  Amarelos: {
+    label: "Amarelos",
+    color: "hsl(var(--chart-2))",
+  },
+  Pretos: {
+    label: "Pretos",
+    color: "hsl(var(--chart-3))",
+  },
+  "Brancos/Ciano": {
+    label: "Brancos/Ciano",
+    color: "hsl(var(--chart-4))",
+  },
+} satisfies ChartConfig
 
 export function ImageComparator() {
   const [image1, setImage1] = useState<ImageFileState>({ file: null, preview: null, id: '', datetime: '' });
@@ -539,8 +562,36 @@ export function ImageComparator() {
     </Card>
   );
 
+  const ColorHistogramChart = ({ data, title }: { data: any[], title: string }) => {
+    const chartData = data.map(item => ({
+      name: item.faixa_cor,
+      [item.faixa_cor]: item.contagem_pixels_percentual
+    }));
+    return (
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-base">{title}</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <ChartContainer config={chartConfig} className="w-full h-64">
+            <BarChart data={chartData} layout="vertical" margin={{ left: 20 }}>
+              <CartesianGrid strokeDasharray="3 3" horizontal={false} />
+              <XAxis type="number" dataKey="value" hide />
+              <YAxis dataKey="name" type="category" tickLine={false} axisLine={false} />
+              <ChartTooltip cursor={false} content={<ChartTooltipContent />} />
+              <Bar dataKey="Vermelhos" fill="var(--color-Vermelhos)" radius={4} />
+              <Bar dataKey="Amarelos" fill="var(--color-Amarelos)" radius={4} />
+              <Bar dataKey="Pretos" fill="var(--color-Pretos)" radius={4} />
+              <Bar dataKey="Brancos/Ciano" fill="var(--color-Brancos/Ciano)" radius={4} />
+            </BarChart>
+          </ChartContainer>
+        </CardContent>
+      </Card>
+    );
+  };
+  
   const IndividualAnalysisCard = ({ analysis }: { analysis: CompareWoundImagesOutput['analise_imagem_1'] }) => {
-      const { avaliacao_qualidade, analise_dimensional, analise_colorimetrica, analise_textura_e_caracteristicas } = analysis;
+      const { avaliacao_qualidade, analise_dimensional, analise_colorimetrica, analise_textura_e_caracteristicas, analise_histograma } = analysis;
       return (
           <div className="space-y-4">
               <Card>
@@ -589,6 +640,7 @@ export function ImageComparator() {
                       </Table>
                   </CardContent>
               </Card>
+              {analise_histograma && <ColorHistogramChart data={analise_histograma.distribuicao_cores} title="Histograma de Cores" />}
           </div>
       )
   };
