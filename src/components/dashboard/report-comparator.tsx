@@ -181,7 +181,7 @@ export function ReportComparator() {
     try {
         const anamnesisSnap1 = await getDoc(doc(db, "users", report1.professionalId, "anamnesis", report1.anamnesisId));
         if (!anamnesisSnap1.exists()) {
-            toast({ title: "Erro", description: "Ficha de anamnese não encontrada.", variant: "destructive" });
+            toast({ title: "Erro", description: "Ficha de anamnese não encontrada para o relatório 1.", variant: "destructive" });
             setPdfLoading(false);
             return;
         }
@@ -201,6 +201,13 @@ export function ReportComparator() {
                 const footerText = `Gerado por Heal+ em ${new Date().toLocaleDateString('pt-BR')} | Página ${i} de ${pageCount}`;
                 doc_.text(footerText, pageWidth / 2, doc_.internal.pageSize.getHeight() - 10, { align: 'center' });
             }
+        };
+        
+        const TISSUE_COLORS: { [key: string]: string } = {
+            vermelhos: '#e53e3e',
+            amarelos: '#f6e05e',
+            pretos: '#2d3748',
+            'brancos/ciano': '#fbb6ce',
         };
 
         const drawHistogramChart = (analysis: typeof comparisonResult.analise_imagem_1, startY: number) => {
@@ -226,13 +233,6 @@ export function ReportComparator() {
             });
             return chartY + chartHeight + 10;
         };
-        
-        const TISSUE_COLORS: { [key: string]: string } = {
-            vermelhos: '#e53e3e',
-            amarelos: '#f6e05e',
-            pretos: '#2d3748',
-            'brancos/ciano': '#fbb6ce',
-        };
 
         const addAnalysisTables = (analysis: typeof comparisonResult.analise_imagem_1, startY: number) => {
             let currentY = startY;
@@ -256,7 +256,7 @@ export function ReportComparator() {
                 startY: currentY,
                 head: [['Análise Colorimétrica', 'Cor', 'Hex', '% Área']],
                 body: analysis.analise_colorimetrica.cores_dominantes.map(c => [
-                    '', // Placeholder for color swatch
+                    '', 
                     c.cor,
                     c.hex_aproximado,
                     `${c.area_percentual}%`
@@ -639,5 +639,7 @@ const IndividualAnalysisCard = ({ analysis }: { analysis?: CompareWoundReportsOu
           </div>
       )
   };
+
+    
 
     

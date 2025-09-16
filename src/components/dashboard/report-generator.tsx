@@ -227,14 +227,24 @@ export function ReportGenerator() {
   };
 
  const handleSavePdf = async () => {
-    if (!report || !selectedRecord || !selectedRecord.woundImageUri || !user) return;
+    if (!report || !selectedRecord || !user) return;
     setPdfLoading(true);
 
     try {
+        const anamnesisDocRef = doc(db, "users", user.uid, "anamnesis", selectedRecord.id);
+        const anamnesisSnap = await getDoc(anamnesisDocRef);
+        if (!anamnesisSnap.exists()) {
+          toast({ title: "Erro", description: "Ficha de anamnese associada não encontrada.", variant: "destructive" });
+          setPdfLoading(false);
+          return;
+        }
+        const anamnesisRecord = anamnesisSnap.data() as AnamnesisFormValues;
+
         const doc_ = new jsPDF('p', 'mm', 'a4');
         const margin = 15;
         const pageWidth = doc_.internal.pageSize.getWidth();
-        
+        let finalY = margin;
+
         const addFooter = () => {
             const pageCount = (doc_ as any).internal.getNumberOfPages();
             for (let i = 1; i <= pageCount; i++) {
@@ -246,85 +256,108 @@ export function ReportGenerator() {
             }
         };
 
+        // Section 1: Identificação
         doc_.setFont('helvetica', 'bold');
         doc_.setFontSize(16);
-        doc_.text("Relatório de Avaliação e Plano de Tratamento de Ferida", pageWidth / 2, 20, { align: 'center' });
-
-        doc_.setFontSize(12);
-        const evaluationDate = new Date(selectedRecord.data_consulta + 'T' + selectedRecord.hora_consulta);
-        const formattedDate = evaluationDate.toLocaleDateString('pt-BR', { day: '2-digit', month: 'long', year: 'numeric' });
-        const formattedTime = evaluationDate.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
+        doc_.text("Terapia de Cicatrização - Cuidado Especializado em Feridas", pageWidth / 2, finalY, { align: 'center' });
+        finalY += 10;
         
         autoTable(doc_, {
-            startY: 30,
-            head: [['Identificação do Paciente']],
+            startY: finalY,
+            head: [['1. Identificação do Profissional']],
             body: [
-                [{ content: `Paciente: ${selectedRecord.nome_cliente}`, styles: { fontStyle: 'bold' } }],
-                [`Data da Avaliação: ${formattedDate}, ${formattedTime}`],
+                [`Profissional: ${anamnesisRecord.profissional_responsavel || user.name || 'Não informado'}`],
+                [`COREN/CRM: ${anamnesisRecord.coren || 'Não informado'}`]
             ],
             theme: 'striped',
-            headStyles: { fontStyle: 'bold', fillColor: [22, 160, 133] },
         });
-
-        const anamnesisDocRef = doc(db, "users", user.uid, "anamnesis", selectedRecord.id);
-        const anamnesisSnap = await getDoc(anamnesisDocRef);
-        if (!anamnesisSnap.exists()) {
-          toast({ title: "Erro", description: "Ficha de anamnese associada não encontrada.", variant: "destructive" });
-          setPdfLoading(false);
-          return;
-        }
-        const anamnesisRecord = anamnesisSnap.data() as AnamnesisFormValues;
-
-        const anamnesisBody = [
-            ['Histórico Médico', anamnesisRecord.historico_cicrizacao || 'Nenhum relatado'],
-            ['Alergias', anamnesisRecord.possui_alergia ? anamnesisRecord.qual_alergia || 'Nenhuma relatada' : 'Nenhuma relatada'],
-            ['Hábitos', `Atividade Física: ${anamnesisRecord.pratica_atividade_fisica ? 'Sim' : 'Não'}\nÁlcool: ${anamnesisRecord.ingestao_alcool ? 'Sim' : 'Não'}\nFumante: ${anamnesisRecord.fumante ? 'Sim' : 'Não'}`],
-            ['Queixa Principal', `Ferida em ${anamnesisRecord.localizacao_ferida || 'Não informado'} com ${anamnesisRecord.tempo_evolucao || 'Não informado'} de evolução.`],
-        ];
+        finalY = (doc_ as any).lastAutoTable.finalY + 5;
+        
+        // Section 2: Dados do Paciente
+        const comorbidades = [
+            anamnesisRecord.dmi && "DMI",
+            anamnesisRecord.dmii && "DMII",
+            anamnesisRecord.has && "HAS",
+            anamnesisRecord.neoplasia && "Neoplasia",
+            //... add all other comorbidities
+        ].filter(Boolean).join(', ');
 
         autoTable(doc_, {
-            head: [['Anamnese']],
-            body: anamnesisBody,
-            theme: 'grid',
-            headStyles: { fontStyle: 'bold', fillColor: [22, 160, 133] },
-            didDrawPage: () => addFooter(),
+            startY: finalY,
+            head: [['2. Dados do Paciente']],
+            body: [
+                [`Nome: ${anamnesisRecord.nome_cliente}`],
+                [`Data de Nascimento: ${anamnesisRecord.data_nascimento}`],
+                [`Comorbidades: ${comorbidades || 'Nenhuma informada'}`],
+            ],
+            theme: 'striped',
         });
+        finalY = (doc_ as any).lastAutoTable.finalY + 5;
         
-        let finalY = (doc_ as any).lastAutoTable.finalY;
+        // Section 3: Histórico da Lesão
+        autoTable(doc_, {
+            startY: finalY,
+            head: [['3. Histórico da Lesão e Atendimento']],
+            body: [
+                [`Tipo de Lesão: ${anamnesisRecord.etiologia_ferida === 'Outra' ? anamnesisRecord.etiologia_outra : anamnesisRecord.etiologia_ferida}`],
+                [`Tempo de Evolução: ${anamnesisRecord.tempo_evolucao}`],
+                [`Data da Avaliação: ${new Date(anamnesisRecord.data_consulta).toLocaleDateString('pt-BR', { timeZone: 'UTC' })}`],
+            ],
+            theme: 'striped',
+        });
+        finalY = (doc_ as any).lastAutoTable.finalY + 5;
 
-         if (doc_.internal.pageSize.getHeight() - finalY < 80) {
-            doc_.addPage();
-            finalY = margin;
+        // Section 4: Avaliação Inicial
+         autoTable(doc_, {
+            startY: finalY,
+            head: [['4. Avaliação Inicial da Lesão']],
+            body: [
+                ['Tecido', `Granulação: ${anamnesisRecord.percentual_granulacao_leito}%, Epitelização: ${anamnesisRecord.percentual_epitelizacao_leito}%, Esfacelo: ${anamnesisRecord.percentual_esfacelo_leito}%, Necrose: ${anamnesisRecord.percentual_necrose_seca_leito}%`],
+                ['Dimensões', `${anamnesisRecord.ferida_comprimento}cm x ${anamnesisRecord.ferida_largura}cm x ${anamnesisRecord.ferida_profundidade}cm`],
+                ['Exsudato', `${anamnesisRecord.quantidade_exsudato}, ${anamnesisRecord.tipo_exsudato}`],
+                ['Dor', `Escala ${anamnesisRecord.dor_escala}/10`],
+            ],
+            theme: 'grid',
+        });
+        finalY = (doc_ as any).lastAutoTable.finalY + 10;
+        
+        // Imagem
+        if (anamnesisRecord.woundImageUri) {
+          doc_.setFont('helvetica', 'bold');
+          doc_.text("Imagem da Ferida", margin, finalY);
+          finalY += 5;
+          const img = new (window as any).Image();
+          img.src = anamnesisRecord.woundImageUri;
+          await new Promise(resolve => { img.onload = resolve; });
+          const imgProps = doc_.getImageProperties(anamnesisRecord.woundImageUri);
+          const imgWidth = 80;
+          const imgHeight = (imgProps.height * imgWidth) / imgProps.width;
+          doc_.addImage(anamnesisRecord.woundImageUri, 'PNG', (pageWidth - imgWidth) / 2, finalY, imgWidth, imgHeight);
+          finalY += imgHeight + 5;
         }
 
-        doc_.setFont('helvetica', 'bold');
-        doc_.setFontSize(12);
-        doc_.text("Imagem da Ferida Analisada", margin, finalY + 10);
-        
-        const img = new (window as any).Image();
-        img.src = selectedRecord.woundImageUri;
-        await new Promise(resolve => { img.onload = resolve; });
-
-        const imgProps = doc_.getImageProperties(selectedRecord.woundImageUri);
-        const imgWidth = 80;
-        const imgHeight = (imgProps.height * imgWidth) / imgProps.width;
-        const imgX = (pageWidth - imgWidth) / 2;
-        doc_.addImage(selectedRecord.woundImageUri, 'PNG', imgX, finalY + 15, imgWidth, imgHeight);
-        finalY += imgHeight + 20;
-
-        const cleanReportText = report.report.replace(/\*\*/g, '').replace(/###/g, '').replace(/##/g, '');
+        // Section 5: Conduta Terapêutica
         autoTable(doc_, {
-            startY: finalY + 5,
-            head: [['Avaliação da Ferida']],
-            body: [[cleanReportText]],
+            startY: finalY,
+            head: [['5. Conduta Terapêutica e Plano de Cuidados']],
+            body: [[anamnesisRecord.observacoes || 'Plano de cuidados a ser definido pelo profissional.']],
             theme: 'grid',
-            headStyles: { fontStyle: 'bold', fillColor: [22, 160, 133] },
-            didDrawPage: () => addFooter(),
+        });
+        finalY = (doc_ as any).lastAutoTable.finalY + 5;
+
+        // Section 9: Referências
+        autoTable(doc_, {
+            startY: finalY,
+            head: [['Referências Bibliográficas']],
+            body: [
+                ['Borges, Eline Lima; Souza, Perla Oliveira Soares de. Feridas: como tratar – 3 ed. Rio de Janeiro: Rubio 2024. 61-88 p.'],
+                ['Menoita,E; Seara, a.; Santos, V. Plano de Tratamento dirigido aos Sinais Clínicos da Infecção da Ferida, Journal of Aging & Inovation, 3 (2):62-73, 2014.'],
+            ],
+            theme: 'grid',
         });
 
         addFooter();
-
-        const fileName = `Relatorio_${selectedRecord.nome_cliente.replace(/\s/g, '_')}_${new Date().toLocaleDateString('pt-BR').replace(/\//g, '-')}.pdf`;
+        const fileName = `Relatorio_${anamnesisRecord.nome_cliente.replace(/\s/g, '_')}_${new Date().toLocaleDateString('pt-BR').replace(/\//g, '-')}.pdf`;
         doc_.save(fileName);
 
     } catch (error) {
@@ -463,3 +496,4 @@ export function ReportGenerator() {
     </div>
   );
 }
+
