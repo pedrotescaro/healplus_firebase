@@ -407,90 +407,6 @@ export default function Home() {
         </div>
       </section>
 
-      {/* Plans Section */}
-      <section id="planos" className="py-16 sm:py-24 px-4 sm:px-6 lg:px-8 bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 text-white">
-        <div className="container mx-auto">
-          <div className="text-center mb-12 sm:mb-16">
-            <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-white mb-4 sm:mb-6">
-              Nossos Planos
-            </h2>
-            <p className="text-base sm:text-xl text-gray-300">
-              Escolha o plano ideal para suas necessidades
-            </p>
-          </div>
-          
-          <div className="max-w-4xl mx-auto grid grid-cols-1 md:grid-cols-2 gap-6 sm:gap-8">
-            {/* Plano Básico */}
-            <Card className="bg-slate-800 border-slate-700 text-white">
-              <CardContent className="p-6 sm:p-8">
-                <div className="text-center space-y-4 sm:space-y-6">
-                  <h3 className="text-xl sm:text-2xl font-bold text-white">Básico</h3>
-                  <div className="text-2xl sm:text-3xl font-bold text-primary">Grátis</div>
-                  
-                  <div className="space-y-3 sm:space-y-4">
-                    <div className="flex items-center space-x-3">
-                      <CheckCircle className="w-4 h-4 sm:w-5 sm:h-5 text-green-500 flex-shrink-0" />
-                      <span className="text-white text-sm sm:text-base">Até 10 pacientes</span>
-                    </div>
-                    <div className="flex items-center space-x-3">
-                      <CheckCircle className="w-4 h-4 sm:w-5 sm:h-5 text-green-500 flex-shrink-0" />
-                      <span className="text-white text-sm sm:text-base">Registro básico de feridas</span>
-                    </div>
-                    <div className="flex items-center space-x-3">
-                      <CheckCircle className="w-4 h-4 sm:w-5 sm:h-5 text-green-500 flex-shrink-0" />
-                      <span className="text-white text-sm sm:text-base">Calendário simples</span>
-                    </div>
-                  </div>
-                  
-                  <Button 
-                    variant="outline" 
-                    className="w-full border-primary text-primary hover:bg-primary hover:text-white transition-colors text-sm sm:text-base"
-                    asChild
-                  >
-                    <Link href="/signup">Começar Agora</Link>
-                  </Button>
-                </div>
-              </CardContent>
-            </Card>
-
-            {/* Plano Premium */}
-            <Card className="bg-slate-800 border-slate-700 text-white">
-              <CardContent className="p-6 sm:p-8">
-                <div className="text-center space-y-4 sm:space-y-6">
-                  <h3 className="text-xl sm:text-2xl font-bold text-white">Premium</h3>
-                  <div className="text-2xl sm:text-3xl font-bold text-primary">R$ 99/mês</div>
-                  
-                  <div className="space-y-3 sm:space-y-4">
-                    <div className="flex items-center space-x-3">
-                      <CheckCircle className="w-4 h-4 sm:w-5 sm:h-5 text-green-500 flex-shrink-0" />
-                      <span className="text-white text-sm sm:text-base">Pacientes ilimitados</span>
-                    </div>
-                    <div className="flex items-center space-x-3">
-                      <CheckCircle className="w-4 h-4 sm:w-5 sm:h-5 text-green-500 flex-shrink-0" />
-                      <span className="text-white text-sm sm:text-base">Análise avançada de feridas</span>
-                    </div>
-                    <div className="flex items-center space-x-3">
-                      <CheckCircle className="w-4 h-4 sm:w-5 sm:h-5 text-green-500 flex-shrink-0" />
-                      <span className="text-white text-sm sm:text-base">Relatórios personalizados</span>
-                    </div>
-                    <div className="flex items-center space-x-3">
-                      <CheckCircle className="w-4 h-4 sm:w-5 sm:h-5 text-green-500 flex-shrink-0" />
-                      <span className="text-white text-sm sm:text-base">Suporte prioritário</span>
-                    </div>
-                  </div>
-                  
-                  <Button 
-                    className="w-full bg-primary text-white hover:bg-primary/90 transition-colors text-sm sm:text-base"
-                    asChild
-                  >
-                    <Link href="/signup">Começar Agora</Link>
-                  </Button>
-                </div>
-              </CardContent>
-            </Card>
-          </div>
-        </div>
-      </section>
 
       {/* Footer */}
       <footer className="bg-slate-900 text-white">
@@ -514,7 +430,6 @@ export default function Home() {
                 <li><Link href="/" className="text-white hover:text-primary transition-colors text-sm sm:text-base">Home</Link></li>
                 <li><Link href="#recursos" className="text-white hover:text-primary transition-colors text-sm sm:text-base">Recursos</Link></li>
                 <li><Link href="#depoimentos" className="text-white hover:text-primary transition-colors text-sm sm:text-base">Depoimentos</Link></li>
-                <li><Link href="#planos" className="text-white hover:text-primary transition-colors text-sm sm:text-base">Planos</Link></li>
                 <li><Link href="#faq" className="text-white hover:text-primary transition-colors text-sm sm:text-base">Perguntas Frequentes</Link></li>
               </ul>
             </div>
