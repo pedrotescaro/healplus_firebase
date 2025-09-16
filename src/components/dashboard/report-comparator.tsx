@@ -122,13 +122,9 @@ export function ReportComparator() {
   const handleSavePdf = async () => {
     const selectedReport1 = reports.find(r => r.id === selectedReport1Id);
     const selectedReport2 = reports.find(r => r.id === selectedReport2Id);
-    if (!comparisonResult || !selectedReport1?.woundImageUri || !selectedReport2?.woundImageUri) {
-        toast({ title: "Erro", description: "Não há dados de comparação para gerar o PDF.", variant: "destructive" });
-        return;
-    };
-
+    if (!comparisonResult || !selectedReport1?.woundImageUri || !selectedReport2?.woundImageUri) return;
     setPdfLoading(true);
-
+    
     try {
         const doc = new jsPDF('p', 'mm', 'a4');
         const margin = 15;
@@ -160,6 +156,8 @@ export function ReportComparator() {
         const img2Height = (img2Props.height * imgWidth) / img2Props.width;
         const maxHeight = Math.max(img1Height, img2Height);
 
+        addPageIfNeeded(maxHeight + 15);
+
         doc.addImage(selectedReport1.woundImageUri, 'PNG', margin, finalY, imgWidth, img1Height);
         doc.addImage(selectedReport2.woundImageUri, 'PNG', margin + imgWidth + margin, finalY, imgWidth, img2Height);
         
@@ -179,10 +177,10 @@ export function ReportComparator() {
             headStyles: { fontStyle: 'bold', fillColor: [22, 160, 133] },
         });
         finalY = (doc as any).lastAutoTable.finalY + 10;
-
+        
         // --- Análise Detalhada ---
         const createDetailedTables = (analysis: typeof comparisonResult.analise_imagem_1, title: string) => {
-            addPageIfNeeded(100);
+            addPageIfNeeded(120);
             doc.setFontSize(14);
             doc.setFont('helvetica', 'bold');
             doc.text(title, margin, finalY);
@@ -190,21 +188,31 @@ export function ReportComparator() {
 
             // Tabela de Qualidade
             const qualityBody = Object.entries(analysis.avaliacao_qualidade).map(([key, value]) => [key.replace(/_/g, ' '), value]);
-            autoTable(doc, { startY: finalY, head: [['Qualidade da Imagem', 'Avaliação']], body: qualityBody, theme: 'striped' });
+            autoTable(doc, { startY: finalY, head: [['Qualidade da Imagem', 'Avaliação']], body: qualityBody, theme: 'striped', headStyles: { fontStyle: 'bold', fillColor: [52, 73, 94] } });
             finalY = (doc as any).lastAutoTable.finalY + 8;
+            addPageIfNeeded(60);
 
             // Tabela Dimensional e Textura
             const dimBody = [
                 ['Área Afetada', `${analysis.analise_dimensional.area_total_afetada} ${analysis.analise_dimensional.unidade_medida}`],
                 ...Object.entries(analysis.analise_textura_e_caracteristicas).map(([key, value]) => [key.replace(/_/g, ' '), value])
             ];
-            autoTable(doc, { startY: finalY, head: [['Análise Dimensional e Textura', 'Valor']], body: dimBody, theme: 'striped' });
+            autoTable(doc, { startY: finalY, head: [['Análise Dimensional e Textura', 'Valor']], body: dimBody, theme: 'striped', headStyles: { fontStyle: 'bold', fillColor: [52, 73, 94] } });
             finalY = (doc as any).lastAutoTable.finalY + 8;
+            addPageIfNeeded(60);
 
             // Tabela Colorimétrica
             const colorBody = analysis.analise_colorimetrica.cores_dominantes.map(c => [c.cor, c.hex_aproximado, `${c.area_percentual}%`]);
-            autoTable(doc, { startY: finalY, head: [['Análise Colorimétrica - Cor', 'Hex', '% Área']], body: colorBody, theme: 'striped' });
-            finalY = (doc as any).lastAutoTable.finalY + 15;
+            autoTable(doc, { startY: finalY, head: [['Análise Colorimétrica - Cor', 'Hex', '% Área']], body: colorBody, theme: 'striped', headStyles: { fontStyle: 'bold', fillColor: [52, 73, 94] } });
+            finalY = (doc as any).lastAutoTable.finalY + 8;
+            addPageIfNeeded(60);
+
+            // Tabela de Histograma
+            if (analysis.analise_histograma) {
+                const histogramBody = analysis.analise_histograma.distribuicao_cores.map(h => [h.faixa_cor, `${h.contagem_pixels_percentual.toFixed(2)}%`]);
+                autoTable(doc, { startY: finalY, head: [['Análise de Histograma - Faixa de Cor', 'Percentual de Pixels']], body: histogramBody, theme: 'striped', headStyles: { fontStyle: 'bold', fillColor: [52, 73, 94] } });
+                finalY = (doc as any).lastAutoTable.finalY + 15;
+            }
         };
 
         createDetailedTables(comparisonResult.analise_imagem_1, "Análise Detalhada - Imagem 1");
@@ -221,6 +229,7 @@ export function ReportComparator() {
         setPdfLoading(false);
     }
   };
+
 
   const selectedReport1 = reports.find(r => r.id === selectedReport1Id);
   const selectedReport2 = reports.find(r => r.id === selectedReport2Id);
@@ -408,7 +417,7 @@ const IndividualAnalysisCard = ({ analysis }: { analysis?: CompareWoundReportsOu
       if (!analysis) {
         return null;
       }
-      const { avaliacao_qualidade, analise_dimensional, analise_colorimetrica, analise_textura_e_caracteristicas } = analysis;
+      const { avaliacao_qualidade, analise_dimensional, analise_colorimetrica, analise_textura_e_caracteristicas, analise_histograma } = analysis;
       return (
           <div className="space-y-4">
               {avaliacao_qualidade && (
@@ -466,5 +475,3 @@ const IndividualAnalysisCard = ({ analysis }: { analysis?: CompareWoundReportsOu
           </div>
       )
   };
-
-    
