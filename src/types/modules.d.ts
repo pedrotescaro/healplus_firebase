@@ -83,6 +83,26 @@ declare module 'lucide-react' {
   export const X: any;
   export const Filter: any;
   export const RefreshCw: any;
+  export const Brain: any;
+  export const Shield: any;
+  export const Zap: any;
+  export const ArrowRight: any;
+  export const Star: any;
+  export const Award: any;
+  export const Heart: any;
+  export const Activity: any;
+  export const MessageCircle: any;
+  export const Linkedin: any;
+  export const Youtube: any;
+  export const Instagram: any;
+  export const Accessibility: any;
+  export const ChevronDown: any;
+  export const ChevronUp: any;
+  export const Crown: any;
+  export const UserCheck: any;
+  export const Lock: any;
+  export const Smartphone: any;
+  export const Headphones: any;
 }
 
 declare module 'date-fns' {
