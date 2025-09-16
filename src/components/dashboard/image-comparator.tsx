@@ -44,6 +44,7 @@ type ComparisonHistory = {
     createdAt: any;
     relatorio_comparativo: any;
     progressMetrics?: ProgressMetrics;
+    woundImageUri?: string; 
 }
 
 type ProgressMetrics = {
@@ -101,10 +102,22 @@ export function ImageComparator() {
           limit(10)
         );
         const querySnapshot = await getDocs(q);
-        const history = querySnapshot.docs.map((doc: any) => ({
-          id: doc.id,
-          ...doc.data()
-        } as ComparisonHistory));
+        const history = querySnapshot.docs.map((doc: any) => {
+          const data = doc.data();
+          return {
+            id: doc.id,
+            ...data,
+            // Fallback for older records that might not have the url in metadata
+            image1Metadata: {
+              ...data.image1Metadata,
+              url: data.image1Metadata.url || data.woundImageUri,
+            },
+            image2Metadata: {
+                ...data.image2Metadata,
+                url: data.image2Metadata.url || data.woundImageUri,
+            }
+          } as ComparisonHistory;
+        });
         setComparisonHistory(history);
       } catch (error) {
         console.error("Erro ao carregar histórico:", error);
