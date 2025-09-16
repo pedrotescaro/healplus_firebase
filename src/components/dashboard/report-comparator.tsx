@@ -28,6 +28,7 @@ import { Separator } from "@/components/ui/separator";
 import jsPDF from "jspdf";
 import autoTable from 'jspdf-autotable';
 import { useTranslation } from "@/contexts/app-provider";
+import { Progress } from "@/components/ui/progress";
 
 interface StoredReport {
   id: string;
@@ -39,6 +40,13 @@ interface StoredReport {
 
 const isAIEnabled = !!process.env.NEXT_PUBLIC_GEMINI_API_KEY;
 
+type ProgressMetrics = {
+    areaChange: number;
+    healingScore: number;
+    tissueImprovement: number;
+    overallProgress: 'melhora' | 'piora' | 'estavel';
+}
+
 export function ReportComparator() {
   const [reports, setReports] = useState<StoredReport[]>([]);
   const [selectedReport1Id, setSelectedReport1Id] = useState<string>("");
@@ -46,6 +54,7 @@ export function ReportComparator() {
   const [comparisonResult, setComparisonResult] = useState<CompareWoundReportsOutput | null>(null);
   const [loading, setLoading] = useState(false);
   const [pdfLoading, setPdfLoading] = useState(false);
+  const [progressMetrics, setProgressMetrics] = useState<ProgressMetrics | null>(null);
   const { toast } = useToast();
   const { user } = useAuth();
   const { t } = useTranslation();
@@ -68,6 +77,39 @@ export function ReportComparator() {
     }
   }, [user, toast, t]);
 
+  const calculateProgressMetrics = (comparison: CompareWoundReportsOutput): ProgressMetrics => {
+    const delta = comparison.relatorio_comparativo.analise_quantitativa_progressao;
+    
+    const areaChangeText = delta.delta_area_total_afetada;
+    const areaChange = parseFloat(areaChangeText.replace(/[^\d.-]/g, '')) || 0;
+    
+    let healingScore = 50;
+    
+    if (areaChange < 0) healingScore += Math.abs(areaChange) * 2;
+    else healingScore -= areaChange * 2;
+    
+    const edemaText = delta.delta_edema;
+    if (edemaText.includes('redução') || edemaText.includes('diminuição')) healingScore += 15;
+    else if (edemaText.includes('aumento')) healingScore -= 15;
+    
+    const texturaText = delta.delta_textura;
+    if (texturaText.includes('melhora') || texturaText.includes('melhor')) healingScore += 10;
+    else if (texturaText.includes('piora')) healingScore -= 10;
+    
+    healingScore = Math.max(0, Math.min(100, healingScore));
+    
+    let overallProgress: 'melhora' | 'piora' | 'estavel' = 'estavel';
+    if (healingScore > 60) overallProgress = 'melhora';
+    else if (healingScore < 40) overallProgress = 'piora';
+    
+    return {
+      areaChange,
+      healingScore,
+      tissueImprovement: healingScore,
+      overallProgress
+    };
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!selectedReport1Id || !selectedReport2Id) {
@@ -89,6 +131,7 @@ export function ReportComparator() {
 
     setLoading(true);
     setComparisonResult(null);
+    setProgressMetrics(null);
     try {
       if (isAIEnabled) {
         const result = await compareWoundReports({
@@ -100,6 +143,9 @@ export function ReportComparator() {
           report2Date: report2.createdAt.toDate().toISOString(),
         });
         setComparisonResult(result);
+        const metrics = calculateProgressMetrics(result);
+        setProgressMetrics(metrics);
+
         if (user) {
           await addDoc(collection(db, "users", user.uid, "comparisons"), {
             ...result,
@@ -107,6 +153,7 @@ export function ReportComparator() {
             report2Id: selectedReport2Id,
             patientName: report1.patientName,
             createdAt: serverTimestamp(),
+            progressMetrics: metrics,
           });
           toast({ title: t.comparisonSavedTitle, description: t.comparisonSavedDescription });
         }
@@ -122,9 +169,9 @@ export function ReportComparator() {
   const handleSavePdf = async () => {
     const selectedReport1 = reports.find(r => r.id === selectedReport1Id);
     const selectedReport2 = reports.find(r => r.id === selectedReport2Id);
-    if (!comparisonResult || !selectedReport1?.woundImageUri || !selectedReport2?.woundImageUri) return;
+    if (!comparisonResult || !selectedReport1?.woundImageUri || !selectedReport2?.woundImageUri || !progressMetrics) return;
     setPdfLoading(true);
-    
+
     try {
         const doc = new jsPDF('p', 'mm', 'a4');
         const margin = 15;
@@ -137,6 +184,48 @@ export function ReportComparator() {
                 finalY = margin;
             }
         };
+        
+        const drawHistogramChart = (doc: jsPDF, x: number, y: number, width: number, height: number, data: any[], title: string) => {
+            doc.setFontSize(12);
+            doc.setFont('helvetica', 'bold');
+            doc.text(title, x, y);
+            y += 5;
+
+            doc.setDrawColor(150);
+            doc.line(x, y + height, x + width, y + height); // X-axis
+            doc.line(x, y, x, y + height); // Y-axis
+
+            const maxPercent = 100;
+            const barCount = data.length;
+            const barWidth = (width - 10) / barCount;
+            const barSpacing = 5;
+
+            doc.setFontSize(8);
+            doc.setTextColor(100);
+
+            const colorMap: { [key: string]: string } = {
+                'Vermelhos': '#e53e3e',
+                'Amarelos': '#f6e05e',
+                'Pretos': '#2d3748',
+                'Brancos/Ciano': '#fbb6ce',
+            };
+
+            data.forEach((item, index) => {
+                const barHeight = (item.contagem_pixels_percentual / maxPercent) * height;
+                const barX = x + barSpacing + index * barWidth;
+                const barY = y + height - barHeight;
+                
+                doc.setFillColor(colorMap[item.faixa_cor] || '#cccccc');
+                doc.rect(barX, barY, barWidth - barSpacing, barHeight, 'F');
+                
+                doc.setFont('helvetica', 'normal');
+                const label = item.faixa_cor.substring(0, 4) + '.';
+                doc.text(label, barX + (barWidth - barSpacing) / 2, y + height + 4, { align: 'center' });
+                doc.setFont('helvetica', 'bold');
+                doc.text(`${item.contagem_pixels_percentual.toFixed(1)}%`, barX + (barWidth - barSpacing) / 2, barY - 2, { align: 'center' });
+            });
+            return y + height + 10;
+        };
 
         // --- Título e Cabeçalho ---
         doc.setFont('helvetica', 'bold');
@@ -144,11 +233,7 @@ export function ReportComparator() {
         doc.text("Relatório Comparativo de Progressão de Ferida", pageWidth / 2, margin, { align: 'center' });
         finalY = margin + 10;
 
-        // --- Imagens Comparativas ---
-        doc.setFontSize(12);
-        doc.text("Imagens Comparadas", margin, finalY);
-        finalY += 8;
-
+        // --- Imagens Comparativas e Métricas de Progresso ---
         const imgWidth = (pageWidth - margin * 3) / 2;
         const img1Props = doc.getImageProperties(selectedReport1.woundImageUri);
         const img2Props = doc.getImageProperties(selectedReport2.woundImageUri);
@@ -156,8 +241,12 @@ export function ReportComparator() {
         const img2Height = (img2Props.height * imgWidth) / img2Props.width;
         const maxHeight = Math.max(img1Height, img2Height);
 
-        addPageIfNeeded(maxHeight + 15);
-
+        addPageIfNeeded(maxHeight + 100);
+        
+        doc.setFontSize(12);
+        doc.text("Imagens Comparadas", margin, finalY);
+        finalY += 8;
+        
         doc.addImage(selectedReport1.woundImageUri, 'PNG', margin, finalY, imgWidth, img1Height);
         doc.addImage(selectedReport2.woundImageUri, 'PNG', margin + imgWidth + margin, finalY, imgWidth, img2Height);
         
@@ -166,9 +255,20 @@ export function ReportComparator() {
         doc.text(`Imagem 1 (${selectedReport1.createdAt.toDate().toLocaleDateString()})`, margin, finalY + maxHeight + 4);
         doc.text(`Imagem 2 (${selectedReport2.createdAt.toDate().toLocaleDateString()})`, margin + imgWidth + margin, finalY + maxHeight + 4);
         finalY += maxHeight + 10;
+        
+        autoTable(doc, {
+            startY: finalY,
+            head: [['Métricas de Progresso', 'Valor']],
+            body: [
+                ['Score de Cicatrização', `${progressMetrics.healingScore.toFixed(0)}/100`],
+                ['Variação da Área', `${progressMetrics.areaChange.toFixed(1)}%`],
+                ['Progresso Geral', progressMetrics.overallProgress.charAt(0).toUpperCase() + progressMetrics.overallProgress.slice(1)],
+            ],
+            theme: 'striped',
+            headStyles: { fontStyle: 'bold', fillColor: [44, 62, 80] },
+        });
+        finalY = (doc as any).lastAutoTable.finalY + 10;
 
-        // --- Resumo Descritivo ---
-        addPageIfNeeded(40);
         autoTable(doc, {
             startY: finalY,
             head: [['Resumo Descritivo da Evolução']],
@@ -176,42 +276,37 @@ export function ReportComparator() {
             theme: 'grid',
             headStyles: { fontStyle: 'bold', fillColor: [22, 160, 133] },
         });
-        finalY = (doc as any).lastAutoTable.finalY + 10;
-        
+        finalY = (doc as any).lastAutoTable.finalY;
+
         // --- Análise Detalhada ---
         const createDetailedTables = (analysis: typeof comparisonResult.analise_imagem_1, title: string) => {
-            addPageIfNeeded(120);
+            doc.addPage();
+            finalY = margin;
             doc.setFontSize(14);
             doc.setFont('helvetica', 'bold');
             doc.text(title, margin, finalY);
-            finalY += 8;
+            finalY += 10;
 
-            // Tabela de Qualidade
             const qualityBody = Object.entries(analysis.avaliacao_qualidade).map(([key, value]) => [key.replace(/_/g, ' '), value]);
-            autoTable(doc, { startY: finalY, head: [['Qualidade da Imagem', 'Avaliação']], body: qualityBody, theme: 'striped', headStyles: { fontStyle: 'bold', fillColor: [52, 73, 94] } });
+            autoTable(doc, { startY: finalY, head: [['Qualidade da Imagem', 'Avaliação']], body: qualityBody, theme: 'striped', headStyles: { fillColor: [52, 73, 94] } });
             finalY = (doc as any).lastAutoTable.finalY + 8;
             addPageIfNeeded(60);
 
-            // Tabela Dimensional e Textura
             const dimBody = [
                 ['Área Afetada', `${analysis.analise_dimensional.area_total_afetada} ${analysis.analise_dimensional.unidade_medida}`],
                 ...Object.entries(analysis.analise_textura_e_caracteristicas).map(([key, value]) => [key.replace(/_/g, ' '), value])
             ];
-            autoTable(doc, { startY: finalY, head: [['Análise Dimensional e Textura', 'Valor']], body: dimBody, theme: 'striped', headStyles: { fontStyle: 'bold', fillColor: [52, 73, 94] } });
+            autoTable(doc, { startY: finalY, head: [['Análise Dimensional e Textura', 'Valor']], body: dimBody, theme: 'striped', headStyles: { fillColor: [52, 73, 94] } });
             finalY = (doc as any).lastAutoTable.finalY + 8;
             addPageIfNeeded(60);
 
-            // Tabela Colorimétrica
             const colorBody = analysis.analise_colorimetrica.cores_dominantes.map(c => [c.cor, c.hex_aproximado, `${c.area_percentual}%`]);
-            autoTable(doc, { startY: finalY, head: [['Análise Colorimétrica - Cor', 'Hex', '% Área']], body: colorBody, theme: 'striped', headStyles: { fontStyle: 'bold', fillColor: [52, 73, 94] } });
-            finalY = (doc as any).lastAutoTable.finalY + 8;
-            addPageIfNeeded(60);
+            autoTable(doc, { startY: finalY, head: [['Análise Colorimétrica - Cor', 'Hex', '% Área']], body: colorBody, theme: 'striped', headStyles: { fillColor: [52, 73, 94] } });
+            finalY = (doc as any).lastAutoTable.finalY + 10;
+            addPageIfNeeded(80);
 
-            // Tabela de Histograma
             if (analysis.analise_histograma) {
-                const histogramBody = analysis.analise_histograma.distribuicao_cores.map(h => [h.faixa_cor, `${h.contagem_pixels_percentual.toFixed(2)}%`]);
-                autoTable(doc, { startY: finalY, head: [['Análise de Histograma - Faixa de Cor', 'Percentual de Pixels']], body: histogramBody, theme: 'striped', headStyles: { fontStyle: 'bold', fillColor: [52, 73, 94] } });
-                finalY = (doc as any).lastAutoTable.finalY + 15;
+                finalY = drawHistogramChart(doc, margin, finalY, pageWidth - margin * 2, 50, analysis.analise_histograma.distribuicao_cores, 'Histograma de Cores');
             }
         };
 
@@ -236,12 +331,14 @@ export function ReportComparator() {
 
   if (!isAIEnabled) {
     return (
-      <Alert variant="destructive">
+       <Alert variant="destructive">
         <AlertCircle className="h-4 w-4" />
-        <AlertTitle>{t.errorTitle}</AlertTitle>
-        <AlertDescription>Gemini API key is not configured. Please add it to enable this feature.</AlertDescription>
+        <AlertTitle>Funcionalidade de IA Desativada</AlertTitle>
+        <AlertDescription>
+          A chave de API do Gemini não foi configurada. Por favor, adicione a `GEMINI_API_KEY` ao seu ambiente para habilitar a comparação de relatórios.
+        </AlertDescription>
       </Alert>
-    );
+    )
   }
 
   return (
@@ -275,18 +372,19 @@ export function ReportComparator() {
             </Select>
           </div>
         </div>
-        <Button type="submit" disabled={loading || !selectedReport1Id || !selectedReport2Id} className="w-full md:w-auto">
-          {loading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Sparkles className="mr-2 h-4 w-4" />}
-          {t.analyzeProgressionBtn}
-        </Button>
-      </form>
-
-       {(selectedReport1 || selectedReport2) && (
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            <ReportDisplay report={selectedReport1} title={t.report1LabelOldest.replace(/\s*\(.+\)$/, '')} />
-            <ReportDisplay report={selectedReport2} title={t.report2LabelNewest.replace(/\s*\(.+\)$/, '')} />
+        <div className="flex gap-2">
+          <Button type="submit" disabled={loading} className="flex-1 md:flex-none">
+            {loading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Sparkles className="mr-2 h-4 w-4" />}
+            Analisar Progressão
+          </Button>
+          {comparisonResult && (
+            <Button onClick={handleSavePdf} disabled={pdfLoading} variant="outline">
+              {pdfLoading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <FileDown className="mr-2 h-4 w-4" />}
+              Exportar PDF Detalhado
+            </Button>
+          )}
         </div>
-       )}
+      </form>
 
       {loading && (
         <div className="flex items-center justify-center flex-col text-center p-8">
@@ -295,16 +393,11 @@ export function ReportComparator() {
         </div>
       )}
 
-      {comparisonResult && comparisonResult.relatorio_comparativo && (
-         <Tabs defaultValue="comparativo" className="w-full">
-            <div className="flex justify-end mb-2">
-                <Button onClick={handleSavePdf} disabled={pdfLoading} variant="outline" size="sm">
-                    {pdfLoading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <FileDown className="mr-2 h-4 w-4" />}
-                    PDF
-                </Button>
-            </div>
-            <TabsList className="grid w-full grid-cols-3">
-                <TabsTrigger value="comparativo"><GitCompareArrows className="mr-2" />{t.tabComparative}</TabsTrigger>
+      {comparisonResult && (
+        <Tabs defaultValue="comparativo" className="w-full">
+            <TabsList className="grid w-full grid-cols-4">
+                <TabsTrigger value="comparativo"><GitCompareArrows className="mr-2" />Comparativo</TabsTrigger>
+                <TabsTrigger value="metricas"><BarChart3 className="mr-2" />Métricas</TabsTrigger>
                 <TabsTrigger value="imagem1"><FileImage className="mr-2" />{t.tabImage1}</TabsTrigger>
                 <TabsTrigger value="imagem2"><FileImage className="mr-2" />{t.tabImage2}</TabsTrigger>
             </TabsList>
@@ -315,7 +408,7 @@ export function ReportComparator() {
                         <CardDescription>{t.comparativeAnalysisBetween.replace('{interval}', String(comparisonResult.relatorio_comparativo.intervalo_tempo))}</CardDescription>
                     </CardHeader>
                     <CardContent className="space-y-4">
-                        {comparisonResult.relatorio_comparativo.consistencia_dados?.alerta_qualidade && (
+                        {comparisonResult.relatorio_comparativo.consistencia_dados.alerta_qualidade && (
                             <Alert variant="destructive">
                                 <AlertCircle className="h-4 w-4" />
                                 <AlertTitle>{t.qualityAlertTitle}</AlertTitle>
@@ -341,6 +434,9 @@ export function ReportComparator() {
                         </div>
                     </CardContent>
                 </Card>
+            </TabsContent>
+            <TabsContent value="metricas" className="mt-4">
+                {progressMetrics && <ProgressIndicator metrics={progressMetrics} />}
             </TabsContent>
             <TabsContent value="imagem1" className="mt-4">
                  <IndividualAnalysisCard analysis={comparisonResult.analise_imagem_1} />
@@ -411,13 +507,60 @@ const QualityBadge = ({ label, value }: { label: string, value: string }) => {
     };
     return <Badge variant={variant(value)}>{label}: {value}</Badge>;
   };
+  
+const ProgressIndicator = ({ metrics }: { metrics: ProgressMetrics }) => {
+    const getProgressIcon = () => {
+      switch (metrics.overallProgress) {
+        case 'melhora': return <TrendingUp className="h-4 w-4 text-green-600" />;
+        case 'piora': return <TrendingDown className="h-4 w-4 text-red-600" />;
+        default: return <Minus className="h-4 w-4 text-yellow-600" />;
+      }
+    };
+
+    return (
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <BarChart3 className="h-5 w-5" />
+            Métricas de Progresso
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="flex items-center justify-between">
+            <span className="text-sm font-medium">Score de Cicatrização</span>
+            <div className="flex items-center gap-2">
+              {getProgressIcon()}
+              <span className="text-sm font-bold">{metrics.healingScore.toFixed(0)}/100</span>
+            </div>
+          </div>
+          <Progress value={metrics.healingScore} className="h-2" />
+          
+          <div className="grid grid-cols-2 gap-4">
+            <div className="text-center">
+              <div className="text-2xl font-bold text-blue-600">{metrics.areaChange.toFixed(1)}%</div>
+              <div className="text-xs text-muted-foreground">Mudança de Área</div>
+            </div>
+            <div className="text-center">
+              <div className="text-2xl font-bold text-green-600">{metrics.tissueImprovement.toFixed(0)}%</div>
+              <div className="text-xs text-muted-foreground">Melhora Tecidual</div>
+            </div>
+          </div>
+          
+          <div className="flex items-center justify-center gap-2 p-2 rounded-lg bg-muted">
+            {getProgressIcon()}
+            <span className="font-medium capitalize">{metrics.overallProgress}</span>
+          </div>
+        </CardContent>
+      </Card>
+    );
+  };
 
 const IndividualAnalysisCard = ({ analysis }: { analysis?: CompareWoundReportsOutput['analise_imagem_1'] }) => {
       const { t } = useTranslation();
       if (!analysis) {
         return null;
       }
-      const { avaliacao_qualidade, analise_dimensional, analise_colorimetrica, analise_textura_e_caracteristicas, analise_histograma } = analysis;
+      const { avaliacao_qualidade, analise_dimensional, analise_colorimetrica, analise_textura_e_caracteristicas } = analysis;
       return (
           <div className="space-y-4">
               {avaliacao_qualidade && (
