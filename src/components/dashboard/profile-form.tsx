@@ -1,7 +1,7 @@
 
 "use client";
 
-import { useState, useRef, ChangeEvent } from "react";
+import { useState, useRef, type ChangeEvent } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
@@ -87,7 +87,7 @@ export function ProfileForm() {
 
   const form = useForm<z.infer<typeof profileSchema>>({
     resolver: zodResolver(profileSchema),
-    values: {
+    defaultValues: {
       name: user?.name || "",
       specialty: "Especialista em Feridas", // Mock data
       crm_coren: "123456-SP", // Mock data
@@ -216,17 +216,19 @@ export function ProfileForm() {
     <>
       <Form {...form}>
         <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-          <div className="flex justify-center mb-6">
-            <div className="relative">
-              <Avatar className="h-32 w-32 border-4 border-primary/20">
+          <div className="flex justify-center mb-8">
+            <div className="relative group">
+              <Avatar className="h-32 w-32 border-4 border-primary/20 shadow-lg group-hover:shadow-xl transition-all duration-300">
                 <AvatarImage src={user?.photoURL ?? undefined} alt={user?.name ?? "User Avatar"} />
-                <AvatarFallback className="text-4xl">{getInitials(user?.name)}</AvatarFallback>
+                <AvatarFallback className="text-4xl bg-gradient-to-br from-primary/20 to-primary/10">
+                  {getInitials(user?.name)}
+                </AvatarFallback>
               </Avatar>
               <Button
                 type="button"
                 variant="outline"
                 size="icon"
-                className="absolute bottom-1 right-1 rounded-full h-10 w-10"
+                className="absolute bottom-1 right-1 rounded-full h-10 w-10 bg-white shadow-md hover:shadow-lg hover:bg-primary hover:text-white transition-all duration-300"
                 onClick={handleAvatarClick}
                 disabled={photoUploading}
               >
@@ -248,18 +250,27 @@ export function ProfileForm() {
             name="name"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Nome Completo</FormLabel>
+                <FormLabel className="text-sm font-medium">Nome Completo</FormLabel>
                 <FormControl>
-                  <Input placeholder="Dra. Joana da Silva" {...field} />
+                  <Input 
+                    placeholder="Dra. Joana da Silva" 
+                    className="transition-all duration-300 focus:ring-2 focus:ring-primary/20"
+                    {...field} 
+                  />
                 </FormControl>
                 <FormMessage />
               </FormItem>
             )}
           />
           <FormItem>
-              <FormLabel>Email</FormLabel>
+              <FormLabel className="text-sm font-medium">Email</FormLabel>
               <FormControl>
-                  <Input type="email" value={user?.email || ""} disabled />
+                  <Input 
+                    type="email" 
+                    value={user?.email || ""} 
+                    disabled 
+                    className="bg-muted/50 cursor-not-allowed"
+                  />
               </FormControl>
           </FormItem>
           {user?.role === 'professional' && (
@@ -269,9 +280,13 @@ export function ProfileForm() {
                 name="specialty"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Especialidade</FormLabel>
+                    <FormLabel className="text-sm font-medium">Especialidade</FormLabel>
                     <FormControl>
-                      <Input placeholder="ex: Dermatologia, Enfermagem" {...field} />
+                      <Input 
+                        placeholder="ex: Dermatologia, Enfermagem" 
+                        className="transition-all duration-300 focus:ring-2 focus:ring-primary/20"
+                        {...field} 
+                      />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -282,10 +297,11 @@ export function ProfileForm() {
                 name="crm_coren"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>CRM/COREN</FormLabel>
+                    <FormLabel className="text-sm font-medium">CRM/COREN</FormLabel>
                     <FormControl>
                       <Input
                         placeholder="ex: 123456-SP"
+                        className="transition-all duration-300 focus:ring-2 focus:ring-primary/20"
                         {...field}
                       />
                     </FormControl>
@@ -295,7 +311,11 @@ export function ProfileForm() {
               />
             </>
           )}
-          <Button type="submit" disabled={loading}>
+          <Button 
+            type="submit" 
+            disabled={loading}
+            className="w-full bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary/70 shadow-md"
+          >
             {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
             Salvar Alterações
           </Button>

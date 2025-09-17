@@ -49,10 +49,12 @@ export function SettingsForm() {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <Label htmlFor="language-selector" className="flex items-center gap-2">
-          <Languages className="h-5 w-5 text-muted-foreground" />
-          <span>{t.language}</span>
+      <div className="flex items-center justify-between p-4 bg-gradient-to-r from-muted/20 to-muted/10 rounded-lg border border-border/50">
+        <Label htmlFor="language-selector" className="flex items-center gap-3">
+          <div className="p-2 bg-blue-500 rounded-lg">
+            <Languages className="h-4 w-4 text-white" />
+          </div>
+          <span className="font-medium">{t.language}</span>
         </Label>
         <Select value={language} onValueChange={(value) => setLanguage(value as Language)}>
           <SelectTrigger id="language-selector" className="w-[180px]">
@@ -65,10 +67,12 @@ export function SettingsForm() {
         </Select>
       </div>
 
-       <div className="flex items-center justify-between">
-        <Label htmlFor="font-size-selector" className="flex items-center gap-2">
-          <Text className="h-5 w-5 text-muted-foreground" />
-          <span>{t.fontSize}</span>
+       <div className="flex items-center justify-between p-4 bg-gradient-to-r from-muted/20 to-muted/10 rounded-lg border border-border/50">
+        <Label htmlFor="font-size-selector" className="flex items-center gap-3">
+          <div className="p-2 bg-green-500 rounded-lg">
+            <Text className="h-4 w-4 text-white" />
+          </div>
+          <span className="font-medium">{t.fontSize}</span>
         </Label>
         <Select value={String(fontSize)} onValueChange={handleFontSizeChange}>
           <SelectTrigger id="font-size-selector" className="w-[180px]">
@@ -82,14 +86,16 @@ export function SettingsForm() {
         </Select>
       </div>
 
-      <div className="flex items-center justify-between">
-        <Label htmlFor="dark-mode-switch" className="flex items-center gap-2">
-          {theme === 'dark' || theme === 'system' ? (
-            <Moon className="h-5 w-5 text-muted-foreground" />
-          ) : (
-            <Sun className="h-5 w-5 text-muted-foreground" />
-          )}
-          <span>{t.darkMode}</span>
+      <div className="flex items-center justify-between p-4 bg-gradient-to-r from-muted/20 to-muted/10 rounded-lg border border-border/50">
+        <Label htmlFor="dark-mode-switch" className="flex items-center gap-3">
+          <div className="p-2 bg-purple-500 rounded-lg">
+            {theme === 'dark' || theme === 'system' ? (
+              <Moon className="h-4 w-4 text-white" />
+            ) : (
+              <Sun className="h-4 w-4 text-white" />
+            )}
+          </div>
+          <span className="font-medium">{t.darkMode}</span>
         </Label>
         <Switch
           id="dark-mode-switch"
@@ -99,10 +105,12 @@ export function SettingsForm() {
         />
       </div>
 
-      <div className="flex items-center justify-between">
-        <Label htmlFor="high-contrast-switch" className="flex items-center gap-2">
-          <Contrast className="h-5 w-5 text-muted-foreground" />
-          <span>{t.highContrast}</span>
+      <div className="flex items-center justify-between p-4 bg-gradient-to-r from-muted/20 to-muted/10 rounded-lg border border-border/50">
+        <Label htmlFor="high-contrast-switch" className="flex items-center gap-3">
+          <div className="p-2 bg-orange-500 rounded-lg">
+            <Contrast className="h-4 w-4 text-white" />
+          </div>
+          <span className="font-medium">{t.highContrast}</span>
         </Label>
         <Switch
           id="high-contrast-switch"

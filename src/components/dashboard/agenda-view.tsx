@@ -354,36 +354,50 @@ export function AgendaView() {
 
   return (
     <div className="space-y-6">
-      {/* Alertas e Notificações */}
+      {/* Alertas e Notificações Melhorados */}
       {(urgentAppointments.length > 0 || overdueAppointments.length > 0) && (
         <div className="grid gap-4 md:grid-cols-2">
           {urgentAppointments.length > 0 && (
-            <Card className="border-red-200 bg-red-50">
+            <Card className="border-red-200 bg-gradient-to-r from-red-50 to-red-100 shadow-lg shadow-red-500/10">
               <CardHeader className="pb-3">
                 <CardTitle className="flex items-center gap-2 text-red-800">
-                  <AlertTriangle className="h-5 w-5" />
+                  <div className="p-2 bg-red-500 rounded-full">
+                    <AlertTriangle className="h-5 w-5 text-white" />
+                  </div>
                   Consultas Urgentes
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                <p className="text-sm text-red-700">
-                  {urgentAppointments.length} consulta(s) urgente(s) para hoje ou amanhã
-                </p>
+                <div className="flex items-center justify-between">
+                  <p className="text-sm text-red-700">
+                    {urgentAppointments.length} consulta(s) urgente(s) para hoje ou amanhã
+                  </p>
+                  <div className="text-2xl font-bold text-red-600">
+                    {urgentAppointments.length}
+                  </div>
+                </div>
               </CardContent>
             </Card>
           )}
           {overdueAppointments.length > 0 && (
-            <Card className="border-yellow-200 bg-yellow-50">
+            <Card className="border-yellow-200 bg-gradient-to-r from-yellow-50 to-yellow-100 shadow-lg shadow-yellow-500/10">
               <CardHeader className="pb-3">
                 <CardTitle className="flex items-center gap-2 text-yellow-800">
-                  <Clock className="h-5 w-5" />
+                  <div className="p-2 bg-yellow-500 rounded-full">
+                    <Clock className="h-5 w-5 text-white" />
+                  </div>
                   Consultas Atrasadas
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                <p className="text-sm text-yellow-700">
-                  {overdueAppointments.length} consulta(s) em atraso
-                </p>
+                <div className="flex items-center justify-between">
+                  <p className="text-sm text-yellow-700">
+                    {overdueAppointments.length} consulta(s) em atraso
+                  </p>
+                  <div className="text-2xl font-bold text-yellow-600">
+                    {overdueAppointments.length}
+                  </div>
+                </div>
               </CardContent>
             </Card>
           )}
@@ -391,22 +405,32 @@ export function AgendaView() {
       )}
 
       <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-[1fr_380px]">
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between">
+        <Card className="shadow-lg border-border/50">
+          <CardHeader className="flex flex-row items-center justify-between bg-gradient-to-r from-primary/5 via-primary/3 to-transparent border-b border-border/50">
             <div>
-              <CardTitle>Calendário</CardTitle>
+              <CardTitle className="flex items-center gap-2">
+                <div className="p-2 bg-primary rounded-lg">
+                  <Calendar className="h-5 w-5 text-primary-foreground" />
+                </div>
+                Calendário
+              </CardTitle>
               <CardDescription>Selecione uma data para ver os agendamentos</CardDescription>
             </div>
             <Dialog open={showAddDialog} onOpenChange={setShowAddDialog}>
               <DialogTrigger asChild>
-                <Button size="sm">
+                <Button size="sm" className="bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary/70 shadow-md">
                   <Plus className="h-4 w-4 mr-2" />
                   Novo Agendamento
                 </Button>
               </DialogTrigger>
               <DialogContent className="max-w-md">
                 <DialogHeader>
-                  <DialogTitle>Novo Agendamento</DialogTitle>
+                  <DialogTitle className="flex items-center gap-2">
+                    <div className="p-2 bg-primary rounded-lg">
+                      <Plus className="h-5 w-5 text-primary-foreground" />
+                    </div>
+                    Novo Agendamento
+                  </DialogTitle>
                 </DialogHeader>
                 <div className="space-y-4">
                   <div>
@@ -477,10 +501,17 @@ export function AgendaView() {
                     />
                   </div>
                   <div className="flex gap-2 pt-4">
-                    <Button onClick={handleAddAppointment} className="flex-1">
+                    <Button 
+                      onClick={handleAddAppointment} 
+                      className="flex-1 bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary/70 shadow-md"
+                    >
                       Criar Agendamento
                     </Button>
-                    <Button variant="outline" onClick={() => setShowAddDialog(false)}>
+                    <Button 
+                      variant="outline" 
+                      onClick={() => setShowAddDialog(false)}
+                      className="hover:bg-muted/50"
+                    >
                       Cancelar
                     </Button>
                   </div>
@@ -501,9 +532,14 @@ export function AgendaView() {
           </CardContent>
         </Card>
         <div className="space-y-6">
-        <Card>
-          <CardHeader>
-            <CardTitle>Agendamentos do Dia</CardTitle>
+        <Card className="shadow-lg border-border/50">
+          <CardHeader className="bg-gradient-to-r from-blue-500/5 via-blue-500/3 to-transparent border-b border-border/50">
+            <CardTitle className="flex items-center gap-2">
+              <div className="p-2 bg-blue-500 rounded-lg">
+                <User className="h-5 w-5 text-white" />
+              </div>
+              Agendamentos do Dia
+            </CardTitle>
             <CardDescription>
               {selectedDate ? format(selectedDate, "'Pacientes para' dd 'de' MMMM", { locale: ptBR }) : "Selecione uma data"}
             </CardDescription>
@@ -513,40 +549,44 @@ export function AgendaView() {
               {appointmentsForSelectedDay.length > 0 ? (
                 <ul className="space-y-3">
                   {appointmentsForSelectedDay.map((app: any) => (
-                    <li key={app.id} className="flex items-start gap-3 p-3 border rounded-lg">
-                      <div className="flex-shrink-0 bg-primary/10 text-primary p-2 rounded-full">
-                        <User className="h-4 w-4" />
+                    <li key={app.id} className="flex items-start gap-3 p-4 border border-border/50 rounded-xl bg-gradient-to-r from-background to-muted/20 hover:shadow-md transition-all duration-300">
+                      <div className="flex-shrink-0 bg-gradient-to-br from-primary to-primary/80 text-primary-foreground p-3 rounded-xl shadow-md">
+                        <User className="h-5 w-5" />
                       </div>
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center justify-between">
-                          <p className="font-semibold truncate">{app.patientName}</p>
+                          <p className="font-semibold truncate text-lg">{app.patientName}</p>
                           <div className="flex items-center gap-1">
                             {getStatusIcon(app.status)}
                           </div>
                         </div>
-                        <p className="text-sm text-muted-foreground">{app.woundLocation}</p>
-                        <p className="text-xs text-muted-foreground">
-                          {format(app.date, "HH:mm")}
-                        </p>
-                        <div className="flex gap-1 mt-2">
-                          <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium border ${getPriorityColor(app.priority)}`}>
+                        <p className="text-sm text-muted-foreground mt-1">{app.woundLocation}</p>
+                        <div className="flex items-center gap-2 mt-2">
+                          <Clock className="h-4 w-4 text-primary" />
+                          <p className="text-sm font-medium text-primary">
+                            {format(app.date, "HH:mm")}
+                          </p>
+                        </div>
+                        <div className="flex gap-2 mt-3">
+                          <span className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-medium border shadow-sm ${getPriorityColor(app.priority)}`}>
                             {app.priority}
                           </span>
-                          <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium border ${getStatusColor(app.status)}`}>
+                          <span className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-medium border shadow-sm ${getStatusColor(app.status)}`}>
                             {app.status}
                           </span>
                         </div>
                         {app.notes && (
-                          <p className="text-xs text-muted-foreground mt-1 line-clamp-2">
+                          <p className="text-xs text-muted-foreground mt-2 line-clamp-2 bg-muted/30 p-2 rounded-md">
                             {app.notes}
                           </p>
                         )}
-                        <div className="flex gap-1 mt-2">
+                        <div className="flex gap-2 mt-3">
                           <Button
                             size="sm"
                             variant="outline"
                             onClick={() => updateAppointmentStatus(app.id, 'confirmado')}
                             disabled={app.status === 'confirmado' || app.status === 'realizado'}
+                            className="hover:bg-green-50 hover:border-green-200 hover:text-green-700 transition-colors"
                           >
                             Confirmar
                           </Button>
@@ -555,6 +595,7 @@ export function AgendaView() {
                             variant="outline"
                             onClick={() => updateAppointmentStatus(app.id, 'realizado')}
                             disabled={app.status === 'realizado'}
+                            className="hover:bg-blue-50 hover:border-blue-200 hover:text-blue-700 transition-colors"
                           >
                             Realizado
                           </Button>
@@ -569,9 +610,14 @@ export function AgendaView() {
             </ScrollArea>
           </CardContent>
         </Card>
-        <Card>
-          <CardHeader>
-            <CardTitle>Próximos 7 Agendamentos</CardTitle>
+        <Card className="shadow-lg border-border/50">
+          <CardHeader className="bg-gradient-to-r from-green-500/5 via-green-500/3 to-transparent border-b border-border/50">
+            <CardTitle className="flex items-center gap-2">
+              <div className="p-2 bg-green-500 rounded-lg">
+                <CalendarCheck className="h-5 w-5 text-white" />
+              </div>
+              Próximos 7 Agendamentos
+            </CardTitle>
             <CardDescription>Visão geral dos seus próximos agendamentos.</CardDescription>
           </CardHeader>
           <CardContent>
@@ -579,28 +625,31 @@ export function AgendaView() {
               {upcomingAppointments.length > 0 ? (
                 <ul className="space-y-3">
                   {upcomingAppointments.map((app: any) => (
-                    <li key={app.id} className="flex items-center gap-3 p-2 border rounded-lg">
-                       <div className="flex-shrink-0 bg-secondary text-secondary-foreground p-2 rounded-md">
-                        <CalendarCheck className="h-4 w-4" />
+                    <li key={app.id} className="flex items-center gap-3 p-3 border border-border/50 rounded-xl bg-gradient-to-r from-background to-muted/20 hover:shadow-md transition-all duration-300">
+                       <div className="flex-shrink-0 bg-gradient-to-br from-green-500 to-green-600 text-white p-3 rounded-xl shadow-md">
+                        <CalendarCheck className="h-5 w-5" />
                       </div>
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center justify-between">
-                          <p className="font-semibold truncate">{app.patientName}</p>
+                          <p className="font-semibold truncate text-base">{app.patientName}</p>
                           <div className="flex items-center gap-1">
                             {getStatusIcon(app.status)}
                           </div>
                         </div>
-                        <p className="text-sm text-muted-foreground">
-                          {format(app.date, "dd/MM/yyyy 'às' HH:mm")}
-                        </p>
-                        <p className="text-xs text-muted-foreground truncate">
+                        <div className="flex items-center gap-2 mt-1">
+                          <Clock className="h-4 w-4 text-muted-foreground" />
+                          <p className="text-sm font-medium text-muted-foreground">
+                            {format(app.date, "dd/MM/yyyy 'às' HH:mm")}
+                          </p>
+                        </div>
+                        <p className="text-xs text-muted-foreground truncate mt-1">
                           {app.woundLocation}
                         </p>
-                        <div className="flex gap-1 mt-1">
-                          <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium border ${getPriorityColor(app.priority)}`}>
+                        <div className="flex gap-2 mt-2">
+                          <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium border shadow-sm ${getPriorityColor(app.priority)}`}>
                             {app.priority}
                           </span>
-                          <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium border ${getStatusColor(app.status)}`}>
+                          <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium border shadow-sm ${getStatusColor(app.status)}`}>
                             {app.status}
                           </span>
                         </div>

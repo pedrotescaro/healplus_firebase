@@ -1,6 +1,11 @@
 declare module 'react' {
   export function useEffect(effect: () => void | (() => void), deps?: any[]): void;
-  export function useState<T>(initialState: T | (() => T)): [T, (value: T | ((prev: T) => T)) => void];
+  export function useState<T>(initialState?: T | (() => T)): [T, (value: T | ((prev: T) => T)) => void];
+  export function useRef<T>(initialValue?: T): { current: T };
+  export interface ChangeEvent<T = Element> {
+    target: T;
+  }
+  export type ReactNode = any;
   export const React: any;
   export default React;
 }
@@ -106,6 +111,7 @@ declare module 'lucide-react' {
   export const Lock: any;
   export const Smartphone: any;
   export const Headphones: any;
+  export const Settings: any;
 }
 
 declare module 'date-fns' {
@@ -143,6 +149,11 @@ declare module 'jspdf' {
 
 declare module 'jspdf-autotable' {
   export default any;
+}
+
+declare module 'react-hook-form' {
+  export function useForm<T>(options?: any): any;
+  export function FormProvider(props: any): any;
 }
 
 declare global {
