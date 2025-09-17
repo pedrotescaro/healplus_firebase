@@ -525,7 +525,6 @@ export function AgendaView() {
               selected={selectedDate}
               onSelect={setSelectedDate}
               className="w-full p-0"
-              locale={ptBR}
               modifiers={modifiers}
               modifiersStyles={modifiersStyles}
             />
