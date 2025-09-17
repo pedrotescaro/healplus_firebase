@@ -14,6 +14,7 @@ declare module 'firebase/firestore' {
   export function addDoc(collection: any, data: any): Promise<any>;
   export function serverTimestamp(): any;
   export function updateDoc(doc: any, data: any): Promise<any>;
+  export function deleteDoc(doc: any): Promise<any>;
   export function doc(firestore: any, path: string, ...pathSegments: string[]): any;
   export function limit(count: number): any;
 }

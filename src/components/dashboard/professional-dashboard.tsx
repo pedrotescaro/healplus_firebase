@@ -6,7 +6,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { FileText, ClipboardList, PlusCircle, MoreHorizontal, Trash2, Eye, Edit, Loader2, CalendarDays, Users, CopyCheck, MessageSquare } from "lucide-react";
+import { FileText, ClipboardList, PlusCircle, MoreHorizontal, Trash2, Eye, Edit, Loader2, CalendarDays, Users, CopyCheck, MessageSquare, TrendingUp, BarChart3, Clock, CheckCircle, AlertCircle } from "lucide-react";
 import { useEffect, useState } from "react";
 import type { AnamnesisFormValues } from "@/lib/anamnesis-schema";
 import { Badge } from "@/components/ui/badge";
@@ -40,7 +40,7 @@ import {
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { useToast } from "@/hooks/use-toast";
 import { db } from "@/firebase/client-app";
-import { collection, query, getDocs, orderBy, limit, doc, deleteDoc,getCountFromServer } from "firebase/firestore";
+import { collection, query, getDocs, orderBy, limit, doc, deleteDoc } from "firebase/firestore";
 import { ActivitySummaryChart } from "@/components/dashboard/activity-summary-chart";
 import { useTranslation } from "@/contexts/app-provider";
 import { AnamnesisDetailsView } from "@/components/dashboard/anamnesis-details-view";
@@ -57,6 +57,14 @@ export function ProfessionalDashboard() {
   const [recordToDelete, setRecordToDelete] = useState<string | null>(null);
   const [recordToView, setRecordToView] = useState<StoredAnamnesis | null>(null);
   const [activityData, setActivityData] = useState<{ name: string; value: number }[]>([]);
+  const [dashboardStats, setDashboardStats] = useState({
+    totalPatients: 0,
+    totalEvaluations: 0,
+    totalReports: 0,
+    totalComparisons: 0,
+    pendingEvaluations: 0,
+    thisMonthEvaluations: 0
+  });
 
   useEffect(() => {
     const fetchData = async () => {
@@ -76,25 +84,44 @@ export function ProfessionalDashboard() {
         setRecentAnamneses(records);
 
         // Fetch activity counts
-        const anamnesisCol = collection(db, "users", user.uid, "anamnesis");
-        const reportsCol = collection(db, "users", user.uid, "reports");
-        const comparisonsCol = collection(db, "users", user.uid, "comparisons");
-
-        const [anamnesisCountSnapshot, reportsCountSnapshot, comparisonsCountSnapshot] = await Promise.all([
-          getCountFromServer(anamnesisCol),
-          getCountFromServer(reportsCol),
-          getCountFromServer(comparisonsCol),
+        const [anamnesisSnapshot, reportsSnapshot, comparisonsSnapshot] = await Promise.all([
+          getDocs(collection(db, "users", user.uid, "anamnesis")),
+          getDocs(collection(db, "users", user.uid, "reports")),
+          getDocs(collection(db, "users", user.uid, "comparisons")),
         ]);
 
-        const anamnesisCount = anamnesisCountSnapshot.data().count;
-        const reportsCount = reportsCountSnapshot.data().count;
-        const comparisonsCount = comparisonsCountSnapshot.data().count;
+        const anamnesisCount = anamnesisSnapshot.size;
+        const reportsCount = reportsSnapshot.size;
+        const comparisonsCount = comparisonsSnapshot.size;
+
+        // Usar dados já carregados para estatísticas
+        const allAnamnesis = anamnesisSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as StoredAnamnesis));
+        
+        // Contar pacientes únicos
+        const uniquePatients = new Set(allAnamnesis.map(record => record.nome_cliente)).size;
+        
+        // Contar avaliações deste mês
+        const currentMonth = new Date().getMonth();
+        const currentYear = new Date().getFullYear();
+        const thisMonthEvaluations = allAnamnesis.filter(record => {
+          const recordDate = new Date(record.data_consulta);
+          return recordDate.getMonth() === currentMonth && recordDate.getFullYear() === currentYear;
+        }).length;
 
         setActivityData([
             { name: "completedForms", value: anamnesisCount },
             { name: "generatedReports", value: reportsCount },
             { name: "comparisons", value: comparisonsCount },
         ]);
+
+        setDashboardStats({
+          totalPatients: uniquePatients,
+          totalEvaluations: anamnesisCount,
+          totalReports: reportsCount,
+          totalComparisons: comparisonsCount,
+          pendingEvaluations: 0, // Pode ser implementado futuramente
+          thisMonthEvaluations: thisMonthEvaluations
+        });
 
       } catch (error) {
         console.error("Error fetching dashboard data from Firestore: ", error);
@@ -138,6 +165,71 @@ export function ProfessionalDashboard() {
       <div className="container mx-auto px-4 sm:px-6 lg:px-8">
         <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold tracking-tight">Dashboard Profissional</h1>
         <p className="text-muted-foreground text-sm sm:text-base">Gerencie suas avaliações, relatórios e pacientes em um só lugar.</p>
+      </div>
+
+      {/* Estatísticas Detalhadas */}
+      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4">
+        <Card className="text-center">
+          <CardContent className="pt-6">
+            <div className="flex flex-col items-center space-y-2">
+              <Users className="h-8 w-8 text-primary" />
+              <div className="text-2xl font-bold">{dashboardStats.totalPatients}</div>
+              <p className="text-xs text-muted-foreground">Pacientes Atendidos</p>
+            </div>
+          </CardContent>
+        </Card>
+        
+        <Card className="text-center">
+          <CardContent className="pt-6">
+            <div className="flex flex-col items-center space-y-2">
+              <ClipboardList className="h-8 w-8 text-primary" />
+              <div className="text-2xl font-bold">{dashboardStats.totalEvaluations}</div>
+              <p className="text-xs text-muted-foreground">Avaliações Realizadas</p>
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card className="text-center">
+          <CardContent className="pt-6">
+            <div className="flex flex-col items-center space-y-2">
+              <FileText className="h-8 w-8 text-primary" />
+              <div className="text-2xl font-bold">{dashboardStats.totalReports}</div>
+              <p className="text-xs text-muted-foreground">Relatórios Gerados</p>
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card className="text-center">
+          <CardContent className="pt-6">
+            <div className="flex flex-col items-center space-y-2">
+              <CopyCheck className="h-8 w-8 text-primary" />
+              <div className="text-2xl font-bold">{dashboardStats.totalComparisons}</div>
+              <p className="text-xs text-muted-foreground">Comparações Realizadas</p>
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card className="text-center">
+          <CardContent className="pt-6">
+            <div className="flex flex-col items-center space-y-2">
+              <TrendingUp className="h-8 w-8 text-primary" />
+              <div className="text-2xl font-bold">{dashboardStats.thisMonthEvaluations}</div>
+              <p className="text-xs text-muted-foreground">Este Mês</p>
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card className="text-center">
+          <CardContent className="pt-6">
+            <div className="flex flex-col items-center space-y-2">
+              <BarChart3 className="h-8 w-8 text-primary" />
+              <div className="text-2xl font-bold">
+                {dashboardStats.totalEvaluations > 0 ? Math.round((dashboardStats.totalReports / dashboardStats.totalEvaluations) * 100) : 0}%
+              </div>
+              <p className="text-xs text-muted-foreground">Taxa de Relatórios</p>
+            </div>
+          </CardContent>
+        </Card>
       </div>
       
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -279,9 +371,12 @@ export function ProfessionalDashboard() {
 
         <Card className="lg:col-span-1">
             <CardHeader>
-                <CardTitle>{t.activitySummaryTitle}</CardTitle>
+                <CardTitle className="flex items-center gap-2">
+                  <BarChart3 className="h-5 w-5 text-primary" />
+                  Resumo das Atividades
+                </CardTitle>
                 <CardDescription>
-                    {t.activitySummaryDescription}
+                  Sua atividade recente na plataforma
                 </CardDescription>
             </CardHeader>
             <CardContent>
@@ -290,12 +385,125 @@ export function ProfessionalDashboard() {
                         <Loader2 className="h-8 w-8 animate-spin text-primary" />
                     </div>
                 ) : (
-                    <ActivitySummaryChart data={activityData} />
+                  <div className="space-y-4">
+                    {/* Estatísticas Resumidas */}
+                    <div className="grid grid-cols-1 gap-4">
+                      <div className="flex items-center justify-between p-3 bg-gradient-to-r from-primary/5 to-primary/10 rounded-lg border border-primary/20">
+                        <div className="flex items-center gap-3">
+                          <CheckCircle className="h-6 w-6 text-primary" />
+                          <div>
+                            <p className="font-medium">Fichas Concluídas</p>
+                            <p className="text-sm text-muted-foreground">Forms Completed</p>
+                          </div>
+                        </div>
+                        <div className="text-2xl font-bold text-primary">{dashboardStats.totalEvaluations}</div>
+                      </div>
+                      
+                      <div className="flex items-center justify-between p-3 bg-gradient-to-r from-blue-500/5 to-blue-500/10 rounded-lg border border-blue-500/20">
+                        <div className="flex items-center gap-3">
+                          <FileText className="h-6 w-6 text-blue-600" />
+                          <div>
+                            <p className="font-medium">Relatórios Gerados</p>
+                            <p className="text-sm text-muted-foreground">Reports Generated</p>
+                          </div>
+                        </div>
+                        <div className="text-2xl font-bold text-blue-600">{dashboardStats.totalReports}</div>
+                      </div>
+                      
+                      <div className="flex items-center justify-between p-3 bg-gradient-to-r from-green-500/5 to-green-500/10 rounded-lg border border-green-500/20">
+                        <div className="flex items-center gap-3">
+                          <CopyCheck className="h-6 w-6 text-green-600" />
+                          <div>
+                            <p className="font-medium">Comparações</p>
+                            <p className="text-sm text-muted-foreground">Comparisons</p>
+                          </div>
+                        </div>
+                        <div className="text-2xl font-bold text-green-600">{dashboardStats.totalComparisons}</div>
+                      </div>
+                    </div>
+                    
+                    {/* Gráfico de Atividade */}
+                    <div className="pt-4">
+                      <ActivitySummaryChart data={activityData} />
+                    </div>
+                  </div>
                 )}
             </CardContent>
         </Card>
       </div>
 
+      {/* Atividade Recente Detalhada */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Clock className="h-5 w-5 text-primary" />
+            Atividade Recente
+          </CardTitle>
+          <CardDescription>
+            Acompanhe suas últimas ações e progresso na plataforma
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+            {/* Resumo Semanal */}
+            <div className="text-center p-4 bg-gradient-to-br from-primary/5 to-primary/10 rounded-lg border border-primary/20">
+              <TrendingUp className="h-8 w-8 text-primary mx-auto mb-2" />
+              <div className="text-2xl font-bold text-primary">
+                {dashboardStats.thisMonthEvaluations}
+              </div>
+              <p className="text-sm text-muted-foreground">Avaliações este mês</p>
+              <p className="text-xs text-muted-foreground mt-1">
+                {dashboardStats.totalEvaluations > 0 
+                  ? `${Math.round((dashboardStats.thisMonthEvaluations / dashboardStats.totalEvaluations) * 100)}% do total`
+                  : '0% do total'
+                }
+              </p>
+            </div>
+
+            {/* Eficiência */}
+            <div className="text-center p-4 bg-gradient-to-br from-blue-500/5 to-blue-500/10 rounded-lg border border-blue-500/20">
+              <BarChart3 className="h-8 w-8 text-blue-600 mx-auto mb-2" />
+              <div className="text-2xl font-bold text-blue-600">
+                {dashboardStats.totalEvaluations > 0 
+                  ? Math.round((dashboardStats.totalReports / dashboardStats.totalEvaluations) * 100) 
+                  : 0
+                }%
+              </div>
+              <p className="text-sm text-muted-foreground">Taxa de relatórios</p>
+              <p className="text-xs text-muted-foreground mt-1">
+                {dashboardStats.totalReports} de {dashboardStats.totalEvaluations} avaliações
+              </p>
+            </div>
+
+            {/* Pacientes Únicos */}
+            <div className="text-center p-4 bg-gradient-to-br from-green-500/5 to-green-500/10 rounded-lg border border-green-500/20">
+              <Users className="h-8 w-8 text-green-600 mx-auto mb-2" />
+              <div className="text-2xl font-bold text-green-600">
+                {dashboardStats.totalPatients}
+              </div>
+              <p className="text-sm text-muted-foreground">Pacientes únicos</p>
+              <p className="text-xs text-muted-foreground mt-1">
+                {dashboardStats.totalEvaluations > 0 
+                  ? `${Math.round(dashboardStats.totalEvaluations / dashboardStats.totalPatients)} avaliações/paciente`
+                  : '0 avaliações/paciente'
+                }
+              </p>
+            </div>
+
+            {/* Comparações */}
+            <div className="text-center p-4 bg-gradient-to-br from-purple-500/5 to-purple-500/10 rounded-lg border border-purple-500/20">
+              <CopyCheck className="h-8 w-8 text-purple-600 mx-auto mb-2" />
+              <div className="text-2xl font-bold text-purple-600">
+                {dashboardStats.totalComparisons}
+              </div>
+              <p className="text-sm text-muted-foreground">Comparações realizadas</p>
+              <p className="text-xs text-muted-foreground mt-1">
+                Análises de progressão com IA
+              </p>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
 
       {/* Alert Dialog for Deletion */}
       <AlertDialog open={!!recordToDelete} onOpenChange={(open) => !open && setRecordToDelete(null)}>
