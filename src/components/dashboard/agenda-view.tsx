@@ -38,15 +38,6 @@ type Appointment = {
   anamnesisId?: string;
 };
 
-type SmartReminder = {
-  id: string;
-  appointmentId: string;
-  type: 'email' | 'sms' | 'push';
-  scheduledFor: Date;
-  sent: boolean;
-  message: string;
-};
-
 export function AgendaView() {
   const { user } = useAuth();
   const { toast } = useToast();
@@ -55,58 +46,10 @@ export function AgendaView() {
   const [selectedDate, setSelectedDate] = useState<Date | undefined>(new Date());
   const [showAddDialog, setShowAddDialog] = useState(false);
   const [editingAppointment, setEditingAppointment] = useState<Appointment | null>(null);
-  const [reminders, setReminders] = useState<SmartReminder[]>([]);
   const [newAppointment, setNewAppointment] = useState<Partial<Appointment>>({
     status: 'agendado',
     priority: 'media'
   });
-
-  // Função para criar lembretes inteligentes
-  const createSmartReminders = async (appointment: Appointment) => {
-    if (!user) return;
-
-    const reminders: Omit<SmartReminder, 'id'>[] = [];
-    const daysUntilAppointment = differenceInDays(appointment.date, new Date());
-
-    // Lembrete 3 dias antes
-    if (daysUntilAppointment >= 3) {
-      reminders.push({
-        appointmentId: appointment.id,
-        type: 'email',
-        scheduledFor: add(appointment.date, { days: -3 }),
-        sent: false,
-        message: `Lembrete: Consulta com ${appointment.patientName} em 3 dias (${format(appointment.date, 'dd/MM/yyyy')})`
-      });
-    }
-
-    // Lembrete 1 dia antes
-    if (daysUntilAppointment >= 1) {
-      reminders.push({
-        appointmentId: appointment.id,
-        type: 'sms',
-        scheduledFor: add(appointment.date, { days: -1 }),
-        sent: false,
-        message: `Lembrete: Consulta com ${appointment.patientName} amanhã às ${format(appointment.date, 'HH:mm')}`
-      });
-    }
-
-    // Lembrete 2 horas antes
-    reminders.push({
-      appointmentId: appointment.id,
-      type: 'push',
-      scheduledFor: add(appointment.date, { hours: -2 }),
-      sent: false,
-      message: `Consulta com ${appointment.patientName} em 2 horas`
-    });
-
-    // Salvar lembretes no Firestore
-    for (const reminder of reminders) {
-      await addDoc(collection(db, "users", user.uid, "reminders"), {
-        ...reminder,
-        createdAt: serverTimestamp()
-      });
-    }
-  };
 
   // Função para adicionar novo agendamento
   const handleAddAppointment = async () => {
@@ -142,15 +85,7 @@ export function AgendaView() {
         anamnesisId: newAppointment.anamnesisId
       };
 
-      setAppointments((prev: any) => [...prev, newAppointmentWithId]);
-      
-      // Criar lembretes (não crítico se falhar)
-      try {
-        await createSmartReminders(newAppointmentWithId);
-      } catch (reminderError) {
-        console.warn("Erro ao criar lembretes:", reminderError);
-        // Não mostrar erro para o usuário, pois o agendamento foi criado
-      }
+      setAppointments((prev: any) => [...prev, newAppointmentWithId].sort((a, b) => a.date.getTime() - b.date.getTime()));
       
       setNewAppointment({
         status: 'agendado',
@@ -519,12 +454,11 @@ export function AgendaView() {
               </DialogContent>
             </Dialog>
           </CardHeader>
-          <CardContent className="p-2 sm:p-4">
+          <CardContent className="p-2 sm:p-4 flex justify-center">
             <Calendar
               mode="single"
               selected={selectedDate}
               onSelect={setSelectedDate}
-              className="w-full p-0"
               modifiers={modifiers}
               modifiersStyles={modifiersStyles}
             />
