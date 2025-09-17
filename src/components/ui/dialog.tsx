@@ -56,6 +56,7 @@ DialogContent.displayName = DialogPrimitive.Content.displayName
 
 const DialogHeader = ({
   className,
+  children,
   ...props
 }: React.HTMLAttributes<HTMLDivElement>) => (
   <div
@@ -64,12 +65,15 @@ const DialogHeader = ({
       className
     )}
     {...props}
-  />
+  >
+    {children}
+  </div>
 )
 DialogHeader.displayName = "DialogHeader"
 
 const DialogFooter = ({
   className,
+  children,
   ...props
 }: React.HTMLAttributes<HTMLDivElement>) => (
   <div
@@ -78,7 +82,9 @@ const DialogFooter = ({
       className
     )}
     {...props}
-  />
+  >
+    {children}
+  </div>
 )
 DialogFooter.displayName = "DialogFooter"
 

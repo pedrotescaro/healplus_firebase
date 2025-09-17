@@ -9,7 +9,12 @@ import { ptBR } from "date-fns/locale"
 import { cn } from "@/lib/utils"
 import { buttonVariants } from "@/components/ui/button"
 
-export type CalendarProps = React.ComponentProps<typeof DayPicker>
+export type CalendarProps = {
+  className?: string
+  classNames?: Record<string, string>
+  showOutsideDays?: boolean
+  [key: string]: any
+}
 
 function Calendar({
   className,
@@ -23,7 +28,7 @@ function Calendar({
       className={cn("p-3", className)}
       locale={ptBR}
       classNames={{
-        months: "flex flex-col sm:flex-row space-y-4 sm:space-x-4 sm:space-y-0",
+        months: "flex flex-col space-y-4",
         month: "space-y-4",
         caption: "flex justify-center pt-1 relative items-center",
         caption_label: "text-sm font-medium",

@@ -464,138 +464,140 @@ export function AgendaView() {
             />
           </CardContent>
         </Card>
+        
         <div className="space-y-6">
-        <Card className="shadow-lg border-border/50">
-          <CardHeader className="bg-gradient-to-r from-blue-500/5 via-blue-500/3 to-transparent border-b border-border/50">
-            <CardTitle className="flex items-center gap-2">
-              <div className="p-2 bg-blue-500 rounded-lg">
-                <User className="h-5 w-5 text-white" />
-              </div>
-              Agendamentos do Dia
-            </CardTitle>
-            <CardDescription>
-              {selectedDate ? format(selectedDate, "'Pacientes para' dd 'de' MMMM", { locale: ptBR }) : "Selecione uma data"}
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <ScrollArea className="h-64">
-              {appointmentsForSelectedDay.length > 0 ? (
-                <ul className="space-y-3">
-                  {appointmentsForSelectedDay.map((app: any) => (
-                    <li key={app.id} className="flex items-start gap-3 p-4 border border-border/50 rounded-xl bg-gradient-to-r from-background to-muted/20 hover:shadow-md transition-all duration-300">
-                      <div className="flex-shrink-0 bg-gradient-to-br from-primary to-primary/80 text-primary-foreground p-3 rounded-xl shadow-md">
-                        <User className="h-5 w-5" />
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <div className="flex items-center justify-between">
-                          <p className="font-semibold truncate text-lg">{app.patientName}</p>
-                          <div className="flex items-center gap-1">
-                            {getStatusIcon(app.status)}
+          <Card className="shadow-lg border-border/50">
+            <CardHeader className="bg-gradient-to-r from-blue-500/5 via-blue-500/3 to-transparent border-b border-border/50">
+              <CardTitle className="flex items-center gap-2">
+                <div className="p-2 bg-blue-500 rounded-lg">
+                  <User className="h-5 w-5 text-white" />
+                </div>
+                Agendamentos do Dia
+              </CardTitle>
+              <CardDescription>
+                {selectedDate ? format(selectedDate, "'Pacientes para' dd 'de' MMMM", { locale: ptBR }) : "Selecione uma data"}
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <ScrollArea className="h-64">
+                {appointmentsForSelectedDay.length > 0 ? (
+                  <ul className="space-y-3">
+                    {appointmentsForSelectedDay.map((app: any) => (
+                      <li key={app.id} className="flex items-start gap-3 p-4 border border-border/50 rounded-xl bg-gradient-to-r from-background to-muted/20 hover:shadow-md transition-all duration-300">
+                        <div className="flex-shrink-0 bg-gradient-to-br from-primary to-primary/80 text-primary-foreground p-3 rounded-xl shadow-md">
+                          <User className="h-5 w-5" />
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center justify-between">
+                            <p className="font-semibold truncate text-lg">{app.patientName}</p>
+                            <div className="flex items-center gap-1">
+                              {getStatusIcon(app.status)}
+                            </div>
+                          </div>
+                          <p className="text-sm text-muted-foreground mt-1">{app.woundLocation}</p>
+                          <div className="flex items-center gap-2 mt-2">
+                            <Clock className="h-4 w-4 text-primary" />
+                            <p className="text-sm font-medium text-primary">
+                              {format(app.date, "HH:mm")}
+                            </p>
+                          </div>
+                          <div className="flex gap-2 mt-3">
+                            <span className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-medium border shadow-sm ${getPriorityColor(app.priority)}`}>
+                              {app.priority}
+                            </span>
+                            <span className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-medium border shadow-sm ${getStatusColor(app.status)}`}>
+                              {app.status}
+                            </span>
+                          </div>
+                          {app.notes && (
+                            <p className="text-xs text-muted-foreground mt-2 line-clamp-2 bg-muted/30 p-2 rounded-md">
+                              {app.notes}
+                            </p>
+                          )}
+                          <div className="flex gap-2 mt-3">
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              onClick={() => updateAppointmentStatus(app.id, 'confirmado')}
+                              disabled={app.status === 'confirmado' || app.status === 'realizado'}
+                              className="hover:bg-green-50 hover:border-green-200 hover:text-green-700 transition-colors"
+                            >
+                              Confirmar
+                            </Button>
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              onClick={() => updateAppointmentStatus(app.id, 'realizado')}
+                              disabled={app.status === 'realizado'}
+                              className="hover:bg-blue-50 hover:border-blue-200 hover:text-blue-700 transition-colors"
+                            >
+                              Realizado
+                            </Button>
                           </div>
                         </div>
-                        <p className="text-sm text-muted-foreground mt-1">{app.woundLocation}</p>
-                        <div className="flex items-center gap-2 mt-2">
-                          <Clock className="h-4 w-4 text-primary" />
-                          <p className="text-sm font-medium text-primary">
-                            {format(app.date, "HH:mm")}
-                          </p>
-                        </div>
-                        <div className="flex gap-2 mt-3">
-                          <span className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-medium border shadow-sm ${getPriorityColor(app.priority)}`}>
-                            {app.priority}
-                          </span>
-                          <span className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-medium border shadow-sm ${getStatusColor(app.status)}`}>
-                            {app.status}
-                          </span>
-                        </div>
-                        {app.notes && (
-                          <p className="text-xs text-muted-foreground mt-2 line-clamp-2 bg-muted/30 p-2 rounded-md">
-                            {app.notes}
-                          </p>
-                        )}
-                        <div className="flex gap-2 mt-3">
-                          <Button
-                            size="sm"
-                            variant="outline"
-                            onClick={() => updateAppointmentStatus(app.id, 'confirmado')}
-                            disabled={app.status === 'confirmado' || app.status === 'realizado'}
-                            className="hover:bg-green-50 hover:border-green-200 hover:text-green-700 transition-colors"
-                          >
-                            Confirmar
-                          </Button>
-                          <Button
-                            size="sm"
-                            variant="outline"
-                            onClick={() => updateAppointmentStatus(app.id, 'realizado')}
-                            disabled={app.status === 'realizado'}
-                            className="hover:bg-blue-50 hover:border-blue-200 hover:text-blue-700 transition-colors"
-                          >
-                            Realizado
-                          </Button>
-                        </div>
-                      </div>
                     </li>
                   ))}
-                </ul>
-              ) : (
-                <p className="text-sm text-muted-foreground text-center pt-8">Nenhum agendamento para este dia.</p>
-              )}
-            </ScrollArea>
-          </CardContent>
-        </Card>
-        <Card className="shadow-lg border-border/50">
-          <CardHeader className="bg-gradient-to-r from-green-500/5 via-green-500/3 to-transparent border-b border-border/50">
-            <CardTitle className="flex items-center gap-2">
-              <div className="p-2 bg-green-500 rounded-lg">
-                <CalendarCheck className="h-5 w-5 text-white" />
-              </div>
-              Próximos 7 Agendamentos
-            </CardTitle>
-            <CardDescription>Visão geral dos seus próximos agendamentos.</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <ScrollArea className="h-64">
-              {upcomingAppointments.length > 0 ? (
-                <ul className="space-y-3">
-                  {upcomingAppointments.map((app: any) => (
-                    <li key={app.id} className="flex items-center gap-3 p-3 border border-border/50 rounded-xl bg-gradient-to-r from-background to-muted/20 hover:shadow-md transition-all duration-300">
-                       <div className="flex-shrink-0 bg-gradient-to-br from-green-500 to-green-600 text-white p-3 rounded-xl shadow-md">
-                        <CalendarCheck className="h-5 w-5" />
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <div className="flex items-center justify-between">
-                          <p className="font-semibold truncate text-base">{app.patientName}</p>
-                          <div className="flex items-center gap-1">
-                            {getStatusIcon(app.status)}
+                  </ul>
+                ) : (
+                  <p className="text-sm text-muted-foreground text-center pt-8">Nenhum agendamento para este dia.</p>
+                )}
+              </ScrollArea>
+            </CardContent>
+          </Card>
+          
+          <Card className="shadow-lg border-border/50">
+            <CardHeader className="bg-gradient-to-r from-green-500/5 via-green-500/3 to-transparent border-b border-border/50">
+              <CardTitle className="flex items-center gap-2">
+                <div className="p-2 bg-green-500 rounded-lg">
+                  <CalendarCheck className="h-5 w-5 text-white" />
+                </div>
+                Próximos 7 Agendamentos
+              </CardTitle>
+              <CardDescription>Visão geral dos seus próximos agendamentos.</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <ScrollArea className="h-64">
+                {upcomingAppointments.length > 0 ? (
+                  <ul className="space-y-3">
+                    {upcomingAppointments.map((app: any) => (
+                      <li key={app.id} className="flex items-center gap-3 p-3 border border-border/50 rounded-xl bg-gradient-to-r from-background to-muted/20 hover:shadow-md transition-all duration-300">
+                        <div className="flex-shrink-0 bg-gradient-to-br from-green-500 to-green-600 text-white p-3 rounded-xl shadow-md">
+                          <CalendarCheck className="h-5 w-5" />
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center justify-between">
+                            <p className="font-semibold truncate text-base">{app.patientName}</p>
+                            <div className="flex items-center gap-1">
+                              {getStatusIcon(app.status)}
+                            </div>
+                          </div>
+                          <div className="flex items-center gap-2 mt-1">
+                            <Clock className="h-4 w-4 text-muted-foreground" />
+                            <p className="text-sm font-medium text-muted-foreground">
+                              {format(app.date, "dd/MM/yyyy 'às' HH:mm")}
+                            </p>
+                          </div>
+                          <p className="text-xs text-muted-foreground truncate mt-1">
+                            {app.woundLocation}
+                          </p>
+                          <div className="flex gap-2 mt-2">
+                            <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium border shadow-sm ${getPriorityColor(app.priority)}`}>
+                              {app.priority}
+                            </span>
+                            <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium border shadow-sm ${getStatusColor(app.status)}`}>
+                              {app.status}
+                            </span>
                           </div>
                         </div>
-                        <div className="flex items-center gap-2 mt-1">
-                          <Clock className="h-4 w-4 text-muted-foreground" />
-                          <p className="text-sm font-medium text-muted-foreground">
-                            {format(app.date, "dd/MM/yyyy 'às' HH:mm")}
-                          </p>
-                        </div>
-                        <p className="text-xs text-muted-foreground truncate mt-1">
-                          {app.woundLocation}
-                        </p>
-                        <div className="flex gap-2 mt-2">
-                          <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium border shadow-sm ${getPriorityColor(app.priority)}`}>
-                            {app.priority}
-                          </span>
-                          <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium border shadow-sm ${getStatusColor(app.status)}`}>
-                            {app.status}
-                          </span>
-                        </div>
-                      </div>
                     </li>
                   ))}
-                </ul>
-              ) : (
-                <p className="text-sm text-muted-foreground text-center pt-20">Nenhum agendamento futuro.</p>
-              )}
-            </ScrollArea>
-          </CardContent>
-        </Card>
+                  </ul>
+                ) : (
+                  <p className="text-sm text-muted-foreground text-center pt-20">Nenhum agendamento futuro.</p>
+                )}
+              </ScrollArea>
+            </CardContent>
+          </Card>
         </div>
       </div>
     </div>

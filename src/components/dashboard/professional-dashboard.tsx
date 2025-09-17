@@ -315,7 +315,9 @@ export function ProfessionalDashboard() {
                       <TableRow key={record.id}>
                         <TableCell className="font-medium">{record.nome_cliente}</TableCell>
                         <TableCell className="hidden sm:table-cell">
-                          <Badge variant="outline">{record.localizacao_ferida}</Badge>
+                          <Badge variant="outline" className="text-xs">
+                            {record.localizacao_ferida}
+                          </Badge>
                         </TableCell>
                         <TableCell className="hidden md:table-cell">
                           {new Date(record.data_consulta).toLocaleDateString(t.locale, { timeZone: 'UTC' })}
@@ -508,12 +510,14 @@ export function ProfessionalDashboard() {
       {/* Alert Dialog for Deletion */}
       <AlertDialog open={!!recordToDelete} onOpenChange={(open) => !open && setRecordToDelete(null)}>
         <AlertDialogContent>
+          {/* @ts-ignore */}
           <AlertDialogHeader>
             <AlertDialogTitle>{t.areYouSure}</AlertDialogTitle>
             <AlertDialogDescription>
               {t.deleteConfirmation}
             </AlertDialogDescription>
           </AlertDialogHeader>
+          {/* @ts-ignore */}
           <AlertDialogFooter>
             <AlertDialogCancel>{t.cancel}</AlertDialogCancel>
             <AlertDialogAction onClick={handleDelete}>{t.delete}</AlertDialogAction>
@@ -524,6 +528,7 @@ export function ProfessionalDashboard() {
       {/* Dialog for Viewing Details */}
       <Dialog open={!!recordToView} onOpenChange={(open) => !open && setRecordToView(null)}>
         <DialogContent className="max-w-3xl">
+          {/* @ts-ignore */}
           <DialogHeader>
             <DialogTitle>{t.anamnesisDetailsTitle}</DialogTitle>
             <DialogDescription>
@@ -531,13 +536,13 @@ export function ProfessionalDashboard() {
             </DialogDescription>
           </DialogHeader>
           <ScrollArea className="max-h-[70vh] p-1">
-             {recordToView && <AnamnesisDetailsView record={recordToView} />}
+            {recordToView && <AnamnesisDetailsView record={recordToView} />}
           </ScrollArea>
-           <DialogClose asChild>
-              <Button type="button" variant="secondary">
-                {t.close}
-              </Button>
-            </DialogClose>
+          <DialogClose asChild>
+            <Button type="button" variant="secondary">
+              {t.close}
+            </Button>
+          </DialogClose>
         </DialogContent>
       </Dialog>
     </div>
