@@ -19,7 +19,7 @@ export const metadata: Metadata = {
   title: "Heal+",
   description: "Cuidado aprimorado para feridas crônicas por telessaúde.",
   icons: {
-    icon: '/icon.png',
+    icon: '/favicon.ico',
   },
 };
 

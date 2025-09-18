@@ -22,6 +22,16 @@ function Calendar({
   showOutsideDays = true,
   ...props
 }: CalendarProps) {
+  const [mounted, setMounted] = React.useState(false)
+
+  React.useEffect(() => {
+    setMounted(true)
+  }, [])
+
+  if (!mounted) {
+    return <div className={cn("p-3 h-80 w-80", className)} />
+  }
+
   return (
     <DayPicker
       showOutsideDays={showOutsideDays}

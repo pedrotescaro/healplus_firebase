@@ -112,6 +112,17 @@ export function AgendaView() {
     if (!user) return;
 
     try {
+      // Verificar se é um agendamento de anamnese (que não pode ser atualizado)
+      if (appointmentId.startsWith('anamnesis-')) {
+        toast({
+          title: "Ação Não Permitida",
+          description: "Agendamentos de anamnese não podem ter status alterado. Crie um agendamento personalizado para gerenciar o status.",
+          variant: "destructive"
+        });
+        return;
+      }
+
+      // Atualizar apenas agendamentos personalizados
       await updateDoc(doc(db, "users", user.uid, "appointments", appointmentId), {
         status,
         updatedAt: serverTimestamp()
@@ -359,14 +370,14 @@ export function AgendaView() {
                 </Button>
               </DialogTrigger>
               <DialogContent className="max-w-md">
-                <DialogHeader>
+                <div className="flex flex-col space-y-1.5 text-center sm:text-left">
                   <DialogTitle className="flex items-center gap-2">
                     <div className="p-2 bg-primary rounded-lg">
                       <Plus className="h-5 w-5 text-primary-foreground" />
                     </div>
                     Novo Agendamento
                   </DialogTitle>
-                </DialogHeader>
+                </div>
                 <div className="space-y-4">
                   <div>
                     <Label htmlFor="patientName">Nome do Paciente *</Label>
@@ -519,7 +530,7 @@ export function AgendaView() {
                               size="sm"
                               variant="outline"
                               onClick={() => updateAppointmentStatus(app.id, 'confirmado')}
-                              disabled={app.status === 'confirmado' || app.status === 'realizado'}
+                              disabled={app.status === 'confirmado' || app.status === 'realizado' || app.id.startsWith('anamnesis-')}
                               className="hover:bg-green-50 hover:border-green-200 hover:text-green-700 transition-colors"
                             >
                               Confirmar
@@ -528,11 +539,17 @@ export function AgendaView() {
                               size="sm"
                               variant="outline"
                               onClick={() => updateAppointmentStatus(app.id, 'realizado')}
-                              disabled={app.status === 'realizado'}
+                              disabled={app.status === 'realizado' || app.id.startsWith('anamnesis-')}
                               className="hover:bg-blue-50 hover:border-blue-200 hover:text-blue-700 transition-colors"
                             >
                               Realizado
                             </Button>
+                            {app.id.startsWith('anamnesis-') && (
+                              <span className="text-xs text-muted-foreground flex items-center">
+                                <Clock className="h-3 w-3 mr-1" />
+                                Agendamento de anamnese
+                              </span>
+                            )}
                           </div>
                         </div>
                     </li>
