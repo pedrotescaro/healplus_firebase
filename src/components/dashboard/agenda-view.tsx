@@ -350,7 +350,7 @@ export function AgendaView() {
         </div>
       )}
 
-      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-[1fr_380px]">
+      <div className="grid gap-6 lg:grid-cols-[1fr_400px]">
         <Card className="shadow-lg border-border/50">
           <CardHeader className="flex flex-row items-center justify-between bg-gradient-to-r from-primary/5 via-primary/3 to-transparent border-b border-border/50">
             <div>
@@ -358,9 +358,9 @@ export function AgendaView() {
                 <div className="p-2 bg-primary rounded-lg">
                   <Calendar className="h-5 w-5 text-primary-foreground" />
                 </div>
-                Calendário
+                Calendário de Agendamentos
               </CardTitle>
-              <CardDescription>Selecione uma data para ver os agendamentos</CardDescription>
+              <CardDescription>Selecione uma data para ver os agendamentos do dia</CardDescription>
             </div>
             <Dialog open={showAddDialog} onOpenChange={setShowAddDialog}>
               <DialogTrigger asChild>
@@ -465,14 +465,17 @@ export function AgendaView() {
               </DialogContent>
             </Dialog>
           </CardHeader>
-          <CardContent className="p-2 sm:p-4 flex justify-center">
-            <Calendar
-              mode="single"
-              selected={selectedDate}
-              onSelect={setSelectedDate}
-              modifiers={modifiers}
-              modifiersStyles={modifiersStyles}
-            />
+          <CardContent className="p-4 flex justify-center">
+            <div id="agenda-calendar" className="w-full max-w-sm">
+              <Calendar
+                mode="single"
+                selected={selectedDate}
+                onSelect={setSelectedDate}
+                modifiers={modifiers}
+                modifiersStyles={modifiersStyles}
+                className="w-full"
+              />
+            </div>
           </CardContent>
         </Card>
         
