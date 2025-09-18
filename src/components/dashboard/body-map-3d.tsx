@@ -3,7 +3,7 @@
 import React, { useState, useRef, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { RotateCcw, RotateCw, Eye, EyeOff } from "lucide-react";
+import { RefreshCw, ArrowRight, Eye, Settings } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 interface BodyMap3DProps {
@@ -80,9 +80,13 @@ const bodyParts: BodyPart[] = [
 
 export function BodyMap3D({ selectedLocation, onLocationSelect, className }: BodyMap3DProps) {
   const [currentView, setCurrentView] = useState<'anterior' | 'posterior'>('anterior');
-  const [rotation, setRotation] = useState(0);
+  const [rotationX, setRotationX] = useState(0);
+  const [rotationY, setRotationY] = useState(0);
+  const [rotationZ, setRotationZ] = useState(0);
   const [isRotating, setIsRotating] = useState(false);
   const [hoveredPart, setHoveredPart] = useState<string | null>(null);
+  const [isDragging, setIsDragging] = useState(false);
+  const [dragStart, setDragStart] = useState({ x: 0, y: 0 });
   const svgRef = useRef<SVGSVGElement>(null);
 
   const visibleParts = bodyParts.filter(part => part.view === currentView);
@@ -93,7 +97,7 @@ export function BodyMap3D({ selectedLocation, onLocationSelect, className }: Bod
 
   const handleRotate = () => {
     setIsRotating(true);
-    setRotation(prev => prev + 180);
+    setRotationY(prev => prev + 180);
     setTimeout(() => {
       setCurrentView(prev => prev === 'anterior' ? 'posterior' : 'anterior');
       setIsRotating(false);
@@ -102,7 +106,30 @@ export function BodyMap3D({ selectedLocation, onLocationSelect, className }: Bod
 
   const resetView = () => {
     setCurrentView('anterior');
-    setRotation(0);
+    setRotationX(0);
+    setRotationY(0);
+    setRotationZ(0);
+  };
+
+  const handleMouseDown = (e: React.MouseEvent) => {
+    setIsDragging(true);
+    setDragStart({ x: e.clientX, y: e.clientY });
+  };
+
+  const handleMouseMove = (e: React.MouseEvent) => {
+    if (!isDragging) return;
+    
+    const deltaX = e.clientX - dragStart.x;
+    const deltaY = e.clientY - dragStart.y;
+    
+    setRotationY(prev => prev + deltaX * 0.5);
+    setRotationX(prev => Math.max(-30, Math.min(30, prev - deltaY * 0.3)));
+    
+    setDragStart({ x: e.clientX, y: e.clientY });
+  };
+
+  const handleMouseUp = () => {
+    setIsDragging(false);
   };
 
   return (
@@ -121,8 +148,17 @@ export function BodyMap3D({ selectedLocation, onLocationSelect, className }: Bod
               disabled={isRotating}
               className="flex items-center gap-2"
             >
-              <RotateCw className="h-4 w-4" />
+              <ArrowRight className="h-4 w-4" />
               {currentView === 'anterior' ? 'Ver Posterior' : 'Ver Anterior'}
+            </Button>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setRotationY(prev => prev + 90)}
+              className="flex items-center gap-2"
+            >
+              <ArrowRight className="h-4 w-4" />
+              Rotacionar
             </Button>
             <Button
               variant="outline"
@@ -130,7 +166,7 @@ export function BodyMap3D({ selectedLocation, onLocationSelect, className }: Bod
               onClick={resetView}
               className="flex items-center gap-2"
             >
-              <RotateCcw className="h-4 w-4" />
+              <RefreshCw className="h-4 w-4" />
               Reset
             </Button>
           </div>
@@ -161,20 +197,50 @@ export function BodyMap3D({ selectedLocation, onLocationSelect, className }: Bod
             </div>
           </div>
 
+          {/* Indicador de Rotação 3D */}
+          <div className="flex items-center gap-2 text-xs text-muted-foreground">
+            <div className="flex items-center gap-1">
+              <div className="w-2 h-2 bg-red-500 rounded-full"></div>
+              <span>X: {Math.round(rotationX)}°</span>
+            </div>
+            <div className="flex items-center gap-1">
+              <div className="w-2 h-2 bg-green-500 rounded-full"></div>
+              <span>Y: {Math.round(rotationY)}°</span>
+            </div>
+            <div className="flex items-center gap-1">
+              <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
+              <span>Z: {Math.round(rotationZ)}°</span>
+            </div>
+          </div>
+
           {/* Mapa Corporal SVG */}
           <div className="relative">
-            <svg
-              ref={svgRef}
-              viewBox="0 0 100 320"
-              className={cn(
-                "w-64 h-96 transition-transform duration-500",
-                isRotating && "transform rotate-180"
-              )}
+            <div
               style={{
-                transform: `rotateY(${rotation}deg)`,
+                perspective: '1000px',
                 transformStyle: 'preserve-3d'
               }}
             >
+              <svg
+                ref={svgRef}
+                viewBox="0 0 100 320"
+                className={cn(
+                  "w-64 h-96 transition-transform duration-300 cursor-grab",
+                  isDragging && "cursor-grabbing",
+                  isRotating && "transition-transform duration-500"
+                )}
+                style={{
+                  transform: `perspective(1000px) rotateX(${rotationX}deg) rotateY(${rotationY}deg) rotateZ(${rotationZ}deg) translateZ(0)`,
+                  transformStyle: 'preserve-3d',
+                  transformOrigin: 'center center',
+                  backfaceVisibility: 'hidden',
+                  willChange: 'transform'
+                }}
+                onMouseDown={handleMouseDown}
+                onMouseMove={handleMouseMove}
+                onMouseUp={handleMouseUp}
+                onMouseLeave={handleMouseUp}
+              >
               {/* Corpo Base */}
               <g className="body-base">
                 {visibleParts.map((part) => (
@@ -205,17 +271,36 @@ export function BodyMap3D({ selectedLocation, onLocationSelect, className }: Bod
                 ))}
               </g>
             </svg>
+            </div>
 
             {/* Efeito 3D com CSS */}
             <div 
               className="absolute inset-0 pointer-events-none"
               style={{
-                background: 'linear-gradient(45deg, rgba(255,255,255,0.1) 0%, rgba(0,0,0,0.1) 100%)',
+                background: 'linear-gradient(45deg, rgba(255,255,255,0.2) 0%, rgba(0,0,0,0.3) 100%)',
                 borderRadius: '8px',
                 transform: 'perspective(1000px) rotateX(5deg)',
-                zIndex: -1
+                zIndex: -1,
+                boxShadow: '0 20px 40px rgba(0,0,0,0.3), 0 0 0 1px rgba(255,255,255,0.1)'
               }}
             />
+            
+            {/* Sombra 3D dinâmica */}
+            <div 
+              className="absolute inset-0 pointer-events-none"
+              style={{
+                background: `radial-gradient(ellipse at center, transparent 0%, rgba(0,0,0,${Math.abs(rotationX) * 0.01 + 0.1}) 100%)`,
+                borderRadius: '8px',
+                zIndex: -2
+              }}
+            />
+            
+            {/* Instruções de uso */}
+            <div className="absolute bottom-2 left-2 right-2 text-center">
+              <p className="text-xs text-muted-foreground bg-background/80 px-2 py-1 rounded">
+                Arraste para rotacionar • Clique para selecionar
+              </p>
+            </div>
           </div>
 
           {/* Informações da Seleção */}
