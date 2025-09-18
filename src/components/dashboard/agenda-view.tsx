@@ -6,7 +6,6 @@ import { useAuth } from "@/hooks/use-auth";
 import { db } from "@/firebase/client-app";
 import { collection, query, getDocs, orderBy, where, addDoc, serverTimestamp, updateDoc, doc } from "firebase/firestore";
 import type { AnamnesisFormValues } from "@/lib/anamnesis-schema";
-import { Calendar } from "@/components/ui/calendar";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
@@ -235,29 +234,6 @@ export function AgendaView() {
     isPast(app.date) && app.status === 'agendado'
   );
 
-  const modifiers = {
-    appointment: appointments.map((app: any) => app.date),
-    urgent: urgentAppointments.map((app: any) => app.date),
-    overdue: overdueAppointments.map((app: any) => app.date),
-  };
-
-  const modifiersStyles = {
-    appointment: {
-      color: 'hsl(var(--primary-foreground))',
-      backgroundColor: 'hsl(var(--primary))',
-      borderRadius: '50%',
-    },
-    urgent: {
-      color: 'white',
-      backgroundColor: '#ef4444',
-      borderRadius: '50%',
-    },
-    overdue: {
-      color: 'white',
-      backgroundColor: '#f59e0b',
-      borderRadius: '50%',
-    },
-  };
 
   const getStatusIcon = (status: Appointment['status']) => {
     switch (status) {
@@ -356,9 +332,9 @@ export function AgendaView() {
             <div>
               <CardTitle className="flex items-center gap-2">
                 <div className="p-2 bg-primary rounded-lg">
-                  <Calendar className="h-5 w-5 text-primary-foreground" />
+                  <Clock className="h-5 w-5 text-primary-foreground" />
                 </div>
-                Calendário de Agendamentos
+                Seletor de Data
               </CardTitle>
               <CardDescription>Selecione uma data para ver os agendamentos do dia</CardDescription>
             </div>
@@ -465,16 +441,23 @@ export function AgendaView() {
               </DialogContent>
             </Dialog>
           </CardHeader>
-          <CardContent className="p-4 flex justify-center">
-            <div id="agenda-calendar" className="w-full max-w-sm">
-              <Calendar
-                mode="single"
-                selected={selectedDate}
-                onSelect={setSelectedDate}
-                modifiers={modifiers}
-                modifiersStyles={modifiersStyles}
-                className="w-full"
-              />
+          <CardContent className="p-6">
+            <div className="space-y-4">
+              <div>
+                <Label htmlFor="date-selector">Selecionar Data</Label>
+                <Input
+                  id="date-selector"
+                  type="date"
+                  value={selectedDate ? format(selectedDate, "yyyy-MM-dd") : ''}
+                  onChange={(e: any) => setSelectedDate(new Date(e.target.value))}
+                  className="w-full"
+                />
+              </div>
+              <div className="text-center">
+                <p className="text-sm text-muted-foreground">
+                  Data selecionada: {selectedDate ? format(selectedDate, "dd 'de' MMMM 'de' yyyy", { locale: ptBR }) : "Nenhuma data selecionada"}
+                </p>
+              </div>
             </div>
           </CardContent>
         </Card>
