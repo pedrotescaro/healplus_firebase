@@ -35,7 +35,7 @@ import { Separator } from "@/components/ui/separator";
 import { WoundBedProgress } from "./wound-bed-progress";
 import { User, Stethoscope, HeartPulse, Pill, Microscope, FilePlus, Info, MapPin, RefreshCw, Syringe, Droplets, Ruler, RedoDot, UploadCloud, Camera } from "lucide-react";
 import { Slider } from "@/components/ui/slider";
-import { BodyMapSelector } from "./body-map-selector";
+import { BodyMap3D } from "./body-map-3d";
 import { ImageCapture } from "./image-capture";
 import { fileToDataUri } from "@/lib/file-to-data-uri";
 import {
@@ -469,11 +469,11 @@ export function AnamnesisForm() {
                                         Clique em uma parte do corpo para selecioná-la.
                                       </DialogDescription>
                                     </DialogHeader>
-                                    <BodyMapSelector
+                                    <BodyMap3D
                                       onLocationSelect={(location) => {
                                         field.onChange(location);
                                       }}
-                                      currentLocation={field.value}
+                                      selectedLocation={field.value}
                                     />
                                     <DialogClose />
                                   </DialogContent>
