@@ -19,6 +19,7 @@ import { Loader2, CalendarCheck, User, Bell, Plus, Clock, AlertTriangle, CheckCi
 import { useToast } from "@/hooks/use-toast";
 import { add, format, isAfter, isSameDay, startOfToday, differenceInDays, isToday, isTomorrow, isPast } from "date-fns";
 import { ptBR } from "date-fns/locale";
+import { Calendar } from "@/components/ui/calendar";
 
 type StoredAnamnesis = AnamnesisFormValues & { id: string };
 
@@ -153,7 +154,7 @@ export function AgendaView() {
       }
       try {
         // Buscar agendamentos de anamnese
-        const today = format(new Date(), 'yyyy-MM-dd');
+        const today = format(new Date(), 'yyyy-M-d');
         const anamnesisQuery = query(
           collection(db, "users", user.uid, "anamnesis"),
           where("data_retorno", ">=", today),
@@ -221,6 +222,8 @@ export function AgendaView() {
   const appointmentsForSelectedDay = appointments.filter(
     (app: any) => selectedDate && isSameDay(app.date, selectedDate)
   );
+  
+  const appointmentDates = appointments.map(app => app.date);
 
   const upcomingAppointments = appointments
     .filter((app: any) => isAfter(app.date, startOfToday()) || isSameDay(app.date, startOfToday()))
@@ -334,7 +337,7 @@ export function AgendaView() {
                 <div className="p-2 bg-primary rounded-lg">
                   <Clock className="h-5 w-5 text-primary-foreground" />
                 </div>
-                Seletor de Data
+                Calendário
               </CardTitle>
               <CardDescription>Selecione uma data para ver os agendamentos do dia</CardDescription>
             </div>
@@ -442,23 +445,35 @@ export function AgendaView() {
             </Dialog>
           </CardHeader>
           <CardContent className="p-6">
-            <div className="space-y-4">
-              <div>
-                <Label htmlFor="date-selector">Selecionar Data</Label>
-                <Input
-                  id="date-selector"
-                  type="date"
-                  value={selectedDate ? format(selectedDate, "yyyy-MM-dd") : ''}
-                  onChange={(e: any) => setSelectedDate(new Date(e.target.value))}
-                  className="w-full"
-                />
-              </div>
-              <div className="text-center">
-                <p className="text-sm text-muted-foreground">
-                  Data selecionada: {selectedDate ? format(selectedDate, "dd 'de' MMMM 'de' yyyy", { locale: ptBR }) : "Nenhuma data selecionada"}
-                </p>
-              </div>
-            </div>
+             <Calendar
+              mode="single"
+              selected={selectedDate}
+              onSelect={setSelectedDate}
+              className="rounded-md border p-0 w-full"
+              locale={ptBR}
+              modifiers={{
+                hasAppointment: appointmentDates,
+              }}
+              modifiersStyles={{
+                hasAppointment: {
+                  position: 'relative',
+                  overflow: 'visible',
+                },
+              }}
+              components={{
+                DayContent: (props) => {
+                  const hasAppointment = appointmentDates.some(d => isSameDay(d, props.date));
+                  return (
+                    <div className="relative">
+                      {props.date.getDate()}
+                      {hasAppointment && (
+                        <div className="absolute -bottom-1 left-1/2 -translate-x-1/2 h-1.5 w-1.5 rounded-full bg-primary"></div>
+                      )}
+                    </div>
+                  );
+                },
+              }}
+            />
           </CardContent>
         </Card>
         
