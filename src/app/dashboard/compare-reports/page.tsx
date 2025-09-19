@@ -8,13 +8,13 @@ import { useTranslation } from "@/contexts/app-provider";
 export default function CompareReportsPage() {
   const { t } = useTranslation();
   return (
-    <div className="space-y-6">
-      <div className="container mx-auto px-4 sm:px-6 lg:px-8">
-        <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold tracking-tight">{t.compareReportsTitle}</h1>
-        <p className="text-muted-foreground text-sm sm:text-base">{t.compareReportsDescription}</p>
+    <div className="space-y-6 page-responsive">
+      <div className="container-responsive">
+        <h1 className="text-responsive-2xl sm:text-responsive-3xl lg:text-responsive-4xl font-bold tracking-tight">{t.compareReportsTitle}</h1>
+        <p className="text-muted-foreground text-responsive-sm sm:text-responsive-base">{t.compareReportsDescription}</p>
       </div>
       <Card>
-        <CardContent className="p-6">
+        <CardContent className="card-responsive">
           <ReportComparator />
         </CardContent>
       </Card>

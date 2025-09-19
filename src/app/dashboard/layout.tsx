@@ -39,13 +39,15 @@ export default function DashboardLayout({
   }
 
   return (
-    <div className="grid min-h-screen w-full"
-         style={{ gridTemplateColumns: `0 1fr` }}>
-      <div className="hidden border-r bg-card md:block shadow-lg shadow-primary/5"
-           style={{ width: `calc(16rem * var(--font-scale, 1))` }}>
+    <div className="flex min-h-screen w-full">
+      {/* Sidebar - Desktop */}
+      <div className="hidden md:block border-r bg-card shadow-lg shadow-primary/5 sidebar-responsive">
         <AppSidebar />
       </div>
-      <div className="flex flex-col min-h-screen bg-gradient-to-br from-background via-background to-muted/10">
+      
+      {/* Main Content Area */}
+      <div className="flex flex-col min-h-screen bg-gradient-to-br from-background via-background to-muted/10 flex-1">
+        {/* Mobile Header */}
         <header className="flex items-center border-b bg-card/50 backdrop-blur-sm md:hidden shadow-sm"
                 style={{ 
                   height: `calc(3.5rem * var(--font-scale, 1))`, 
@@ -55,12 +57,16 @@ export default function DashboardLayout({
                 }}>
           <MobileNav />
         </header>
+        
+        {/* Main Content */}
         <main className="flex-1 overflow-auto bg-gradient-to-br from-background/95 via-background to-muted/5"
               style={{ padding: `calc(1rem * var(--font-scale, 1))` }}>
           <div className="max-w-7xl mx-auto">
             {children}
           </div>
         </main>
+        
+        {/* Cat Support */}
         {user.role === 'professional' && <CatSupport currentPage={pathname} />}
       </div>
     </div>

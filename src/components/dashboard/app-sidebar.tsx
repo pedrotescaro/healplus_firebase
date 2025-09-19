@@ -95,8 +95,8 @@ export default function AppSidebar({ className, onLinkClick }: AppSidebarProps) 
       "flex h-full max-h-screen flex-col bg-gradient-to-b from-background via-background to-muted/20",
       "w-full transition-all duration-300",
       "border-r border-border/50 shadow-lg shadow-primary/5",
-      // Dynamic width based on font scale
-      "md:w-[calc(16rem*var(--font-scale,1))] lg:w-[calc(18rem*var(--font-scale,1))] xl:w-[calc(20rem*var(--font-scale,1))]",
+      // Fixed width based on font scale
+      "sidebar-responsive",
       className
     )}>
       {/* Header com Logo e Gradiente */}

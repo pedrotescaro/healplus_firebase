@@ -5,13 +5,14 @@ import { useAuth } from "@/hooks/use-auth";
 import { ProfessionalDashboard } from "@/components/dashboard/professional-dashboard";
 import { PatientDashboard } from "@/components/dashboard/patient-dashboard";
 import { Skeleton } from "@/components/ui/skeleton";
+import { FontScaleTest } from "@/components/dashboard/font-scale-test";
 
 export default function DashboardPage() {
   const { user, loading } = useAuth();
 
   if (loading || !user) {
     return (
-      <div className="space-y-6">
+      <div className="space-y-6 page-responsive">
         <div className="space-y-2">
             <Skeleton className="h-8 w-1/2" />
             <Skeleton className="h-4 w-3/4" />
@@ -31,8 +32,18 @@ export default function DashboardPage() {
   }
 
   if (user.role === 'patient') {
-    return <PatientDashboard />;
+    return (
+      <div className="space-y-6 page-responsive">
+        <FontScaleTest />
+        <PatientDashboard />
+      </div>
+    );
   }
   
-  return <ProfessionalDashboard />;
+  return (
+    <div className="space-y-6 page-responsive">
+      <FontScaleTest />
+      <ProfessionalDashboard />
+    </div>
+  );
 }
