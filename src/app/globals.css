@@ -152,6 +152,50 @@ body {
   .gap-3 { gap: calc(0.75rem * var(--font-scale)); }
   .gap-4 { gap: calc(1rem * var(--font-scale)); }
   .gap-6 { gap: calc(1.5rem * var(--font-scale)); }
+  
+  /* Responsive sidebar scaling */
+  .sidebar-responsive {
+    width: calc(16rem * var(--font-scale, 1));
+    transition: width 0.3s ease-in-out;
+  }
+  
+  @media (min-width: 768px) {
+    .sidebar-responsive {
+      width: calc(16rem * var(--font-scale, 1));
+    }
+  }
+  
+  @media (min-width: 1024px) {
+    .sidebar-responsive {
+      width: calc(18rem * var(--font-scale, 1));
+    }
+  }
+  
+  @media (min-width: 1280px) {
+    .sidebar-responsive {
+      width: calc(20rem * var(--font-scale, 1));
+    }
+  }
+  
+  /* Mobile nav responsive scaling */
+  .mobile-nav-responsive {
+    width: calc(18rem * var(--font-scale, 1));
+    transition: width 0.3s ease-in-out;
+  }
+  
+  /* Button responsive scaling */
+  .btn-responsive {
+    height: calc(2.5rem * var(--font-scale, 1));
+    padding-left: calc(0.75rem * var(--font-scale, 1));
+    padding-right: calc(0.75rem * var(--font-scale, 1));
+    font-size: calc(0.875rem * var(--font-scale, 1));
+  }
+  
+  /* Icon responsive scaling */
+  .icon-responsive {
+    width: calc(1rem * var(--font-scale, 1));
+    height: calc(1rem * var(--font-scale, 1));
+  }
 }
 
 /* For Webkit-based browsers (Chrome, Safari, Edge) */

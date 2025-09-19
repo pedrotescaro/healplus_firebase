@@ -93,15 +93,19 @@ export default function AppSidebar({ className, onLinkClick }: AppSidebarProps) 
   return (
     <aside className={cn(
       "flex h-full max-h-screen flex-col bg-gradient-to-b from-background via-background to-muted/20",
-      "w-full md:w-64 lg:w-72 xl:w-80 transition-all duration-300",
+      "w-full transition-all duration-300",
       "border-r border-border/50 shadow-lg shadow-primary/5",
+      // Dynamic width based on font scale
+      "md:w-[calc(16rem*var(--font-scale,1))] lg:w-[calc(18rem*var(--font-scale,1))] xl:w-[calc(20rem*var(--font-scale,1))]",
       className
     )}>
       {/* Header com Logo e Gradiente */}
-      <div className="relative flex h-16 lg:h-20 items-center border-b border-border/50 px-4 lg:px-6 bg-gradient-to-r from-primary/5 via-primary/10 to-primary/5 backdrop-blur-sm">
+      <div className="relative flex items-center border-b border-border/50 bg-gradient-to-r from-primary/5 via-primary/10 to-primary/5 backdrop-blur-sm"
+           style={{ height: `calc(4rem * var(--font-scale, 1))`, paddingLeft: `calc(1rem * var(--font-scale, 1))`, paddingRight: `calc(1rem * var(--font-scale, 1))` }}>
         <div className="absolute inset-0 bg-gradient-to-r from-primary/5 to-transparent opacity-50" />
         <div className="absolute inset-0 bg-gradient-to-b from-transparent via-primary/5 to-transparent" />
-        <Link href="/dashboard" className="relative flex items-center gap-2 lg:gap-3 font-bold text-base lg:text-lg group w-full">
+        <Link href="/dashboard" className="relative flex items-center group w-full"
+               style={{ gap: `calc(0.5rem * var(--font-scale, 1))` }}>
           <div className="relative">
             <Logo />
           </div>
@@ -109,8 +113,9 @@ export default function AppSidebar({ className, onLinkClick }: AppSidebarProps) 
       </div>
 
       {/* Navegação Principal */}
-      <div className="flex-1 overflow-y-auto px-2 lg:px-3 py-4 lg:py-6 scrollbar-thin scrollbar-thumb-primary/20 scrollbar-track-transparent">
-        <nav className="space-y-1 lg:space-y-2">
+      <div className="flex-1 overflow-y-auto scrollbar-thin scrollbar-thumb-primary/20 scrollbar-track-transparent"
+           style={{ paddingLeft: `calc(0.5rem * var(--font-scale, 1))`, paddingRight: `calc(0.5rem * var(--font-scale, 1))`, paddingTop: `calc(1rem * var(--font-scale, 1))`, paddingBottom: `calc(1rem * var(--font-scale, 1))` }}>
+        <nav style={{ gap: `calc(0.25rem * var(--font-scale, 1))` }} className="flex flex-col">
           {navItems.map((item) => {
             const isActive = pathname.startsWith(item.href) && (item.href !== "/dashboard" || pathname === "/dashboard");
             
@@ -121,12 +126,17 @@ export default function AppSidebar({ className, onLinkClick }: AppSidebarProps) 
                     <Button
                       variant="ghost"
                       className={cn(
-                        "w-full justify-start h-10 lg:h-12 px-3 lg:px-4 group relative overflow-hidden transition-all duration-300 hover:scale-[1.02] hover:shadow-md rounded-lg lg:rounded-xl",
-                        "text-xs lg:text-sm font-medium",
+                        "w-full justify-start group relative overflow-hidden transition-all duration-300 hover:scale-[1.02] hover:shadow-md rounded-lg",
+                        "font-medium",
                         isActive 
                           ? "bg-gradient-to-r from-primary/10 via-primary/15 to-primary/10 border border-primary/20 shadow-lg shadow-primary/10" 
                           : "hover:bg-gradient-to-r hover:from-muted/50 hover:to-muted/30 hover:shadow-sm"
                       )}
+                      style={{ 
+                        height: `calc(2.5rem * var(--font-scale, 1))`, 
+                        paddingLeft: `calc(0.75rem * var(--font-scale, 1))`, 
+                        paddingRight: `calc(0.75rem * var(--font-scale, 1))` 
+                      }}
                       onClick={() => handleLinkClick(item.href)}
                     >
                       {/* Efeito de brilho no hover */}
@@ -134,16 +144,20 @@ export default function AppSidebar({ className, onLinkClick }: AppSidebarProps) 
                       
                       {/* Ícone com animação */}
                       <item.icon className={cn(
-                        "mr-2 lg:mr-3 h-4 w-4 lg:h-5 lg:w-5 transition-all duration-300 flex-shrink-0",
+                        "transition-all duration-300 flex-shrink-0",
                         isActive 
                           ? "text-primary scale-110" 
                           : "text-muted-foreground group-hover:text-foreground group-hover:scale-110"
-                      )} />
+                      )} 
+                      style={{ 
+                        marginRight: `calc(0.5rem * var(--font-scale, 1))`,
+                        width: `calc(1rem * var(--font-scale, 1))`,
+                        height: `calc(1rem * var(--font-scale, 1))`
+                      }} />
                       
                       {/* Label */}
                       <span className={cn(
                         "font-medium transition-colors duration-300 flex-1 text-left truncate",
-                        "text-xs lg:text-sm",
                         isActive 
                           ? "text-primary font-semibold" 
                           : "text-foreground/80 group-hover:text-foreground"
@@ -154,24 +168,34 @@ export default function AppSidebar({ className, onLinkClick }: AppSidebarProps) 
                       {/* Badge */}
                       {item.badge && (
                         <div className={cn(
-                          "ml-1 lg:ml-2 text-xs px-1.5 lg:px-2 py-0.5 rounded-full transition-all duration-300 border-0 text-white font-semibold flex-shrink-0",
-                          "text-xs leading-none",
+                          "rounded-full transition-all duration-300 border-0 text-white font-semibold flex-shrink-0",
                           item.badge === "AI" && "bg-gradient-to-r from-blue-500 to-purple-500 shadow-lg shadow-blue-500/25",
                           item.badge === "Pro" && "bg-gradient-to-r from-orange-500 to-red-500 shadow-lg shadow-orange-500/25",
                           item.badge === "Novo" && "bg-gradient-to-r from-green-500 to-emerald-500 shadow-lg shadow-green-500/25"
-                        )}>
+                        )}
+                        style={{
+                          marginLeft: `calc(0.25rem * var(--font-scale, 1))`,
+                          paddingLeft: `calc(0.375rem * var(--font-scale, 1))`,
+                          paddingRight: `calc(0.375rem * var(--font-scale, 1))`,
+                          paddingTop: `calc(0.125rem * var(--font-scale, 1))`,
+                          paddingBottom: `calc(0.125rem * var(--font-scale, 1))`,
+                          fontSize: `calc(0.75rem * var(--font-scale, 1))`,
+                          lineHeight: 1
+                        }}>
                           {item.badge}
                         </div>
                       )}
                       
                       {/* Indicador de página ativa */}
                       {isActive && (
-                        <div className="absolute right-0 top-1/2 -translate-y-1/2 w-1 h-8 bg-gradient-to-b from-primary to-primary/60 rounded-l-full" />
+                        <div className="absolute right-0 top-1/2 -translate-y-1/2 bg-gradient-to-b from-primary to-primary/60 rounded-l-full"
+                             style={{ width: `calc(0.25rem * var(--font-scale, 1))`, height: `calc(2rem * var(--font-scale, 1))` }} />
                       )}
                       
                       {/* Seta para itens ativos */}
                       {isActive && (
-                        <ChevronRight className="ml-2 h-4 w-4 text-primary animate-pulse" />
+                        <ChevronRight className="text-primary animate-pulse"
+                                     style={{ marginLeft: `calc(0.5rem * var(--font-scale, 1))`, width: `calc(1rem * var(--font-scale, 1))`, height: `calc(1rem * var(--font-scale, 1))` }} />
                       )}
                     </Button>
                   </TooltipTrigger>
@@ -187,39 +211,62 @@ export default function AppSidebar({ className, onLinkClick }: AppSidebarProps) 
 
       {/* Footer com Perfil do Usuário */}
       <div className="mt-auto border-t border-border/50 bg-gradient-to-r from-muted/30 via-muted/20 to-muted/30 backdrop-blur-sm">
-        <div className="p-3 lg:p-4 space-y-3 lg:space-y-4">
+        <div style={{ padding: `calc(0.75rem * var(--font-scale, 1))`, gap: `calc(0.75rem * var(--font-scale, 1))` }} className="flex flex-col">
           {/* Perfil do Usuário */}
-          <div className="flex items-center gap-2 lg:gap-3 p-2 lg:p-3 rounded-lg lg:rounded-xl bg-gradient-to-r from-card/50 to-card/30 border border-border/30 hover:from-card/70 hover:to-card/50 transition-all duration-300 group cursor-pointer">
+          <div className="flex items-center rounded-lg bg-gradient-to-r from-card/50 to-card/30 border border-border/30 hover:from-card/70 hover:to-card/50 transition-all duration-300 group cursor-pointer"
+               style={{ gap: `calc(0.5rem * var(--font-scale, 1))`, padding: `calc(0.5rem * var(--font-scale, 1))` }}>
             <div className="relative">
-              <Avatar className="h-8 w-8 lg:h-11 lg:w-11 ring-2 ring-primary/20 group-hover:ring-primary/40 transition-all duration-300">
+              <Avatar className="ring-2 ring-primary/20 group-hover:ring-primary/40 transition-all duration-300"
+                      style={{ width: `calc(2.5rem * var(--font-scale, 1))`, height: `calc(2.5rem * var(--font-scale, 1))` }}>
                 <AvatarImage src={user?.photoURL ?? undefined} alt={user?.name ?? "User Avatar"} />
-                <AvatarFallback className="bg-gradient-to-br from-primary/20 to-primary/10 text-primary font-bold text-xs lg:text-sm">
+                <AvatarFallback className="bg-gradient-to-br from-primary/20 to-primary/10 text-primary font-bold"
+                                style={{ fontSize: `calc(0.75rem * var(--font-scale, 1))` }}>
                   {getInitials(user?.name)}
                 </AvatarFallback>
               </Avatar>
-              <div className="absolute -bottom-0.5 -right-0.5 lg:-bottom-1 lg:-right-1 w-3 h-3 lg:w-4 lg:h-4 bg-gradient-to-r from-green-500 to-emerald-500 rounded-full border-2 border-background flex items-center justify-center">
-                <div className="w-1.5 h-1.5 lg:w-2 lg:h-2 bg-white rounded-full animate-pulse" />
+              <div className="absolute rounded-full border-2 border-background flex items-center justify-center bg-gradient-to-r from-green-500 to-emerald-500"
+                   style={{ 
+                     bottom: `calc(-0.125rem * var(--font-scale, 1))`, 
+                     right: `calc(-0.125rem * var(--font-scale, 1))`,
+                     width: `calc(0.75rem * var(--font-scale, 1))`,
+                     height: `calc(0.75rem * var(--font-scale, 1))`
+                   }}>
+                <div className="bg-white rounded-full animate-pulse"
+                     style={{ 
+                       width: `calc(0.375rem * var(--font-scale, 1))`,
+                       height: `calc(0.375rem * var(--font-scale, 1))`
+                     }} />
               </div>
             </div>
             <div className="flex-1 min-w-0">
-              <p className="text-xs lg:text-sm font-semibold text-foreground truncate group-hover:text-primary transition-colors duration-300">
+              <p className="font-semibold text-foreground truncate group-hover:text-primary transition-colors duration-300"
+                 style={{ fontSize: `calc(0.75rem * var(--font-scale, 1))` }}>
                 {user?.name}
               </p>
-              <p className="text-xs text-muted-foreground truncate">
+              <p className="text-muted-foreground truncate"
+                 style={{ fontSize: `calc(0.75rem * var(--font-scale, 1))` }}>
                 {user?.role === 'professional' ? 'Profissional' : 'Paciente'}
               </p>
             </div>
-            <Sparkles className="h-3 w-3 lg:h-4 lg:w-4 text-primary/60 group-hover:text-primary transition-colors duration-300 flex-shrink-0" />
+            <Sparkles className="text-primary/60 group-hover:text-primary transition-colors duration-300 flex-shrink-0"
+                      style={{ width: `calc(1rem * var(--font-scale, 1))`, height: `calc(1rem * var(--font-scale, 1))` }} />
           </div>
 
           {/* Botão de Logout */}
           <Button 
             variant="outline" 
-            className="w-full h-9 lg:h-11 bg-gradient-to-r from-destructive/5 to-destructive/10 border-destructive/20 hover:from-destructive/10 hover:to-destructive/20 hover:border-destructive/30 transition-all duration-300 group rounded-lg lg:rounded-xl" 
+            className="w-full bg-gradient-to-r from-destructive/5 to-destructive/10 border-destructive/20 hover:from-destructive/10 hover:to-destructive/20 hover:border-destructive/30 transition-all duration-300 group rounded-lg" 
+            style={{ height: `calc(2.25rem * var(--font-scale, 1))` }}
             onClick={handleLogout}
           >
-            <X className="mr-1.5 lg:mr-2 h-3.5 w-3.5 lg:h-4 lg:w-4 text-destructive/70 group-hover:text-destructive transition-colors duration-300 flex-shrink-0" />
-            <span className="font-medium text-destructive/80 group-hover:text-destructive transition-colors duration-300 text-xs lg:text-sm">
+            <X className="text-destructive/70 group-hover:text-destructive transition-colors duration-300 flex-shrink-0"
+               style={{ 
+                 marginRight: `calc(0.375rem * var(--font-scale, 1))`,
+                 width: `calc(1rem * var(--font-scale, 1))`,
+                 height: `calc(1rem * var(--font-scale, 1))`
+               }} />
+            <span className="font-medium text-destructive/80 group-hover:text-destructive transition-colors duration-300"
+                  style={{ fontSize: `calc(0.75rem * var(--font-scale, 1))` }}>
               {t.logout}
             </span>
           </Button>

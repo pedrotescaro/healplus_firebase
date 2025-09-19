@@ -37,12 +37,14 @@ export default function MobileNav() {
     <>
       <Sheet open={isSheetOpen} onOpenChange={setIsSheetOpen}>
         <SheetTrigger asChild>
-          <Button variant="outline" size="icon" className="shrink-0 hover:bg-primary/10 border-primary/20 hover:border-primary/30 transition-all duration-300">
-            <Menu className="h-4 w-4 text-primary" />
+          <Button variant="outline" size="icon" className="shrink-0 hover:bg-primary/10 border-primary/20 hover:border-primary/30 transition-all duration-300"
+                  style={{ width: `calc(2.5rem * var(--font-scale, 1))`, height: `calc(2.5rem * var(--font-scale, 1))` }}>
+            <Menu className="text-primary" style={{ width: `calc(1rem * var(--font-scale, 1))`, height: `calc(1rem * var(--font-scale, 1))` }} />
             <span className="sr-only">Toggle navigation menu</span>
           </Button>
         </SheetTrigger>
-        <SheetContent side="left" className="flex flex-col p-0 w-72 sm:w-80 bg-gradient-to-b from-background via-background to-muted/20 border-r border-border/50">
+        <SheetContent side="left" className="flex flex-col p-0 bg-gradient-to-b from-background via-background to-muted/20 border-r border-border/50"
+                      style={{ width: `calc(18rem * var(--font-scale, 1))` }}>
            <SheetHeader className="sr-only">
               <SheetTitle>{t.actions}</SheetTitle>
               <SheetDescription>
@@ -55,24 +57,30 @@ export default function MobileNav() {
       <div className="w-full flex-1" />
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
-          <Button variant="secondary" size="icon" className="rounded-full hover:bg-primary/10 transition-all duration-300 ring-2 ring-primary/10 hover:ring-primary/20">
-            <Avatar className="h-7 w-7 sm:h-8 sm:w-8">
+          <Button variant="secondary" size="icon" className="rounded-full hover:bg-primary/10 transition-all duration-300 ring-2 ring-primary/10 hover:ring-primary/20"
+                  style={{ width: `calc(2.5rem * var(--font-scale, 1))`, height: `calc(2.5rem * var(--font-scale, 1))` }}>
+            <Avatar style={{ width: `calc(1.75rem * var(--font-scale, 1))`, height: `calc(1.75rem * var(--font-scale, 1))` }}>
               <AvatarImage src={user?.photoURL ?? undefined} alt={user?.name ?? "User Avatar"} />
-              <AvatarFallback className="bg-gradient-to-br from-primary/20 to-primary/10 text-primary font-bold text-xs">
+              <AvatarFallback className="bg-gradient-to-br from-primary/20 to-primary/10 text-primary font-bold"
+                              style={{ fontSize: `calc(0.75rem * var(--font-scale, 1))` }}>
                 {getInitials(user?.name)}
               </AvatarFallback>
             </Avatar>
             <span className="sr-only">Toggle user menu</span>
           </Button>
         </DropdownMenuTrigger>
-        <DropdownMenuContent align="end" className="w-56 bg-card/95 backdrop-blur-sm border-border/50 shadow-lg">
-          <DropdownMenuLabel className="font-semibold text-foreground">{t.profileTitle}</DropdownMenuLabel>
+        <DropdownMenuContent align="end" className="bg-card/95 backdrop-blur-sm border-border/50 shadow-lg"
+                             style={{ width: `calc(14rem * var(--font-scale, 1))` }}>
+          <DropdownMenuLabel className="font-semibold text-foreground"
+                             style={{ fontSize: `calc(0.875rem * var(--font-scale, 1))` }}>{t.profileTitle}</DropdownMenuLabel>
           <DropdownMenuSeparator className="bg-border/50" />
           <Link href="/dashboard/profile" passHref>
-            <DropdownMenuItem className="hover:bg-primary/10 transition-colors duration-200">{t.profile}</DropdownMenuItem>
+            <DropdownMenuItem className="hover:bg-primary/10 transition-colors duration-200"
+                              style={{ fontSize: `calc(0.875rem * var(--font-scale, 1))` }}>{t.profile}</DropdownMenuItem>
           </Link>
           <DropdownMenuSeparator className="bg-border/50" />
-          <DropdownMenuItem onClick={() => logout()} className="hover:bg-destructive/10 text-destructive hover:text-destructive transition-colors duration-200">
+          <DropdownMenuItem onClick={() => logout()} className="hover:bg-destructive/10 text-destructive hover:text-destructive transition-colors duration-200"
+                            style={{ fontSize: `calc(0.875rem * var(--font-scale, 1))` }}>
             {t.logout}
           </DropdownMenuItem>
         </DropdownMenuContent>

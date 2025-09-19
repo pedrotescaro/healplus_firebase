@@ -39,15 +39,24 @@ export default function DashboardLayout({
   }
 
   return (
-    <div className="grid min-h-screen w-full md:grid-cols-[256px_1fr] lg:grid-cols-[288px_1fr] xl:grid-cols-[320px_1fr]">
-      <div className="hidden border-r bg-card md:block shadow-lg shadow-primary/5">
+    <div className="grid min-h-screen w-full"
+         style={{ gridTemplateColumns: `0 1fr` }}>
+      <div className="hidden border-r bg-card md:block shadow-lg shadow-primary/5"
+           style={{ width: `calc(16rem * var(--font-scale, 1))` }}>
         <AppSidebar />
       </div>
       <div className="flex flex-col min-h-screen bg-gradient-to-br from-background via-background to-muted/10">
-        <header className="flex h-14 items-center gap-4 border-b bg-card/50 backdrop-blur-sm px-4 lg:h-[60px] lg:px-6 md:hidden shadow-sm">
+        <header className="flex items-center border-b bg-card/50 backdrop-blur-sm md:hidden shadow-sm"
+                style={{ 
+                  height: `calc(3.5rem * var(--font-scale, 1))`, 
+                  gap: `calc(1rem * var(--font-scale, 1))`,
+                  paddingLeft: `calc(1rem * var(--font-scale, 1))`,
+                  paddingRight: `calc(1rem * var(--font-scale, 1))`
+                }}>
           <MobileNav />
         </header>
-        <main className="flex-1 overflow-auto bg-gradient-to-br from-background/95 via-background to-muted/5 p-3 sm:p-4 lg:p-6 xl:p-8">
+        <main className="flex-1 overflow-auto bg-gradient-to-br from-background/95 via-background to-muted/5"
+              style={{ padding: `calc(1rem * var(--font-scale, 1))` }}>
           <div className="max-w-7xl mx-auto">
             {children}
           </div>
