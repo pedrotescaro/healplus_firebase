@@ -349,31 +349,18 @@ export default function Home() {
 
       {/* CTA Section */}
       <section className="py-20 sm:py-32 lg:py-40 px-4 sm:px-6 lg:px-8 text-white relative overflow-hidden">
-        {/* Enhanced Background with multiple gradient layers */}
+        {/* Clean and elegant background */}
         <div className="absolute inset-0">
-          {/* Main gradient background */}
-          <div className="absolute top-0 left-0 w-full h-full bg-gradient-to-br from-primary via-primary/95 to-primary/85"></div>
+          {/* Main gradient background - clean and simple */}
+          <div className="absolute top-0 left-0 w-full h-full bg-gradient-to-br from-primary via-primary/95 to-primary/90"></div>
           
-          {/* Shimmer effect overlay */}
-          <div className="absolute top-0 left-0 w-full h-full cta-shimmer"></div>
+          {/* Subtle overlay for depth */}
+          <div className="absolute top-0 left-0 w-full h-full bg-gradient-to-tr from-primary/80 via-transparent to-primary/70"></div>
           
-          {/* Secondary gradient overlay for depth */}
-          <div className="absolute top-0 left-0 w-full h-full bg-gradient-to-tr from-primary/90 via-transparent to-primary/80"></div>
-          
-          {/* Tertiary gradient for visual interest */}
-          <div className="absolute top-0 left-0 w-full h-full bg-gradient-to-bl from-transparent via-primary/70 to-primary/90"></div>
-          
-          {/* Animated gradient orbs with enhanced styling */}
-          <div className="absolute top-1/4 right-1/4 w-80 sm:w-96 lg:w-[32rem] h-80 sm:h-96 lg:h-[32rem] bg-gradient-to-br from-white/15 via-white/8 to-white/5 rounded-full blur-3xl cta-gradient-orb-1 shadow-2xl"></div>
-          <div className="absolute bottom-1/4 left-1/4 w-64 sm:w-80 lg:w-96 h-64 sm:h-80 lg:h-96 bg-gradient-to-tr from-white/12 via-white/6 to-white/3 rounded-full blur-3xl cta-gradient-orb-2 shadow-xl"></div>
-          <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-48 sm:w-64 lg:w-80 h-48 sm:h-64 lg:h-80 bg-gradient-to-br from-white/20 via-white/10 to-white/5 rounded-full blur-2xl cta-gradient-orb-3 shadow-lg"></div>
-          
-          {/* Additional floating elements for more visual interest */}
-          <div className="absolute top-1/3 left-1/6 w-32 sm:w-40 lg:w-48 h-32 sm:h-40 lg:h-48 bg-gradient-to-br from-white/8 to-transparent rounded-full blur-2xl cta-gradient-orb-4"></div>
-          <div className="absolute bottom-1/3 right-1/6 w-24 sm:w-32 lg:w-40 h-24 sm:h-32 lg:h-40 bg-gradient-to-tl from-white/10 to-transparent rounded-full blur-xl cta-gradient-orb-5"></div>
-          
-          {/* Subtle pattern overlay */}
-          <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_50%,rgba(255,255,255,0.1)_0%,transparent_50%)] opacity-30"></div>
+          {/* Gentle floating orbs - much more subtle */}
+          <div className="absolute top-1/4 right-1/4 w-64 sm:w-80 lg:w-96 h-64 sm:h-80 lg:h-96 bg-white/8 rounded-full blur-3xl animate-pulse delay-1000"></div>
+          <div className="absolute bottom-1/4 left-1/4 w-48 sm:w-64 lg:w-80 h-48 sm:h-64 lg:h-80 bg-white/6 rounded-full blur-3xl animate-pulse delay-1500"></div>
+          <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-32 sm:w-48 lg:w-64 h-32 sm:h-48 lg:h-64 bg-white/10 rounded-full blur-2xl animate-pulse delay-500"></div>
         </div>
         
         <div className="container mx-auto text-center relative z-10">
@@ -408,15 +395,15 @@ export default function Home() {
               </Button>
             </div>
             
-            <div className="pt-8 sm:pt-12 text-primary text-sm sm:text-base px-4 flex flex-col sm:flex-row items-center justify-center gap-2 sm:gap-6">
-              <span className="flex items-center gap-2">
-                <Sparkles className="h-5 w-5 text-primary" /> Sem compromisso
+            <div className="pt-8 sm:pt-12 text-white/90 text-sm sm:text-base px-4 flex flex-col sm:flex-row items-center justify-center gap-4 sm:gap-8">
+              <span className="cta-feature-badge flex items-center gap-2 px-4 py-2 rounded-full">
+                <Sparkles className="h-5 w-5 text-white" /> Sem compromisso
               </span>
-              <span className="flex items-center gap-2">
-                <Zap className="h-5 w-5 text-primary" /> Configuração em 5 minutos
+              <span className="cta-feature-badge flex items-center gap-2 px-4 py-2 rounded-full">
+                <Zap className="h-5 w-5 text-white" /> Configuração em 5 minutos
               </span>
-              <span className="flex items-center gap-2">
-                <Shield className="h-5 w-5 text-primary" /> Suporte 24/7
+              <span className="cta-feature-badge flex items-center gap-2 px-4 py-2 rounded-full">
+                <Shield className="h-5 w-5 text-white" /> Suporte 24/7
               </span>
             </div>
           </div>
