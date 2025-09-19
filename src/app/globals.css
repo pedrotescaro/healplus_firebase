@@ -94,7 +94,64 @@ body {
   }
   html {
     font-size: calc(16px * var(--font-scale));
+    transition: font-size 0.3s ease-in-out;
   }
+  
+  /* Apply font scaling to all text elements */
+  body, p, span, div, h1, h2, h3, h4, h5, h6, 
+  button, input, textarea, select, label, 
+  .text-sm, .text-base, .text-lg, .text-xl, .text-2xl, .text-3xl {
+    font-size: inherit;
+  }
+  
+  /* Ensure proper scaling for specific components */
+  .font-mono {
+    font-size: calc(0.875em * var(--font-scale));
+  }
+  
+  /* Better scaling for form elements */
+  input, textarea, select {
+    font-size: calc(1em * var(--font-scale));
+  }
+  
+  /* Scale icons proportionally */
+  .lucide {
+    width: calc(1em * var(--font-scale));
+    height: calc(1em * var(--font-scale));
+  }
+  
+  /* Ensure proper scaling for UI components */
+  .ui-button, .ui-input, .ui-select, .ui-textarea {
+    font-size: calc(1em * var(--font-scale));
+  }
+  
+  /* Scale spacing and padding proportionally */
+  .space-y-1 > * + * {
+    margin-top: calc(0.25rem * var(--font-scale));
+  }
+  
+  .space-y-2 > * + * {
+    margin-top: calc(0.5rem * var(--font-scale));
+  }
+  
+  .space-y-3 > * + * {
+    margin-top: calc(0.75rem * var(--font-scale));
+  }
+  
+  .space-y-4 > * + * {
+    margin-top: calc(1rem * var(--font-scale));
+  }
+  
+  .space-y-6 > * + * {
+    margin-top: calc(1.5rem * var(--font-scale));
+  }
+  
+  /* Scale gap utilities */
+  .gap-1 { gap: calc(0.25rem * var(--font-scale)); }
+  .gap-2 { gap: calc(0.5rem * var(--font-scale)); }
+  .gap-3 { gap: calc(0.75rem * var(--font-scale)); }
+  .gap-4 { gap: calc(1rem * var(--font-scale)); }
+  .gap-6 { gap: calc(1.5rem * var(--font-scale)); }
 }
 
 /* For Webkit-based browsers (Chrome, Safari, Edge) */

@@ -62,7 +62,7 @@ export function SettingsForm() {
           </SelectTrigger>
           <SelectContent>
             <SelectItem value="pt-br">Português (Brasil)</SelectItem>
-            <SelectItem value="en-us">English (US)</SelectItem>
+            <SelectItem value="en-us">English (United States)</SelectItem>
           </SelectContent>
         </Select>
       </div>
@@ -79,9 +79,11 @@ export function SettingsForm() {
             <SelectValue placeholder={t.selectSize} />
           </SelectTrigger>
           <SelectContent>
+            <SelectItem value="0.8">{t.extraSmall}</SelectItem>
             <SelectItem value="0.9">{t.small}</SelectItem>
             <SelectItem value="1">{t.medium}</SelectItem>
             <SelectItem value="1.1">{t.large}</SelectItem>
+            <SelectItem value="1.2">{t.extraLarge}</SelectItem>
           </SelectContent>
         </Select>
       </div>
