@@ -144,12 +144,12 @@ export default function WoundCapturePage() {
   };
 
   return (
-    <div className="min-h-screen bg-background text-foreground p-4 sm:p-6">
-      <div className="max-w-7xl mx-auto">
+    <div className="min-h-screen bg-background text-foreground page-responsive">
+      <div className="container-responsive">
         {/* Header */}
         <div className="mb-6 sm:mb-8">
-          <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold mb-2">Captura Inteligente de Feridas</h1>
-          <p className="text-sm sm:text-base lg:text-lg text-muted-foreground">
+          <h1 className="text-responsive-2xl sm:text-responsive-3xl lg:text-responsive-4xl font-bold mb-2">Captura Inteligente de Feridas</h1>
+          <p className="text-responsive-sm sm:text-responsive-base lg:text-responsive-lg text-muted-foreground">
             Registre fotos da sua ferida para análise automática com IA e acompanhamento médico.
           </p>
         </div>
@@ -161,7 +161,7 @@ export default function WoundCapturePage() {
               <div key={step.id} className="flex items-center w-full sm:w-auto">
                 <div
                   className={cn(
-                    "w-8 h-8 sm:w-10 sm:h-10 rounded-full flex items-center justify-center text-xs sm:text-sm font-semibold flex-shrink-0",
+                    "w-8 h-8 sm:w-10 sm:h-10 rounded-full flex items-center justify-center text-responsive-xs sm:text-responsive-sm font-semibold flex-shrink-0",
                     currentStep >= step.id
                       ? "bg-blue-500 text-white"
                       : "bg-gray-600 text-gray-300"
@@ -170,8 +170,8 @@ export default function WoundCapturePage() {
                   {step.id}
                 </div>
                 <div className="ml-2 sm:ml-3 min-w-0 flex-1">
-                  <p className="font-medium text-sm sm:text-base truncate">{step.title}</p>
-                  <p className="text-xs sm:text-sm text-gray-400 hidden sm:block">{step.description}</p>
+                  <p className="font-medium text-responsive-sm sm:text-responsive-base truncate">{step.title}</p>
+                  <p className="text-responsive-xs sm:text-responsive-sm text-gray-400 hidden sm:block">{step.description}</p>
                 </div>
                 {index < steps.length - 1 && (
                   <div

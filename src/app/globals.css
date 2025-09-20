@@ -156,30 +156,40 @@ body {
   /* Responsive sidebar scaling */
   .sidebar-responsive {
     width: calc(16rem * var(--font-scale, 1));
+    min-width: calc(16rem * var(--font-scale, 1));
+    max-width: calc(16rem * var(--font-scale, 1));
     transition: width 0.3s ease-in-out;
   }
   
   @media (min-width: 768px) {
     .sidebar-responsive {
       width: calc(16rem * var(--font-scale, 1));
+      min-width: calc(16rem * var(--font-scale, 1));
+      max-width: calc(16rem * var(--font-scale, 1));
     }
   }
   
   @media (min-width: 1024px) {
     .sidebar-responsive {
       width: calc(18rem * var(--font-scale, 1));
+      min-width: calc(18rem * var(--font-scale, 1));
+      max-width: calc(18rem * var(--font-scale, 1));
     }
   }
   
   @media (min-width: 1280px) {
     .sidebar-responsive {
       width: calc(20rem * var(--font-scale, 1));
+      min-width: calc(20rem * var(--font-scale, 1));
+      max-width: calc(20rem * var(--font-scale, 1));
     }
   }
   
   /* Mobile nav responsive scaling */
   .mobile-nav-responsive {
     width: calc(18rem * var(--font-scale, 1));
+    min-width: calc(18rem * var(--font-scale, 1));
+    max-width: calc(18rem * var(--font-scale, 1));
     transition: width 0.3s ease-in-out;
   }
   
@@ -196,6 +206,64 @@ body {
     width: calc(1rem * var(--font-scale, 1));
     height: calc(1rem * var(--font-scale, 1));
   }
+  
+  /* Page responsive scaling */
+  .page-responsive {
+    padding: calc(1rem * var(--font-scale, 1));
+    margin: 0;
+    max-width: 100%;
+    overflow-x: hidden;
+  }
+  
+  /* Container responsive scaling */
+  .container-responsive {
+    max-width: calc(80rem * var(--font-scale, 1));
+    margin: 0 auto;
+    padding-left: calc(1rem * var(--font-scale, 1));
+    padding-right: calc(1rem * var(--font-scale, 1));
+  }
+  
+  /* Card responsive scaling */
+  .card-responsive {
+    padding: calc(1.5rem * var(--font-scale, 1));
+    margin-bottom: calc(1rem * var(--font-scale, 1));
+  }
+  
+  /* Button responsive scaling */
+  .button-responsive {
+    height: calc(2.5rem * var(--font-scale, 1));
+    padding: calc(0.5rem * var(--font-scale, 1)) calc(1rem * var(--font-scale, 1));
+    font-size: calc(0.875rem * var(--font-scale, 1));
+    border-radius: calc(0.375rem * var(--font-scale, 1));
+  }
+  
+  /* Input responsive scaling */
+  .input-responsive {
+    height: calc(2.5rem * var(--font-scale, 1));
+    padding: calc(0.5rem * var(--font-scale, 1)) calc(0.75rem * var(--font-scale, 1));
+    font-size: calc(0.875rem * var(--font-scale, 1));
+    border-radius: calc(0.375rem * var(--font-scale, 1));
+  }
+  
+  /* Table responsive scaling */
+  .table-responsive {
+    font-size: calc(0.875rem * var(--font-scale, 1));
+  }
+  
+  .table-responsive th,
+  .table-responsive td {
+    padding: calc(0.75rem * var(--font-scale, 1));
+  }
+  
+  /* Text responsive scaling */
+  .text-responsive-xs { font-size: calc(0.75rem * var(--font-scale, 1)); }
+  .text-responsive-sm { font-size: calc(0.875rem * var(--font-scale, 1)); }
+  .text-responsive-base { font-size: calc(1rem * var(--font-scale, 1)); }
+  .text-responsive-lg { font-size: calc(1.125rem * var(--font-scale, 1)); }
+  .text-responsive-xl { font-size: calc(1.25rem * var(--font-scale, 1)); }
+  .text-responsive-2xl { font-size: calc(1.5rem * var(--font-scale, 1)); }
+  .text-responsive-3xl { font-size: calc(1.875rem * var(--font-scale, 1)); }
+  .text-responsive-4xl { font-size: calc(2.25rem * var(--font-scale, 1)); }
 }
 
 /* For Webkit-based browsers (Chrome, Safari, Edge) */

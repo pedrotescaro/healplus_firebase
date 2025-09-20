@@ -43,8 +43,7 @@ export default function MobileNav() {
             <span className="sr-only">Toggle navigation menu</span>
           </Button>
         </SheetTrigger>
-        <SheetContent side="left" className="flex flex-col p-0 bg-gradient-to-b from-background via-background to-muted/20 border-r border-border/50"
-                      style={{ width: `calc(18rem * var(--font-scale, 1))` }}>
+        <SheetContent side="left" className="flex flex-col p-0 bg-gradient-to-b from-background via-background to-muted/20 border-r border-border/50 mobile-nav-responsive">
            <SheetHeader className="sr-only">
               <SheetTitle>{t.actions}</SheetTitle>
               <SheetDescription>

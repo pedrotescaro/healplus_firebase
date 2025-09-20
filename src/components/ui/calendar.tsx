@@ -3,18 +3,13 @@
 
 import * as React from "react"
 import { ChevronLeft, ChevronRight } from "lucide-react"
-import { DayPicker } from "react-day-picker"
+import { DayPicker, DayContentProps } from "react-day-picker"
 import { ptBR } from "date-fns/locale"
 
 import { cn } from "@/lib/utils"
 import { buttonVariants } from "@/components/ui/button"
 
-export type CalendarProps = {
-  className?: string
-  classNames?: Record<string, string>
-  showOutsideDays?: boolean
-  [key: string]: any
-}
+export type CalendarProps = React.ComponentProps<typeof DayPicker>
 
 function Calendar({
   className,
@@ -22,23 +17,13 @@ function Calendar({
   showOutsideDays = true,
   ...props
 }: CalendarProps) {
-  const [mounted, setMounted] = React.useState(false)
-
-  React.useEffect(() => {
-    setMounted(true)
-  }, [])
-
-  if (!mounted) {
-    return <div className={cn("p-3 h-80 w-80", className)} />
-  }
-
   return (
     <DayPicker
       showOutsideDays={showOutsideDays}
       className={cn("p-3", className)}
       locale={ptBR}
       classNames={{
-        months: "flex flex-col space-y-4",
+        months: "flex flex-col sm:flex-row space-y-4 sm:space-x-4 sm:space-y-0",
         month: "space-y-4",
         caption: "flex justify-center pt-1 relative items-center",
         caption_label: "text-sm font-medium",

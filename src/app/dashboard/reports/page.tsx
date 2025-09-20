@@ -218,15 +218,15 @@ export default function ReportsPage() {
 };
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 page-responsive">
       <div>
-        <h1 className="text-3xl font-bold tracking-tight">{t.myReportsTitle}</h1>
-        <p className="text-muted-foreground">{t.myReportsDescription}</p>
+        <h1 className="text-responsive-3xl font-bold tracking-tight">{t.myReportsTitle}</h1>
+        <p className="text-muted-foreground text-responsive-base">{t.myReportsDescription}</p>
       </div>
       <Card>
         <CardHeader>
-          <CardTitle>{t.allReportsTitle}</CardTitle>
-          <CardDescription>
+          <CardTitle className="text-responsive-xl">{t.allReportsTitle}</CardTitle>
+          <CardDescription className="text-responsive-sm">
             {t.allReportsDescription}
           </CardDescription>
         </CardHeader>
@@ -238,19 +238,19 @@ export default function ReportsPage() {
             </div>
           ) : reports.length > 0 ? (
             <div className="w-full overflow-x-auto">
-              <Table>
+              <Table className="table-responsive">
                 <TableHeader>
                   <TableRow>
-                    <TableHead>{t.patient}</TableHead>
-                    <TableHead className="hidden sm:table-cell">{t.reportDate}</TableHead>
-                    <TableHead className="text-right">{t.actions}</TableHead>
+                    <TableHead className="text-responsive-sm">{t.patient}</TableHead>
+                    <TableHead className="hidden sm:table-cell text-responsive-sm">{t.reportDate}</TableHead>
+                    <TableHead className="text-right text-responsive-sm">{t.actions}</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
                   {reports.map((report) => (
                     <TableRow key={report.id}>
-                      <TableCell className="font-medium">{report.patientName}</TableCell>
-                      <TableCell className="hidden sm:table-cell">
+                      <TableCell className="font-medium text-responsive-sm">{report.patientName}</TableCell>
+                      <TableCell className="hidden sm:table-cell text-responsive-sm">
                         {report.createdAt.toDate().toLocaleDateString(t.locale, { timeZone: 'UTC' })}
                       </TableCell>
                       <TableCell className="text-right">
