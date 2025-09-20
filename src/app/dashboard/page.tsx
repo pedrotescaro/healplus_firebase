@@ -5,7 +5,6 @@ import { useAuth } from "@/hooks/use-auth";
 import { ProfessionalDashboard } from "@/components/dashboard/professional-dashboard";
 import { PatientDashboard } from "@/components/dashboard/patient-dashboard";
 import { Skeleton } from "@/components/ui/skeleton";
-import { FontScaleTest } from "@/components/dashboard/font-scale-test";
 
 export default function DashboardPage() {
   const { user, loading } = useAuth();
@@ -34,7 +33,6 @@ export default function DashboardPage() {
   if (user.role === 'patient') {
     return (
       <div className="space-y-6 page-responsive">
-        <FontScaleTest />
         <PatientDashboard />
       </div>
     );
@@ -42,7 +40,6 @@ export default function DashboardPage() {
   
   return (
     <div className="space-y-6 page-responsive">
-      <FontScaleTest />
       <ProfessionalDashboard />
     </div>
   );
