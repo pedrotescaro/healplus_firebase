@@ -331,7 +331,7 @@ export function AgendaView() {
 
       <div className="grid gap-6 lg:grid-cols-[1fr_400px]">
         <Card className="shadow-lg border-border/50">
-          <CardHeader className="flex flex-row items-center justify-between bg-gradient-to-r from-primary/5 via-primary/3 to-transparent border-b border-border/50">
+          <CardHeader className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 bg-gradient-to-r from-primary/5 via-primary/3 to-transparent border-b border-border/50">
             <div>
               <CardTitle className="flex items-center gap-2">
                 <div className="p-2 bg-primary rounded-lg">
@@ -343,7 +343,7 @@ export function AgendaView() {
             </div>
             <Dialog open={showAddDialog} onOpenChange={setShowAddDialog}>
               <DialogTrigger asChild>
-                <Button size="sm" className="bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary/70 shadow-md">
+                <Button size="sm" className="bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary/70 shadow-md w-full sm:w-auto">
                   <Plus className="h-4 w-4 mr-2" />
                   Novo Agendamento
                 </Button>
