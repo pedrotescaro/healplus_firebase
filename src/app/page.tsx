@@ -261,118 +261,54 @@ export default function Home() {
         </div>
       </section>
 
-      {/* Benefits Section */}
-      <section className="py-20 sm:py-32 px-4 sm:px-6 lg:px-8 bg-gradient-to-br from-primary/5 via-background to-primary/10 relative overflow-hidden">
-        {/* Background decoration */}
-        <div className="absolute inset-0 -z-10">
-          <div className="absolute top-0 left-0 w-full h-full bg-gradient-to-br from-primary/5 via-transparent to-primary/10"></div>
-          <div className="absolute top-1/4 right-1/3 w-80 sm:w-96 lg:w-[28rem] h-80 sm:h-96 lg:h-[28rem] bg-gradient-to-r from-primary/15 to-primary/5 rounded-full blur-3xl animate-pulse delay-1000"></div>
-          <div className="absolute bottom-1/4 left-1/3 w-64 sm:w-80 lg:w-96 h-64 sm:h-80 lg:h-96 bg-gradient-to-r from-primary/10 to-transparent rounded-full blur-2xl animate-pulse delay-1500"></div>
-        </div>
-
-        <div className="container mx-auto">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 sm:gap-20 items-center">
-            <div className="space-y-8 sm:space-y-12">
-              <div>
-                <div className="inline-flex items-center px-4 sm:px-6 py-3 rounded-full bg-gradient-to-r from-primary/10 to-primary/5 text-primary text-sm sm:text-base font-semibold border border-primary/20 shadow-lg backdrop-blur-sm mb-6 sm:mb-8">
-                  <TrendingUp className="w-4 h-4 sm:w-5 sm:h-5 mr-2 animate-pulse" />
-                  Resultados Comprovados
-                </div>
-                <h2 className="text-4xl sm:text-5xl lg:text-6xl font-bold text-foreground mb-6 sm:mb-8">
-                  Por que escolher o{" "}
-                  <span className="bg-gradient-to-r from-primary via-primary/90 to-primary/70 bg-clip-text text-transparent">
-                    Heal+?
-                  </span>
-                </h2>
-                <p className="text-lg sm:text-2xl text-muted-foreground leading-relaxed">
-                  Democratizar o acesso a análises especializadas de feridas, fornecendo ferramentas de IA que auxiliam profissionais de saúde na tomada de decisões clínicas baseadas em evidências visuais e dados estruturados.
-                </p>
-              </div>
-              
-              <div className="space-y-6 sm:space-y-10">
-                <div className="flex items-start space-x-4 sm:space-x-6 p-4 sm:p-6 rounded-xl bg-gradient-to-r from-background/80 to-background/60 border border-border/50 shadow-lg hover:shadow-xl transition-all duration-300 group hover:scale-[1.02] backdrop-blur-sm">
-                  <div className="flex-shrink-0 w-12 h-12 sm:w-14 sm:h-14 bg-gradient-to-r from-primary/20 to-primary/10 rounded-xl flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
-                    <CheckCircle className="h-6 w-6 sm:h-7 sm:w-7 text-primary" />
-                  </div>
-                  <div>
-                    <h3 className="text-lg sm:text-xl font-bold text-foreground mb-2 sm:mb-3 group-hover:text-primary transition-colors duration-300">Análise com Gemini</h3>
-                    <p className="text-sm sm:text-base text-muted-foreground leading-relaxed">
-                      Utiliza Gemini 2.0 Flash para análise multimodal de imagens e geração de relatórios comparativos
-                    </p>
-                  </div>
-                </div>
-                
-                <div className="flex items-start space-x-4 sm:space-x-6 p-4 sm:p-6 rounded-xl bg-gradient-to-r from-background/80 to-background/60 border border-border/50 shadow-lg hover:shadow-xl transition-all duration-300 group hover:scale-[1.02] backdrop-blur-sm">
-                  <div className="flex-shrink-0 w-12 h-12 sm:w-14 sm:h-14 bg-gradient-to-r from-primary/20 to-primary/10 rounded-xl flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
-                    <Zap className="h-6 w-6 sm:h-7 sm:w-7 text-primary" />
-                  </div>
-                  <div>
-                    <h3 className="text-lg sm:text-xl font-bold text-foreground mb-2 sm:mb-3 group-hover:text-primary transition-colors duration-300">Automação Inteligente</h3>
-                    <p className="text-sm sm:text-base text-muted-foreground leading-relaxed">
-                      Geração automática de relatórios PDF com protocolo terapêutico e análise comparativa de imagens
-                    </p>
-                  </div>
-                </div>
-                
-                <div className="flex items-start space-x-4 sm:space-x-6 p-4 sm:p-6 rounded-xl bg-gradient-to-r from-background/80 to-background/60 border border-border/50 shadow-lg hover:shadow-xl transition-all duration-300 group hover:scale-[1.02] backdrop-blur-sm">
-                  <div className="flex-shrink-0 w-12 h-12 sm:w-14 sm:h-14 bg-gradient-to-r from-primary/20 to-primary/10 rounded-xl flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
-                    <Shield className="h-6 w-6 sm:h-7 sm:w-7 text-primary" />
-                  </div>
-                  <div>
-                    <h3 className="text-lg sm:text-xl font-bold text-foreground mb-2 sm:mb-3 group-hover:text-primary transition-colors duration-300">Interface Responsiva</h3>
-                    <p className="text-sm sm:text-base text-muted-foreground leading-relaxed">
-                      Design moderno e responsivo com sidebar animada, funcionando em desktop e mobile
-                    </p>
-                  </div>
-                </div>
-              </div>
-            </div>
-            
-            <div className="relative">
-              <div className="grid grid-cols-2 gap-4 sm:gap-6 lg:gap-8">
-                <Card className="p-6 sm:p-8 text-center hover:shadow-2xl transition-all duration-500 transform hover:scale-105 bg-gradient-to-br from-background/90 to-background/70 border border-border/50 backdrop-blur-sm group">
-                  <CardContent className="space-y-4 sm:space-y-6">
-                    <div className="w-16 h-16 sm:w-20 sm:h-20 bg-gradient-to-r from-primary/20 to-primary/10 rounded-full flex items-center justify-center mx-auto group-hover:scale-110 transition-transform duration-300">
-                      <Brain className="h-8 w-8 sm:h-10 sm:w-10 text-primary" />
-                    </div>
-                    <div className="text-3xl sm:text-4xl lg:text-5xl font-bold text-primary group-hover:scale-110 transition-transform duration-300">Gemini</div>
-                    <p className="text-sm sm:text-base text-muted-foreground font-medium">2.0 Flash</p>
-                  </CardContent>
-                </Card>
-                
-                <Card className="p-6 sm:p-8 text-center hover:shadow-2xl transition-all duration-500 transform hover:scale-105 bg-gradient-to-br from-background/90 to-background/70 border border-border/50 backdrop-blur-sm group">
-                  <CardContent className="space-y-4 sm:space-y-6">
-                    <div className="w-16 h-16 sm:w-20 sm:h-20 bg-gradient-to-r from-primary/20 to-primary/10 rounded-full flex items-center justify-center mx-auto group-hover:scale-110 transition-transform duration-300">
-                      <TrendingUp className="h-8 w-8 sm:h-10 sm:w-10 text-primary" />
-                    </div>
-                    <div className="text-3xl sm:text-4xl lg:text-5xl font-bold text-primary group-hover:scale-110 transition-transform duration-300">TIMERS</div>
-                    <p className="text-sm sm:text-base text-muted-foreground font-medium">Framework</p>
-                  </CardContent>
-                </Card>
-                
-                <Card className="p-6 sm:p-8 text-center hover:shadow-2xl transition-all duration-500 transform hover:scale-105 bg-gradient-to-br from-background/90 to-background/70 border border-border/50 backdrop-blur-sm group">
-                  <CardContent className="space-y-4 sm:space-y-6">
-                    <div className="w-16 h-16 sm:w-20 sm:h-20 bg-gradient-to-r from-primary/20 to-primary/10 rounded-full flex items-center justify-center mx-auto group-hover:scale-110 transition-transform duration-300">
-                      <Activity className="h-8 w-8 sm:h-10 sm:w-10 text-primary" />
-                    </div>
-                    <div className="text-3xl sm:text-4xl lg:text-5xl font-bold text-primary group-hover:scale-110 transition-transform duration-300">PDF</div>
-                    <p className="text-sm sm:text-base text-muted-foreground font-medium">Relatórios</p>
-                  </CardContent>
-                </Card>
-                
-                <Card className="p-6 sm:p-8 text-center hover:shadow-2xl transition-all duration-500 transform hover:scale-105 bg-gradient-to-br from-background/90 to-background/70 border border-border/50 backdrop-blur-sm group">
-                  <CardContent className="space-y-4 sm:space-y-6">
-                    <div className="w-16 h-16 sm:w-20 sm:h-20 bg-gradient-to-r from-primary/20 to-primary/10 rounded-full flex items-center justify-center mx-auto group-hover:scale-110 transition-transform duration-300">
-                      <Users className="h-8 w-8 sm:h-10 sm:w-10 text-primary" />
-                    </div>
-                    <div className="text-3xl sm:text-4xl lg:text-5xl font-bold text-primary group-hover:scale-110 transition-transform duration-300">Firebase</div>
-                    <p className="text-sm sm:text-base text-muted-foreground font-medium">Backend</p>
-                  </CardContent>
-                </Card>
-              </div>
-            </div>
+      {/* CTA Section */}
+      <section className="py-20 sm:py-32 px-4 sm:px-6 lg:px-8 relative overflow-hidden bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900">
+          <div className="absolute inset-0 -z-10">
+              <div className="absolute top-0 left-0 w-full h-full bg-gradient-to-br from-slate-900/95 via-slate-800/90 to-slate-900/95"></div>
+              <div className="absolute top-1/4 right-1/4 w-64 sm:w-80 lg:w-96 h-64 sm:h-80 lg:h-96 bg-primary/10 rounded-full blur-3xl animate-pulse"></div>
+              <div className="absolute bottom-1/4 left-1/4 w-48 sm:w-64 lg:w-80 h-48 sm:h-64 lg:h-80 bg-primary/5 rounded-full blur-2xl animate-pulse delay-500"></div>
           </div>
-        </div>
+          <div className="container mx-auto text-center relative z-10">
+              <div className="max-w-4xl mx-auto p-8 sm:p-12 lg:p-16 rounded-2xl bg-white/5 border border-white/10 backdrop-blur-xl shadow-2xl shadow-primary/10">
+                  <div className="space-y-8 sm:space-y-10">
+                      <div className="inline-flex items-center px-4 sm:px-6 py-3 rounded-full bg-white/10 text-white text-sm sm:text-base font-semibold border border-white/20 shadow-lg">
+                          <Sparkles className="w-4 h-4 sm:w-5 sm:h-5 mr-2 text-yellow-300 animate-pulse" />
+                          Junte-se à revolução da saúde
+                      </div>
+                      <h2 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold text-white leading-tight">
+                          Pronto para <span className="bg-gradient-to-r from-white to-gray-300 bg-clip-text text-transparent">transformar</span> sua prática médica?
+                      </h2>
+                      <p className="text-base sm:text-lg md:text-xl lg:text-2xl text-gray-300 max-w-3xl mx-auto leading-relaxed">
+                          Sistema desenvolvido para auxiliar profissionais de saúde na avaliação e documentação de feridas com IA.
+                      </p>
+                      <div className="flex flex-col sm:flex-row gap-4 sm:gap-6 justify-center pt-4 sm:pt-6">
+                          <Button size="lg" asChild className="h-12 sm:h-14 md:h-16 px-6 sm:px-8 md:px-10 text-base sm:text-lg md:text-xl bg-white text-slate-900 hover:bg-gray-200 shadow-xl hover:shadow-2xl transition-all duration-500 transform hover:scale-105 hover:-translate-y-1">
+                              <Link href="/signup">
+                                  Começar Agora - É Grátis
+                                  <ArrowRight className="ml-2 h-5 w-5 sm:h-6 sm:w-6" />
+                              </Link>
+                          </Button>
+                          <Button size="lg" variant="ghost" asChild className="h-12 sm:h-14 md:h-16 px-6 sm:px-8 md:px-10 text-base sm:text-lg md:text-xl text-white hover:bg-white/10 hover:text-white transition-all duration-300 transform hover:scale-105">
+                              <Link href="/login">Já tenho conta</Link>
+                          </Button>
+                      </div>
+                      <div className="flex flex-wrap items-center justify-center gap-x-6 sm:gap-x-8 gap-y-3 pt-6 sm:pt-8 text-sm text-gray-400">
+                          <div className="flex items-center gap-2 cta-feature-badge px-3 py-1 rounded-full">
+                              <CheckCircle className="w-4 h-4 text-green-400" />
+                              Sem compromisso
+                          </div>
+                          <div className="flex items-center gap-2 cta-feature-badge px-3 py-1 rounded-full">
+                              <CheckCircle className="w-4 h-4 text-green-400" />
+                              Configuração em 5 minutos
+                          </div>
+                          <div className="flex items-center gap-2 cta-feature-badge px-3 py-1 rounded-full">
+                              <CheckCircle className="w-4 h-4 text-green-400" />
+                              Suporte 24/7
+                          </div>
+                      </div>
+                  </div>
+              </div>
+          </div>
       </section>
 
       {/* FAQ Section */}
