@@ -536,6 +536,9 @@ export default function Home() {
                 <Link href="#" className="text-sm text-gray-300 hover:text-primary transition-colors hover:underline">
                   Acessibilidade
                 </Link>
+                <Link href="/references" className="text-sm text-gray-300 hover:text-primary transition-colors hover:underline">
+                  Referências
+                </Link>
               </div>
             </div>
           </div>
