@@ -1,8 +1,11 @@
+
 "use client";
 
 import { useState } from "react";
 import { Card, CardContent } from "@/components/ui/card";
-import { ChevronDown, ChevronUp } from "lucide-react";
+import { ChevronDown } from "lucide-react";
+import { AnimatePresence, motion } from "framer-motion";
+import { cn } from "@/lib/utils";
 
 interface FAQItem {
   question: string;
@@ -23,29 +26,43 @@ export function FAQAccordion({ items }: FAQAccordionProps) {
   return (
     <div className="space-y-4">
       {items.map((item, index) => (
-        <Card key={index} className="border border-border/50">
-          <CardContent className="p-6">
-            <div 
-              className="flex items-center justify-between cursor-pointer"
-              onClick={() => toggleItem(index)}
+        <Card key={index} className="border border-border/50 overflow-hidden">
+          <div
+            className="flex items-center justify-between cursor-pointer p-6"
+            onClick={() => toggleItem(index)}
+          >
+            <h3 className="text-lg font-semibold text-foreground">
+              {item.question}
+            </h3>
+            <motion.div
+              animate={{ rotate: openIndex === index ? 180 : 0 }}
+              transition={{ duration: 0.3 }}
             >
-              <h3 className="text-lg font-semibold text-foreground">
-                {item.question}
-              </h3>
-              {openIndex === index ? (
-                <ChevronUp className="w-5 h-5 text-primary" />
-              ) : (
-                <ChevronDown className="w-5 h-5 text-primary" />
-              )}
-            </div>
+              <ChevronDown className="w-5 h-5 text-primary" />
+            </motion.div>
+          </div>
+          <AnimatePresence initial={false}>
             {openIndex === index && (
-              <div className="mt-4 pt-4 border-t border-border/50">
-                <p className="text-muted-foreground">
-                  {item.answer}
-                </p>
-              </div>
+              <motion.section
+                key="content"
+                initial="collapsed"
+                animate="open"
+                exit="collapsed"
+                variants={{
+                  open: { opacity: 1, height: "auto" },
+                  collapsed: { opacity: 0, height: 0 },
+                }}
+                transition={{ duration: 0.4, ease: [0.04, 0.62, 0.23, 0.98] }}
+                className="overflow-hidden"
+              >
+                <div className="px-6 pb-6 pt-0 border-t border-border/50">
+                    <p className="text-muted-foreground pt-4">
+                    {item.answer}
+                    </p>
+                </div>
+              </motion.section>
             )}
-          </CardContent>
+          </AnimatePresence>
         </Card>
       ))}
     </div>
