@@ -262,9 +262,9 @@ export default function Home() {
       </section>
 
       {/* CTA Section */}
-      <section className="py-20 sm:py-32 px-4 sm:px-6 lg:px-8 relative overflow-hidden bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900">
+      <section className="py-20 sm:py-32 px-4 sm:px-6 lg:px-8 relative overflow-hidden bg-gradient-to-br from-blue-900 via-blue-800 to-blue-900">
           <div className="absolute inset-0 -z-10">
-              <div className="absolute top-0 left-0 w-full h-full bg-gradient-to-br from-slate-900/95 via-slate-800/90 to-slate-900/95"></div>
+              <div className="absolute top-0 left-0 w-full h-full bg-gradient-to-br from-blue-900/95 via-blue-800/90 to-blue-900/95"></div>
               <div className="absolute top-1/4 right-1/4 w-64 sm:w-80 lg:w-96 h-64 sm:h-80 lg:h-96 bg-primary/10 rounded-full blur-3xl animate-pulse"></div>
               <div className="absolute bottom-1/4 left-1/4 w-48 sm:w-64 lg:w-80 h-48 sm:h-64 lg:h-80 bg-primary/5 rounded-full blur-2xl animate-pulse delay-500"></div>
           </div>
@@ -272,17 +272,17 @@ export default function Home() {
               <div className="max-w-4xl mx-auto p-8 sm:p-12 lg:p-16 rounded-2xl bg-white/5 border border-white/10 backdrop-blur-xl shadow-2xl shadow-primary/10">
                   <div className="space-y-8 sm:space-y-10">
                       <div className="inline-flex items-center px-4 sm:px-6 py-3 rounded-full bg-white/10 text-white text-sm sm:text-base font-semibold border border-white/20 shadow-lg">
-                          <Sparkles className="w-4 h-4 sm:w-5 sm:h-5 mr-2 text-yellow-300 animate-pulse" />
+                          <Sparkles className="w-4 h-4 sm:w-5 sm:h-5 mr-2 text-blue-300 animate-pulse" />
                           Junte-se à revolução da saúde
                       </div>
                       <h2 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold text-white leading-tight">
-                          Pronto para <span className="bg-gradient-to-r from-white to-gray-300 bg-clip-text text-transparent">transformar</span> sua prática médica?
+                          Pronto para <span className="bg-gradient-to-r from-blue-300 to-blue-400 bg-clip-text text-transparent">transformar</span> sua prática médica?
                       </h2>
-                      <p className="text-base sm:text-lg md:text-xl lg:text-2xl text-gray-300 max-w-3xl mx-auto leading-relaxed">
+                      <p className="text-base sm:text-lg md:text-xl lg:text-2xl text-blue-200 max-w-3xl mx-auto leading-relaxed">
                           Sistema desenvolvido para auxiliar profissionais de saúde na avaliação e documentação de feridas com IA.
                       </p>
                       <div className="flex flex-col sm:flex-row gap-4 sm:gap-6 justify-center pt-4 sm:pt-6">
-                          <Button size="lg" asChild className="h-12 sm:h-14 md:h-16 px-6 sm:px-8 md:px-10 text-base sm:text-lg md:text-xl bg-white text-slate-900 hover:bg-gray-200 shadow-xl hover:shadow-2xl transition-all duration-500 transform hover:scale-105 hover:-translate-y-1">
+                          <Button size="lg" asChild className="h-12 sm:h-14 md:h-16 px-6 sm:px-8 md:px-10 text-base sm:text-lg md:text-xl bg-white text-blue-900 hover:bg-blue-100 shadow-xl hover:shadow-2xl transition-all duration-500 transform hover:scale-105 hover:-translate-y-1">
                               <Link href="/signup">
                                   Começar Agora - É Grátis
                                   <ArrowRight className="ml-2 h-5 w-5 sm:h-6 sm:w-6" />
@@ -292,17 +292,17 @@ export default function Home() {
                               <Link href="/login">Já tenho conta</Link>
                           </Button>
                       </div>
-                      <div className="flex flex-wrap items-center justify-center gap-x-6 sm:gap-x-8 gap-y-3 pt-6 sm:pt-8 text-sm text-gray-400">
-                          <div className="flex items-center gap-2 cta-feature-badge px-3 py-1 rounded-full">
-                              <CheckCircle className="w-4 h-4 text-green-400" />
+                      <div className="flex flex-wrap items-center justify-center gap-x-6 sm:gap-x-8 gap-y-3 pt-6 sm:pt-8 text-sm text-blue-200">
+                          <div className="flex items-center gap-2 cta-feature-badge px-3 py-1 rounded-full border-blue-400/30 bg-blue-500/10">
+                              <CheckCircle className="w-4 h-4 text-blue-300" />
                               Sem compromisso
                           </div>
-                          <div className="flex items-center gap-2 cta-feature-badge px-3 py-1 rounded-full">
-                              <CheckCircle className="w-4 h-4 text-green-400" />
+                          <div className="flex items-center gap-2 cta-feature-badge px-3 py-1 rounded-full border-blue-400/30 bg-blue-500/10">
+                              <CheckCircle className="w-4 h-4 text-blue-300" />
                               Configuração em 5 minutos
                           </div>
-                          <div className="flex items-center gap-2 cta-feature-badge px-3 py-1 rounded-full">
-                              <CheckCircle className="w-4 h-4 text-green-400" />
+                          <div className="flex items-center gap-2 cta-feature-badge px-3 py-1 rounded-full border-blue-400/30 bg-blue-500/10">
+                              <CheckCircle className="w-4 h-4 text-blue-300" />
                               Suporte 24/7
                           </div>
                       </div>
