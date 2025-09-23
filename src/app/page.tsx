@@ -348,24 +348,17 @@ export default function Home() {
       </section>
 
       {/* CTA Section */}
-      <section className="py-20 sm:py-32 lg:py-40 px-4 sm:px-6 lg:px-8 text-white relative overflow-hidden">
-        {/* Clean and elegant background */}
-        <div className="absolute inset-0">
-          {/* Main gradient background - clean and simple */}
-          <div className="absolute top-0 left-0 w-full h-full bg-gradient-to-br from-primary via-primary/95 to-primary/90"></div>
-          
-          {/* Subtle overlay for depth */}
-          <div className="absolute top-0 left-0 w-full h-full bg-gradient-to-tr from-primary/80 via-transparent to-primary/70"></div>
-          
-          {/* Gentle floating orbs - much more subtle */}
-          <div className="absolute top-1/4 right-1/4 w-64 sm:w-80 lg:w-96 h-64 sm:h-80 lg:h-96 bg-white/8 rounded-full blur-3xl animate-pulse delay-1000"></div>
-          <div className="absolute bottom-1/4 left-1/4 w-48 sm:w-64 lg:w-80 h-48 sm:h-64 lg:h-80 bg-white/6 rounded-full blur-3xl animate-pulse delay-1500"></div>
-          <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-32 sm:w-48 lg:w-64 h-32 sm:h-48 lg:h-64 bg-white/10 rounded-full blur-2xl animate-pulse delay-500"></div>
+      <section className="py-20 sm:py-32 lg:py-40 px-4 sm:px-6 lg:px-8 text-white relative overflow-hidden bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900">
+        {/* Background decoration */}
+        <div className="absolute inset-0 -z-10">
+          <div className="absolute top-1/4 right-1/4 w-64 sm:w-80 lg:w-96 h-64 sm:h-80 lg:h-96 bg-primary/10 rounded-full blur-3xl animate-pulse delay-1000"></div>
+          <div className="absolute bottom-1/4 left-1/4 w-48 sm:w-64 lg:w-80 h-48 sm:h-64 lg:h-80 bg-primary/5 rounded-full blur-3xl animate-pulse delay-1500"></div>
+          <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-32 sm:w-48 lg:w-64 h-32 sm:h-48 lg:h-64 bg-primary/20 rounded-full blur-2xl animate-pulse delay-500"></div>
         </div>
         
         <div className="container mx-auto text-center relative z-10">
           <div className="max-w-5xl mx-auto space-y-8 sm:space-y-12 lg:space-y-16">
-            <div className="inline-flex items-center px-4 sm:px-6 py-3 rounded-full bg-white/20 text-white text-sm sm:text-base font-semibold border border-white/30 shadow-lg backdrop-blur-sm">
+            <div className="inline-flex items-center px-4 sm:px-6 py-3 rounded-full bg-white/10 text-white text-sm sm:text-base font-semibold border border-white/20 shadow-lg backdrop-blur-sm">
               <Star className="w-4 h-4 sm:w-5 sm:h-5 mr-2 animate-pulse" />
               Junte-se à revolução da saúde
             </div>
