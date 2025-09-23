@@ -8,15 +8,38 @@ import AppSidebar from "@/components/dashboard/app-sidebar";
 import { Skeleton } from "@/components/ui/skeleton";
 import MobileNav from "@/components/dashboard/mobile-nav";
 import { CatSupport } from "@/components/dashboard/cat-support";
+import { NotificationBell } from "@/components/dashboard/notification-bell";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { Button } from "@/components/ui/button";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import Link from "next/link";
+import { useTranslation } from "@/contexts/app-provider";
+
+const getInitials = (name: string | null | undefined): string => {
+  if (!name) return "U";
+  const names = name.split(' ');
+  const firstInitial = names[0]?.[0] || "";
+  const lastInitial = names.length > 1 ? names[names.length - 1]?.[0] || "" : "";
+  return `${firstInitial}${lastInitial}`.toUpperCase();
+}
+
 
 export default function DashboardLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
-  const { user, loading } = useAuth();
+  const { user, loading, logout } = useAuth();
   const router = useRouter();
   const pathname = usePathname();
+  const { t } = useTranslation();
 
   useEffect(() => {
     if (!loading && !user) {
@@ -47,15 +70,38 @@ export default function DashboardLayout({
       
       {/* Main Content Area */}
       <div className="flex flex-col min-h-screen bg-gradient-to-br from-background via-background to-muted/10 flex-1">
-        {/* Mobile Header */}
-        <header className="flex items-center border-b bg-card/50 backdrop-blur-sm md:hidden shadow-sm"
-                style={{ 
-                  height: `calc(3.5rem * var(--font-scale, 1))`, 
-                  gap: `calc(1rem * var(--font-scale, 1))`,
-                  paddingLeft: `calc(1rem * var(--font-scale, 1))`,
-                  paddingRight: `calc(1rem * var(--font-scale, 1))`
-                }}>
-          <MobileNav />
+        {/* Header for both Mobile and Desktop */}
+        <header className="sticky top-0 z-40 flex h-14 items-center gap-4 border-b bg-background/80 px-4 backdrop-blur-sm sm:h-16 sm:px-6">
+          <div className="md:hidden">
+            <MobileNav />
+          </div>
+          <div className="flex w-full items-center justify-end gap-4">
+            <NotificationBell />
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="secondary" size="icon" className="rounded-full">
+                   <Avatar className="h-8 w-8">
+                    <AvatarImage src={user?.photoURL ?? undefined} alt={user?.name ?? "User Avatar"} />
+                    <AvatarFallback className="bg-gradient-to-br from-primary/20 to-primary/10 text-primary font-bold">
+                      {getInitials(user?.name)}
+                    </AvatarFallback>
+                  </Avatar>
+                  <span className="sr-only">Toggle user menu</span>
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end">
+                <DropdownMenuLabel>{user.name}</DropdownMenuLabel>
+                <DropdownMenuSeparator />
+                <Link href="/dashboard/profile" passHref>
+                  <DropdownMenuItem>{t.profile}</DropdownMenuItem>
+                </Link>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem onClick={() => logout().then(() => router.push('/login'))}>
+                  {t.logout}
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          </div>
         </header>
         
         {/* Main Content */}

@@ -21,12 +21,6 @@ export default function AgendaPage() {
                 {t.agendaDescription}
               </p>
             </div>
-            <div className="flex items-center gap-4">
-              <div className="text-center">
-                <div className="text-responsive-2xl font-bold text-primary">Hoje</div>
-                <div className="text-responsive-xs text-muted-foreground">Agenda</div>
-              </div>
-            </div>
           </div>
         </div>
       </div>
