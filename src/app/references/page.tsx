@@ -51,6 +51,11 @@ const references = [
   {
     id: 11,
     text: "GERMANO, Renan Soares; ELISEO, Maria Amelia; SILVEIRA, Ismar Frango. Introdução à acessibilidade na Web: do conceito à prática. In: JORNADAS IBERO-AMERICANAS DE INTERAÇÃO HUMANO-COMPUTADOR, 7., 2021, São Paulo. Anais [...]. São Paulo: Sociedade Brasileira de Computação, 2021."
+  },
+  {
+    id: 12,
+    text: "Medetec Image Databases. A collection of wound images for research and education.",
+    link: "https://www.medetec.co.uk/files/medetec-image-databases.html"
   }
 ];
 
