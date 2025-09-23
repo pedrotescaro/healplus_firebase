@@ -71,10 +71,8 @@ export default function DashboardLayout({
       {/* Main Content Area */}
       <div className="flex flex-col min-h-screen bg-gradient-to-br from-background via-background to-muted/10 flex-1">
         {/* Header for both Mobile and Desktop */}
-        <header className="sticky top-0 z-40 flex h-14 items-center gap-4 border-b bg-background/80 px-4 backdrop-blur-sm sm:h-16 sm:px-6">
-          <div className="md:hidden">
-            <MobileNav />
-          </div>
+        <header className="sticky top-0 z-40 flex h-14 items-center justify-between gap-4 border-b bg-background/80 px-4 backdrop-blur-sm sm:h-16 sm:px-6">
+          <MobileNav />
           <div className="flex w-full items-center justify-end gap-4">
             <NotificationBell />
             <DropdownMenu>
