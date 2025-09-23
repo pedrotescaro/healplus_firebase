@@ -383,7 +383,7 @@ export default function Home() {
                   <ArrowRight className="ml-2 h-5 w-5 sm:h-6 sm:w-6 animate-pulse" />
                 </Link>
               </Button>
-              <Button size="lg" variant="outline" asChild className="h-14 sm:h-16 px-8 sm:px-10 text-lg sm:text-xl border-2 border-white text-white hover:bg-white hover:text-primary transition-all duration-300 transform hover:scale-105">
+              <Button size="lg" variant="ghost" asChild className="h-14 sm:h-16 px-8 sm:px-10 text-lg sm:text-xl text-white hover:bg-white/10 hover:text-white transition-all duration-300 transform hover:scale-105">
                 <Link href="/login">Já tenho conta</Link>
               </Button>
             </div>
