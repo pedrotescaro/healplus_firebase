@@ -132,7 +132,7 @@ export default function Home() {
                   <ArrowRight className="ml-2 h-5 w-5 sm:h-6 sm:w-6 animate-pulse" />
                 </Link>
               </Button>
-              <Button size="lg" variant="outline" asChild className="h-12 sm:h-14 md:h-16 px-6 sm:px-8 md:px-10 text-base sm:text-lg md:text-xl border-2 border-primary text-primary hover:bg-primary hover:text-white transition-all duration-300 transform hover:scale-105">
+              <Button size="lg" variant="ghost" asChild className="h-12 sm:h-14 md:h-16 px-6 sm:px-8 md:px-10 text-base sm:text-lg md:text-xl text-primary hover:bg-primary/10 transition-all duration-300 transform hover:scale-105">
                 <Link href="/login">Já tenho conta</Link>
               </Button>
             </div>
@@ -230,6 +230,34 @@ export default function Home() {
               description="Métricas de uso, produtividade e acompanhamento de atividades"
             />
           </div>
+        </div>
+      </section>
+
+      {/* Video Section */}
+      <section className="py-20 sm:py-32 px-4 sm:px-6 lg:px-8 bg-gradient-to-br from-background via-muted/10 to-background">
+        <div className="container mx-auto">
+          <div className="text-center mb-12 sm:mb-16">
+            <h2 className="text-4xl sm:text-5xl lg:text-6xl font-bold text-foreground mb-4">
+              Veja o <span className="text-primary">Heal+</span> em Ação
+            </h2>
+            <p className="text-lg sm:text-2xl text-muted-foreground max-w-3xl mx-auto">
+              Descubra como nossa plataforma simplifica a avaliação de feridas em menos de 2 minutos.
+            </p>
+          </div>
+          <Card className="max-w-4xl mx-auto shadow-2xl border-border/50 overflow-hidden">
+            <CardContent className="p-2 bg-gradient-to-br from-primary/5 to-transparent">
+              <div className="aspect-video">
+                <iframe
+                  className="w-full h-full rounded-md"
+                  src="https://www.youtube.com/embed/VT_0G2gB6_I"
+                  title="YouTube video player"
+                  frameBorder="0"
+                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                  allowFullScreen
+                ></iframe>
+              </div>
+            </CardContent>
+          </Card>
         </div>
       </section>
 
@@ -347,62 +375,6 @@ export default function Home() {
         </div>
       </section>
 
-      {/* CTA Section */}
-      <section className="py-20 sm:py-32 lg:py-40 px-4 sm:px-6 lg:px-8 text-white relative overflow-hidden bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900">
-        {/* Background decoration */}
-        <div className="absolute inset-0 -z-10">
-          <div className="absolute top-1/4 right-1/4 w-64 sm:w-80 lg:w-96 h-64 sm:h-80 lg:h-96 bg-primary/10 rounded-full blur-3xl animate-pulse delay-1000"></div>
-          <div className="absolute bottom-1/4 left-1/4 w-48 sm:w-64 lg:w-80 h-48 sm:h-64 lg:h-80 bg-primary/5 rounded-full blur-3xl animate-pulse delay-1500"></div>
-          <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-32 sm:w-48 lg:w-64 h-32 sm:h-48 lg:h-64 bg-primary/20 rounded-full blur-2xl animate-pulse delay-500"></div>
-        </div>
-        
-        <div className="container mx-auto text-center relative z-10">
-          <div className="max-w-5xl mx-auto space-y-8 sm:space-y-12 lg:space-y-16">
-            <div className="inline-flex items-center px-4 sm:px-6 py-3 rounded-full bg-white/10 text-white text-sm sm:text-base font-semibold border border-white/20 shadow-lg backdrop-blur-sm">
-              <Star className="w-4 h-4 sm:w-5 sm:h-5 mr-2 animate-pulse" />
-              Junte-se à revolução da saúde
-            </div>
-            
-            <h2 className="text-4xl sm:text-5xl lg:text-7xl font-bold text-white leading-tight">
-              Pronto para{" "}
-              <span className="bg-gradient-to-r from-white via-white/90 to-white/70 bg-clip-text text-transparent">
-                transformar
-              </span>{" "}
-              sua prática médica?
-            </h2>
-            
-            <p className="text-lg sm:text-2xl lg:text-3xl text-white/90 max-w-4xl mx-auto leading-relaxed px-4">
-              Sistema desenvolvido para auxiliar profissionais de saúde na avaliação e documentação de feridas com IA
-            </p>
-            
-            <div className="flex flex-col sm:flex-row gap-4 sm:gap-6 justify-center pt-6 sm:pt-8 px-4">
-              <Button size="lg" asChild className="h-14 sm:h-16 px-8 sm:px-10 text-lg sm:text-xl bg-white text-primary hover:bg-white/90 shadow-2xl hover:shadow-3xl transition-all duration-500 transform hover:scale-105 hover:-translate-y-1">
-                <Link href="/signup">
-                  <span className="hidden sm:inline">Começar Agora - É Grátis</span>
-                  <span className="sm:hidden">Começar Grátis</span>
-                  <ArrowRight className="ml-2 h-5 w-5 sm:h-6 sm:w-6 animate-pulse" />
-                </Link>
-              </Button>
-              <Button size="lg" variant="ghost" asChild className="h-14 sm:h-16 px-8 sm:px-10 text-lg sm:text-xl text-white hover:bg-white/10 hover:text-white transition-all duration-300 transform hover:scale-105">
-                <Link href="/login">Já tenho conta</Link>
-              </Button>
-            </div>
-            
-            <div className="pt-8 sm:pt-12 text-white/90 text-sm sm:text-base px-4 flex flex-col sm:flex-row items-center justify-center gap-4 sm:gap-8">
-              <span className="cta-feature-badge flex items-center gap-2 px-4 py-2 rounded-full">
-                <Sparkles className="h-5 w-5 text-white" /> Sem compromisso
-              </span>
-              <span className="cta-feature-badge flex items-center gap-2 px-4 py-2 rounded-full">
-                <Zap className="h-5 w-5 text-white" /> Configuração em 5 minutos
-              </span>
-              <span className="cta-feature-badge flex items-center gap-2 px-4 py-2 rounded-full">
-                <Shield className="h-5 w-5 text-white" /> Suporte 24/7
-              </span>
-            </div>
-          </div>
-        </div>
-      </section>
-
       {/* FAQ Section */}
       <section id="faq" className="py-20 sm:py-32 px-4 sm:px-6 lg:px-8 bg-gradient-to-br from-muted/10 via-background to-muted/20 relative overflow-hidden">
         {/* Background decoration */}
@@ -452,7 +424,6 @@ export default function Home() {
         </div>
       </section>
 
-
       {/* Footer */}
       <footer className="bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 text-white relative overflow-hidden">
         {/* Background decoration */}
@@ -483,8 +454,6 @@ export default function Home() {
               <h3 className="text-lg sm:text-xl font-bold text-primary">Navegação</h3>
               <ul className="space-y-3">
                 <li><Link href="/" className="text-white hover:text-primary transition-colors text-sm sm:text-base flex items-center gap-2 hover:translate-x-1 transition-transform duration-300">Home</Link></li>
-                <li><Link href="#recursos" className="text-white hover:text-primary transition-colors text-sm sm:text-base flex items-center gap-2 hover:translate-x-1 transition-transform duration-300">Recursos</Link></li>
-                <li><Link href="#depoimentos" className="text-white hover:text-primary transition-colors text-sm sm:text-base flex items-center gap-2 hover:translate-x-1 transition-transform duration-300">Depoimentos</Link></li>
                 <li><Link href="#faq" className="text-white hover:text-primary transition-colors text-sm sm:text-base flex items-center gap-2 hover:translate-x-1 transition-transform duration-300">Perguntas Frequentes</Link></li>
               </ul>
             </div>
@@ -499,7 +468,7 @@ export default function Home() {
                 <a href="#" className="text-white hover:text-primary transition-all duration-300 transform hover:scale-110" aria-label="LinkedIn">
                   <Linkedin className="w-6 h-6 sm:w-7 sm:h-7" />
                 </a>
-                <a href="#" className="text-white hover:text-primary transition-all duration-300 transform hover:scale-110" aria-label="YouTube">
+                <a href="https://www.youtube.com/@GrupoHealplus" target="_blank" rel="noopener noreferrer" className="text-white hover:text-primary transition-all duration-300 transform hover:scale-110" aria-label="YouTube">
                   <Youtube className="w-6 h-6 sm:w-7 sm:h-7" />
                 </a>
                 <a href="#" className="text-white hover:text-primary transition-all duration-300 transform hover:scale-110" aria-label="Instagram">
