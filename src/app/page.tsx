@@ -257,7 +257,7 @@ export default function Home() {
                   </span>
                 </h2>
                 <p className="text-lg sm:text-2xl text-muted-foreground leading-relaxed">
-                  Sistema desenvolvido para auxiliar profissionais de saúde na avaliação e documentação de feridas
+                  Democratizar o acesso a análises especializadas de feridas, fornecendo ferramentas de IA que auxiliam profissionais de saúde na tomada de decisões clínicas baseadas em evidências visuais e dados estruturados.
                 </p>
               </div>
               
