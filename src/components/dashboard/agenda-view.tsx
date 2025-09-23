@@ -286,7 +286,7 @@ export function AgendaView() {
             <Card className="border-red-200 bg-gradient-to-r from-red-50 to-red-100 shadow-lg shadow-red-500/10">
               <CardHeader className="pb-3">
                 <CardTitle className="flex items-center gap-2 text-red-800">
-                  <div className="p-2 bg-red-500 rounded-full">
+                  <div className="p-2 bg-red-500 rounded-lg">
                     <AlertTriangle className="h-5 w-5 text-white" />
                   </div>
                   Consultas Urgentes
@@ -308,7 +308,7 @@ export function AgendaView() {
             <Card className="border-yellow-200 bg-gradient-to-r from-yellow-50 to-yellow-100 shadow-lg shadow-yellow-500/10">
               <CardHeader className="pb-3">
                 <CardTitle className="flex items-center gap-2 text-yellow-800">
-                  <div className="p-2 bg-yellow-500 rounded-full">
+                  <div className="p-2 bg-yellow-500 rounded-lg">
                     <Clock className="h-5 w-5 text-white" />
                   </div>
                   Consultas Atrasadas

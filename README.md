@@ -32,8 +32,8 @@ O **Heal+** é uma plataforma inovadora que utiliza Inteligência Artificial par
 - ✅ **Sistema de Badges** - Indicadores visuais para funcionalidades especiais
 - ✅ **Comparação de Relatórios** - Análise temporal com histogramas
 - ✅ **Dashboard Analytics** - Métricas de uso e produtividade
-- 🔄 **Em Desenvolvimento** - Agenda inteligente
-- 🔄 **Em Desenvolvimento** - Notificações push
+- ✅ **Agenda Inteligente** - Retornos automáticos e alertas de compromissos
+- ✅ **Notificações** - Alertas no dashboard para consultas urgentes ou atrasadas
 
 ### 🎯 Objetivo
 
@@ -68,7 +68,7 @@ Democratizar o acesso a análises especializadas de feridas, fornecendo ferramen
 
 ### 📅 **Agenda e Acompanhamento**
 - **Agenda Inteligente**: Retornos automáticos baseados em avaliações
-- **Notificações**: Lembretes de reavaliações
+- **Notificações**: Alertas no dashboard para consultas urgentes ou atrasadas
 - **Histórico Clínico**: Acompanhamento completo do paciente
 - **Dashboard Analytics**: Métricas de produtividade e uso
 
