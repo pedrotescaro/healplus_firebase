@@ -299,6 +299,7 @@ export function CatSupport({ currentPage }: { currentPage: string }) {
                   <div className="w-full space-y-3">
                       {Object.entries(chatTopics).map(([key, topic]) => (
                           <ChatBlock 
+                              key={key}
                               icon={topic.icon} 
                               text={topic.question} 
                               badge={topic.badge}
