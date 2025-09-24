@@ -1,0 +1,9 @@
+# See https://www.robotstxt.org/robotstxt.html for documentation on how to use the robots.txt file
+#
+# This file is used by web crawlers to determine which pages they can crawl.
+# A simple "allow all" is suitable for most public websites.
+
+User-agent: *
+Allow: /
+
+Sitemap: [TODO: Add sitemap URL here when available]
