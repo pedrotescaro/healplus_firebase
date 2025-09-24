@@ -44,6 +44,8 @@ import { collection, query, getDocs, orderBy, limit, doc, deleteDoc } from "fire
 import { ActivitySummaryChart } from "@/components/dashboard/activity-summary-chart";
 import { useTranslation } from "@/contexts/app-provider";
 import { AnamnesisDetailsView } from "@/components/dashboard/anamnesis-details-view";
+import { AgendaView } from "@/components/dashboard/agenda-view";
+import { NotificationsPanel } from "@/components/dashboard/notifications-panel";
 
 type StoredAnamnesis = AnamnesisFormValues & { id: string };
 
@@ -162,9 +164,12 @@ export function ProfessionalDashboard() {
 
   return (
     <div className="space-y-6">
-      <div className="container mx-auto px-4 sm:px-6 lg:px-8">
-        <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold tracking-tight">Dashboard Profissional</h1>
-        <p className="text-muted-foreground text-sm sm:text-base">Gerencie suas avaliações, relatórios e pacientes em um só lugar.</p>
+      <div className="container mx-auto px-4 sm:px-6 lg:px-8 flex justify-between items-center">
+        <div>
+          <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold tracking-tight">Dashboard Profissional</h1>
+          <p className="text-muted-foreground text-sm sm:text-base">Gerencie suas avaliações, relatórios e pacientes em um só lugar.</p>
+        </div>
+        <NotificationsPanel />
       </div>
 
       {/* Estatísticas Detalhadas */}
@@ -284,6 +289,8 @@ export function ProfessionalDashboard() {
           </CardContent>
         </Card>
       </div>
+
+      <AgendaView />
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <Card className="lg:col-span-1">
