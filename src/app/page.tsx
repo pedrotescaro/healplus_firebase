@@ -179,6 +179,34 @@ export default function Home() {
         </div>
       </section>
 
+      {/* Video Section */}
+      <section className="py-20 sm:py-32 px-4 sm:px-6 lg:px-8 bg-gradient-to-br from-background via-muted/10 to-background">
+        <div className="container mx-auto">
+          <div className="text-center mb-12 sm:mb-16">
+            <h2 className="text-4xl sm:text-5xl lg:text-6xl font-bold text-foreground mb-4">
+              Veja o <span className="text-primary">Heal+</span> em Ação
+            </h2>
+            <p className="text-lg sm:text-2xl text-muted-foreground max-w-3xl mx-auto">
+              Descubra como nossa plataforma simplifica a avaliação de feridas em menos de 3 minutos.
+            </p>
+          </div>
+          <Card className="max-w-4xl mx-auto shadow-2xl border-border/50 overflow-hidden">
+            <CardContent className="p-2 bg-gradient-to-br from-primary/5 to-transparent">
+              <div className="aspect-video">
+                <iframe
+                  className="w-full h-full rounded-md"
+                  src="https://www.youtube.com/embed/T2X_ZV_T-u0"
+                  title="YouTube video player"
+                  frameBorder="0"
+                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                  allowFullScreen
+                ></iframe>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+      </section>
+
       {/* Features Section */}
       <section className="py-12 sm:py-16 md:py-20 lg:py-24 xl:py-32 px-3 sm:px-4 md:px-6 lg:px-8 bg-gradient-to-br from-muted/10 via-background to-muted/20 relative overflow-hidden">
         {/* Background decoration */}
@@ -286,34 +314,120 @@ export default function Home() {
         </div>
       </section>
 
-      {/* Video Section */}
-      <section className="py-20 sm:py-32 px-4 sm:px-6 lg:px-8 bg-gradient-to-br from-background via-muted/10 to-background">
+      {/* Benefits Section */}
+      <section className="py-20 sm:py-32 px-4 sm:px-6 lg:px-8 bg-gradient-to-br from-primary/5 via-background to-primary/10 relative overflow-hidden">
+        {/* Background decoration */}
+        <div className="absolute inset-0 -z-10">
+          <div className="absolute top-0 left-0 w-full h-full bg-gradient-to-br from-primary/5 via-transparent to-primary/10"></div>
+          <div className="absolute top-1/4 right-1/3 w-80 sm:w-96 lg:w-[28rem] h-80 sm:h-96 lg:h-[28rem] bg-gradient-to-r from-primary/15 to-primary/5 rounded-full blur-3xl animate-pulse delay-1000"></div>
+          <div className="absolute bottom-1/4 left-1/3 w-64 sm:w-80 lg:w-96 h-64 sm:h-80 lg:h-96 bg-gradient-to-r from-primary/10 to-transparent rounded-full blur-2xl animate-pulse delay-1500"></div>
+        </div>
+
         <div className="container mx-auto">
-          <div className="text-center mb-12 sm:mb-16">
-            <h2 className="text-4xl sm:text-5xl lg:text-6xl font-bold text-foreground mb-4">
-              Veja o <span className="text-primary">Heal+</span> em Ação
-            </h2>
-            <p className="text-lg sm:text-2xl text-muted-foreground max-w-3xl mx-auto">
-              Descubra como nossa plataforma simplifica a avaliação de feridas em menos de 2 minutos.
-            </p>
-          </div>
-          <Card className="max-w-4xl mx-auto shadow-2xl border-border/50 overflow-hidden">
-            <CardContent className="p-2 bg-gradient-to-br from-primary/5 to-transparent">
-              <div className="aspect-video">
-                <iframe
-                  className="w-full h-full rounded-md"
-                  src="https://www.youtube.com/embed/T2X_ZV_T-u0"
-                  title="YouTube video player"
-                  frameBorder="0"
-                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                  allowFullScreen
-                ></iframe>
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 sm:gap-20 items-center">
+            <div className="space-y-8 sm:space-y-12">
+              <div>
+                <div className="inline-flex items-center px-4 sm:px-6 py-3 rounded-full bg-gradient-to-r from-primary/10 to-primary/5 text-primary text-sm sm:text-base font-semibold border border-primary/20 shadow-lg backdrop-blur-sm mb-6 sm:mb-8">
+                  <TrendingUp className="w-4 h-4 sm:w-5 sm:h-5 mr-2 animate-pulse" />
+                  Resultados Comprovados
+                </div>
+                <h2 className="text-4xl sm:text-5xl lg:text-6xl font-bold text-foreground mb-6 sm:mb-8">
+                  Por que escolher o{" "}
+                  <span className="bg-gradient-to-r from-primary via-primary/90 to-primary/70 bg-clip-text text-transparent">
+                    Heal+?
+                  </span>
+                </h2>
+                <p className="text-lg sm:text-2xl text-muted-foreground leading-relaxed">
+                  Democratizar o acesso a análises especializadas de feridas, fornecendo ferramentas de IA que auxiliam profissionais de saúde na tomada de decisões clínicas baseadas em evidências visuais e dados estruturados.
+                </p>
               </div>
-            </CardContent>
-          </Card>
+              
+              <div className="space-y-6 sm:space-y-10">
+                <div className="flex items-start space-x-4 sm:space-x-6 p-4 sm:p-6 rounded-xl bg-gradient-to-r from-background/80 to-background/60 border border-border/50 shadow-lg hover:shadow-xl transition-all duration-300 group hover:scale-[1.02] backdrop-blur-sm">
+                  <div className="flex-shrink-0 w-12 h-12 sm:w-14 sm:h-14 bg-gradient-to-r from-primary/20 to-primary/10 rounded-xl flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
+                    <CheckCircle className="h-6 w-6 sm:h-7 sm:w-7 text-primary" />
+                  </div>
+                  <div>
+                    <h3 className="text-lg sm:text-xl font-bold text-foreground mb-2 sm:mb-3 group-hover:text-primary transition-colors duration-300">Análise com Gemini</h3>
+                    <p className="text-sm sm:text-base text-muted-foreground leading-relaxed">
+                      Utiliza Gemini 2.0 Flash para análise multimodal de imagens e geração de relatórios comparativos
+                    </p>
+                  </div>
+                </div>
+                
+                <div className="flex items-start space-x-4 sm:space-x-6 p-4 sm:p-6 rounded-xl bg-gradient-to-r from-background/80 to-background/60 border border-border/50 shadow-lg hover:shadow-xl transition-all duration-300 group hover:scale-[1.02] backdrop-blur-sm">
+                  <div className="flex-shrink-0 w-12 h-12 sm:w-14 sm:h-14 bg-gradient-to-r from-primary/20 to-primary/10 rounded-xl flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
+                    <Zap className="h-6 w-6 sm:h-7 sm:w-7 text-primary" />
+                  </div>
+                  <div>
+                    <h3 className="text-lg sm:text-xl font-bold text-foreground mb-2 sm:mb-3 group-hover:text-primary transition-colors duration-300">Automação Inteligente</h3>
+                    <p className="text-sm sm:text-base text-muted-foreground leading-relaxed">
+                      Geração automática de relatórios PDF com protocolo terapêutico e análise comparativa de imagens
+                    </p>
+                  </div>
+                </div>
+                
+                <div className="flex items-start space-x-4 sm:space-x-6 p-4 sm:p-6 rounded-xl bg-gradient-to-r from-background/80 to-background/60 border border-border/50 shadow-lg hover:shadow-xl transition-all duration-300 group hover:scale-[1.02] backdrop-blur-sm">
+                  <div className="flex-shrink-0 w-12 h-12 sm:w-14 sm:h-14 bg-gradient-to-r from-primary/20 to-primary/10 rounded-xl flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
+                    <Shield className="h-6 w-6 sm:h-7 sm:w-7 text-primary" />
+                  </div>
+                  <div>
+                    <h3 className="text-lg sm:text-xl font-bold text-foreground mb-2 sm:mb-3 group-hover:text-primary transition-colors duration-300">Interface Responsiva</h3>
+                    <p className="text-sm sm:text-base text-muted-foreground leading-relaxed">
+                      Design moderno e responsivo com sidebar animada, funcionando em desktop e mobile
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </div>
+            
+            <div className="relative">
+              <div className="grid grid-cols-2 gap-4 sm:gap-6 lg:gap-8">
+                <Card className="p-6 sm:p-8 text-center hover:shadow-2xl transition-all duration-500 transform hover:scale-105 bg-gradient-to-br from-background/90 to-background/70 border border-border/50 backdrop-blur-sm group">
+                  <CardContent className="space-y-4 sm:space-y-6">
+                    <div className="w-16 h-16 sm:w-20 sm:h-20 bg-gradient-to-r from-primary/20 to-primary/10 rounded-full flex items-center justify-center mx-auto group-hover:scale-110 transition-transform duration-300">
+                      <Brain className="h-8 w-8 sm:h-10 sm:w-10 text-primary" />
+                    </div>
+                    <div className="text-3xl sm:text-4xl lg:text-5xl font-bold text-primary group-hover:scale-110 transition-transform duration-300">Gemini</div>
+                    <p className="text-sm sm:text-base text-muted-foreground font-medium">2.0 Flash</p>
+                  </CardContent>
+                </Card>
+                
+                <Card className="p-6 sm:p-8 text-center hover:shadow-2xl transition-all duration-500 transform hover:scale-105 bg-gradient-to-br from-background/90 to-background/70 border border-border/50 backdrop-blur-sm group">
+                  <CardContent className="space-y-4 sm:space-y-6">
+                    <div className="w-16 h-16 sm:w-20 sm:h-20 bg-gradient-to-r from-primary/20 to-primary/10 rounded-full flex items-center justify-center mx-auto group-hover:scale-110 transition-transform duration-300">
+                      <TrendingUp className="h-8 w-8 sm:h-10 sm:w-10 text-primary" />
+                    </div>
+                    <div className="text-3xl sm:text-4xl lg:text-5xl font-bold text-primary group-hover:scale-110 transition-transform duration-300">TIMERS</div>
+                    <p className="text-sm sm:text-base text-muted-foreground font-medium">Framework</p>
+                  </CardContent>
+                </Card>
+                
+                <Card className="p-6 sm:p-8 text-center hover:shadow-2xl transition-all duration-500 transform hover:scale-105 bg-gradient-to-br from-background/90 to-background/70 border border-border/50 backdrop-blur-sm group">
+                  <CardContent className="space-y-4 sm:space-y-6">
+                    <div className="w-16 h-16 sm:w-20 sm:h-20 bg-gradient-to-r from-primary/20 to-primary/10 rounded-full flex items-center justify-center mx-auto group-hover:scale-110 transition-transform duration-300">
+                      <Activity className="h-8 w-8 sm:h-10 sm:w-10 text-primary" />
+                    </div>
+                    <div className="text-3xl sm:text-4xl lg:text-5xl font-bold text-primary group-hover:scale-110 transition-transform duration-300">PDF</div>
+                    <p className="text-sm sm:text-base text-muted-foreground font-medium">Relatórios</p>
+                  </CardContent>
+                </Card>
+                
+                <Card className="p-6 sm:p-8 text-center hover:shadow-2xl transition-all duration-500 transform hover:scale-105 bg-gradient-to-br from-background/90 to-background/70 border border-border/50 backdrop-blur-sm group">
+                  <CardContent className="space-y-4 sm:space-y-6">
+                    <div className="w-16 h-16 sm:w-20 sm:h-20 bg-gradient-to-r from-primary/20 to-primary/10 rounded-full flex items-center justify-center mx-auto group-hover:scale-110 transition-transform duration-300">
+                      <Users className="h-8 w-8 sm:h-10 sm:w-10 text-primary" />
+                    </div>
+                    <div className="text-3xl sm:text-4xl lg:text-5xl font-bold text-primary group-hover:scale-110 transition-transform duration-300">Firebase</div>
+                    <p className="text-sm sm:text-base text-muted-foreground font-medium">Backend</p>
+                  </CardContent>
+                </Card>
+              </div>
+            </div>
+          </div>
         </div>
       </section>
-
+      
       {/* CTA Section */}
       <section className="py-20 sm:py-32 px-4 sm:px-6 lg:px-8 relative overflow-hidden bg-gradient-to-br from-primary/90 via-primary to-primary/90">
           <div className="absolute inset-0 -z-10">
