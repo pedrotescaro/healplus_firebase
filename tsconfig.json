@@ -19,6 +19,7 @@
     "noImplicitThis": false,
     "noUnusedLocals": false,
     "noUnusedParameters": false,
+    "types": ["node", "react", "react-dom"],
     "plugins": [
       {
         "name": "next"
@@ -28,6 +29,19 @@
       "@/*": ["./src/*"]
     }
   },
-  "include": ["next-env.d.ts", "src/types/global.d.ts", "src/types/modules.d.ts", "**/*.ts", "**/*.tsx", ".next/types/**/*.ts"],
-  "exclude": ["node_modules"]
+  "include": [
+    "next-env.d.ts",
+    "src/**/*.ts",
+    "src/**/*.tsx",
+    ".next/types/**/*.ts"
+  ],
+  "exclude": [
+    "node_modules",
+    "scripts",
+    "docs",
+    "**/*.md",
+    "**/*.json",
+    "**/*.yaml",
+    "**/*.yml"
+  ]
 }
