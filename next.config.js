@@ -6,14 +6,14 @@ const nextConfig = {
     // Formatos de imagem modernos para melhor compressão e qualidade
     formats: ['image/avif', 'image/webp'],
     // Domínios remotos permitidos para imagens (se houver)
-    // remotePatterns: [
-    //   {
-    //     protocol: 'https',
-    //     hostname: 'example.com',
-    //     port: '',
-    //     pathname: '/images/**',
-    //   },
-    // ],
+    remotePatterns: [
+       {
+        protocol: 'https',
+        hostname: 'i.imgur.com',
+        port: '',
+        pathname: '/**',
+      },
+    ],
   },
 
   // Otimizações de Compilador
