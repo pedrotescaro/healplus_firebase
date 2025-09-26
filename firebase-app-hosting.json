@@ -1,21 +1,4 @@
 {
-  "firestore": {
-    "rules": "firestore.rules"
-  },
-  "database": {
-    "rules": "database.rules.json"
-  },
-  "hosting": {
-    "source": ".",
-    "ignore": [
-      "firebase.json",
-      "**/.*",
-      "**/node_modules/**"
-    ],
-    "frameworksBackend": {
-      "region": "us-central1"
-    }
-  },
   "apphosting": {
     "backend": {
       "source": ".",
@@ -29,7 +12,11 @@
         "**/CONTRIBUTING.md",
         "**/DEPLOY_INSTRUCTIONS.md",
         "**/LICENSE",
-        "**/README.md"
+        "**/README.md",
+        "**/lighthouse-report.html",
+        "**/bundle-analyzer/**",
+        "**/.turbo/**",
+        "**/.next/cache/**"
       ]
     }
   }

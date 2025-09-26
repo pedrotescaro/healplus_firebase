@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
+import { memo, useMemo, useCallback } from "react";
 import {
   LayoutDashboard,
   FileText,
@@ -52,13 +53,14 @@ interface AppSidebarProps {
   onLinkClick?: () => void;
 }
 
-export default function AppSidebar({ className, onLinkClick }: AppSidebarProps) {
+const AppSidebar = memo(function AppSidebar({ className, onLinkClick }: AppSidebarProps) {
   const pathname = usePathname();
   const router = useRouter();
   const { user, logout } = useAuth();
   const { t } = useTranslation();
 
-  const professionalNavItems: NavItem[] = [
+  // Memoizar itens de navegação para evitar recriação desnecessária
+  const professionalNavItems: NavItem[] = useMemo(() => [
     { href: "/dashboard", icon: LayoutDashboard, label: t.dashboard, isActive: true },
     { href: "/dashboard/anamnesis", icon: ClipboardList, label: t.newAnamnesis, badge: "Novo" },
     { href: "/dashboard/anamnesis-records", icon: Users, label: t.myPatients },
@@ -69,26 +71,29 @@ export default function AppSidebar({ className, onLinkClick }: AppSidebarProps) 
     { href: "/dashboard/compare-reports", icon: CopyCheck, label: t.compareReports, badge: "Pro" },
     { href: "/dashboard/analytics", icon: BarChart3, label: "Analytics" },
     { href: "/dashboard/profile", icon: User, label: t.profile },
-  ];
+  ], [t]);
 
-  const patientNavItems: NavItem[] = [
+  const patientNavItems: NavItem[] = useMemo(() => [
     { href: "/dashboard", icon: LayoutDashboard, label: t.dashboard },
     { href: "/dashboard/reports", icon: Archive, label: t.myReports },
     { href: "/dashboard/profile", icon: User, label: t.profile },
-  ];
+  ], [t]);
 
-  const navItems = user?.role === 'professional' ? professionalNavItems : patientNavItems;
+  const navItems = useMemo(() => 
+    user?.role === 'professional' ? professionalNavItems : patientNavItems,
+    [user?.role, professionalNavItems, patientNavItems]
+  );
 
-  const handleLogout = async () => {
+  const handleLogout = useCallback(async () => {
     if (onLinkClick) onLinkClick();
     await logout();
     router.push("/login");
-  };
+  }, [onLinkClick, logout, router]);
   
-  const handleLinkClick = (href: string) => {
+  const handleLinkClick = useCallback((href: string) => {
     if (onLinkClick) onLinkClick();
     router.push(href);
-  }
+  }, [onLinkClick, router]);
 
   return (
     <aside className={cn(
@@ -274,4 +279,6 @@ export default function AppSidebar({ className, onLinkClick }: AppSidebarProps) 
       </div>
     </aside>
   );
-}
+});
+
+export default AppSidebar;

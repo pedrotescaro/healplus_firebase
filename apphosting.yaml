@@ -16,4 +16,10 @@ runConfig:
     - secret: NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID
     - secret: NEXT_PUBLIC_FIREBASE_APP_ID
     - secret: GEMINI_API_KEY
+  # Node.js version for the runtime
+  nodeVersion: "20"
+  # Build command
+  buildCommand: "npm run build"
+  # Start command
+  startCommand: "npm start"
 

@@ -1,7 +1,7 @@
 
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, memo, useCallback, useMemo } from "react";
 import Image from "next/image";
 import { useToast } from "@/hooks/use-toast";
 import { Button } from "@/components/ui/button";
@@ -17,8 +17,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select"
-import jsPDF from "jspdf";
-import autoTable from 'jspdf-autotable';
 import { useAuth } from "@/hooks/use-auth";
 import { db } from "@/firebase/client-app";
 import { collection, query, getDocs, orderBy, addDoc, serverTimestamp, where, getDoc, doc } from "firebase/firestore";
@@ -26,6 +24,10 @@ import { Alert, AlertDescription, AlertTitle } from "../ui/alert";
 import Link from "next/link";
 import { Input } from "../ui/input";
 import { getRisk, createAssessment, getAnalysis, fhirPush, fhirPull } from "@/lib/api-client";
+
+// Lazy loading para bibliotecas pesadas
+const loadJsPDF = () => import("jspdf").then(module => module.default);
+const loadAutoTable = () => import('jspdf-autotable').then(module => module.default);
 
 type StoredAnamnesis = AnamnesisFormValues & { id: string };
 
@@ -70,7 +72,7 @@ const createStaticReport = (record: StoredAnamnesis): string => {
 };
 
 
-export function ReportGenerator() {
+const ReportGenerator = memo(function ReportGenerator() {
   const [selectedAnamnesisId, setSelectedAnamnesisId] = useState<string>("");
   const [anamnesisRecords, setAnamnesisRecords] = useState<StoredAnamnesis[]>([]);
   const [report, setReport] = useState<{ report: string } | null>(null);
@@ -83,7 +85,10 @@ export function ReportGenerator() {
   const { toast } = useToast();
   const { user } = useAuth();
 
-  const selectedRecord = anamnesisRecords.find(record => record.id === selectedAnamnesisId);
+  const selectedRecord = useMemo(() => 
+    anamnesisRecords.find(record => record.id === selectedAnamnesisId),
+    [anamnesisRecords, selectedAnamnesisId]
+  );
 
   useEffect(() => {
     const fetchRecords = async () => {
@@ -108,7 +113,7 @@ export function ReportGenerator() {
   }, [user, toast]);
   
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = useCallback(async (e: React.FormEvent) => {
     e.preventDefault();
     if (!selectedRecord) {
       toast({
@@ -157,7 +162,7 @@ export function ReportGenerator() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [selectedRecord, selectedAnamnesisId, user, toast]);
 
   const handleTestAI = async () => {
     try {
@@ -226,11 +231,17 @@ export function ReportGenerator() {
     }
   };
 
- const handleSavePdf = async () => {
+ const handleSavePdf = useCallback(async () => {
     if (!report || !selectedRecord || !user) return;
     setPdfLoading(true);
 
     try {
+        // Lazy loading das bibliotecas PDF
+        const [jsPDF, autoTable] = await Promise.all([
+          loadJsPDF(),
+          loadAutoTable()
+        ]);
+        
         const doc_ = new jsPDF('p', 'mm', 'a4');
         const margin = 15;
         const pageWidth = doc_.internal.pageSize.getWidth();
@@ -428,7 +439,7 @@ export function ReportGenerator() {
     } finally {
         setPdfLoading(false);
     }
-};
+}, [report, selectedRecord, user, toast]);
 
   return (
     <div className="space-y-8">
@@ -553,4 +564,6 @@ export function ReportGenerator() {
       )}
     </div>
   );
-}
+});
+
+export { ReportGenerator };
