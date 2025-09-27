@@ -6,7 +6,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { FileText, ClipboardList, PlusCircle, MoreHorizontal, Trash2, Eye, Edit, Loader2, CalendarDays, Users, CopyCheck, MessageSquare, TrendingUp, BarChart3, Clock, CheckCircle, AlertCircle } from "lucide-react";
+import { FileText, ClipboardList, PlusCircle, MoreHorizontal, Trash2, Eye, Edit, Loader2, CalendarDays, Users, CopyCheck, MessageSquare, TrendingUp, BarChart3, Clock, CheckCircle, AlertCircle, FilePlus, History } from "lucide-react";
 import { useEffect, useState } from "react";
 import type { AnamnesisFormValues } from "@/lib/anamnesis-schema";
 import { Badge } from "@/components/ui/badge";
@@ -162,6 +162,30 @@ export function ProfessionalDashboard() {
     router.push(`/dashboard/anamnesis?edit=${id}`);
   };
 
+  const handleNewEvaluation = (record: StoredAnamnesis) => {
+    if (record.patientUniqueId) {
+      router.push(`/dashboard/anamnesis?newEvaluation=${record.id}&patientId=${record.patientUniqueId}`);
+    } else {
+      toast({
+        title: "Erro",
+        description: "Não é possível criar nova avaliação para este paciente.",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const handleViewHistory = (record: StoredAnamnesis) => {
+    if (record.patientUniqueId) {
+      router.push(`/dashboard/patient-history?patientId=${record.patientUniqueId}`);
+    } else {
+      toast({
+        title: "Erro",
+        description: "Não é possível visualizar o histórico deste paciente.",
+        variant: "destructive",
+      });
+    }
+  };
+
   return (
     <div className="space-y-6">
       <div className="container mx-auto px-4 sm:px-6 lg:px-8 flex justify-between items-center">
@@ -314,6 +338,7 @@ export function ProfessionalDashboard() {
                       <TableHead>{t.patient}</TableHead>
                       <TableHead className="hidden sm:table-cell">{t.woundLocation}</TableHead>
                       <TableHead className="hidden md:table-cell">{t.consultationDate}</TableHead>
+                      <TableHead className="hidden lg:table-cell">Versão</TableHead>
                       <TableHead className="text-right">{t.actions}</TableHead>
                     </TableRow>
                   </TableHeader>
@@ -328,6 +353,9 @@ export function ProfessionalDashboard() {
                         </TableCell>
                         <TableCell className="hidden md:table-cell">
                           {new Date(record.data_consulta).toLocaleDateString(t.locale, { timeZone: 'UTC' })}
+                        </TableCell>
+                        <TableCell className="hidden lg:table-cell">
+                          <Badge variant="secondary">v{record.evaluationVersion || 1}</Badge>
                         </TableCell>
                         <TableCell className="text-right">
                           <DropdownMenu>
@@ -346,6 +374,13 @@ export function ProfessionalDashboard() {
                               <DropdownMenuItem onSelect={() => handleEdit(record.id)}>
                                 <Edit className="mr-2 h-4 w-4" /> {t.edit}
                               </DropdownMenuItem>
+                              <DropdownMenuItem onSelect={() => handleNewEvaluation(record)}>
+                                <FilePlus className="mr-2 h-4 w-4" /> Nova Avaliação
+                              </DropdownMenuItem>
+                              <DropdownMenuItem onSelect={() => handleViewHistory(record)}>
+                                <History className="mr-2 h-4 w-4" /> Ver Histórico
+                              </DropdownMenuItem>
+                              <DropdownMenuSeparator />
                               <DropdownMenuItem onSelect={() => setRecordToDelete(record.id)} className="text-destructive focus:text-destructive">
                                 <Trash2 className="mr-2 h-4 w-4" /> {t.delete}
                               </DropdownMenuItem>

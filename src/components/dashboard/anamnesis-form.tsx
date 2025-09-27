@@ -51,7 +51,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useState } from "react";
 import { useAuth } from "@/hooks/use-auth";
 import { db } from "@/firebase/client-app";
-import { collection, addDoc, getDoc, doc, updateDoc, query, where, getDocs, limit } from "firebase/firestore";
+import { collection, addDoc, getDoc, doc, updateDoc, query, where, getDocs, limit, orderBy } from "firebase/firestore";
 import { v4 as uuidv4 } from 'uuid';
 
 export function AnamnesisForm() {
@@ -64,6 +64,9 @@ export function AnamnesisForm() {
 
   const defaultValues: Partial<AnamnesisFormValues> = {
     patientId: "",
+    patientUniqueId: "",
+    evaluationVersion: 1,
+    evaluationId: "",
     nome_cliente: "",
     data_nascimento: "",
     telefone: "",
@@ -200,6 +203,9 @@ export function AnamnesisForm() {
 
   useEffect(() => {
     const editId = searchParams.get('edit');
+    const newEvaluationId = searchParams.get('newEvaluation');
+    const patientId = searchParams.get('patientId');
+    
     if (editId && user) {
       setIsEditMode(true);
       setRecordId(editId);
@@ -219,6 +225,129 @@ export function AnamnesisForm() {
         }
       };
       fetchRecord();
+    } else if (newEvaluationId && patientId && user) {
+      // Nova avaliação baseada em paciente existente
+      const fetchPatientData = async () => {
+        try {
+          const docRef = doc(db, "users", user.uid, "anamnesis", newEvaluationId);
+          const docSnap = await getDoc(docRef);
+          if (docSnap.exists()) {
+            const existingData = docSnap.data() as AnamnesisFormValues;
+            
+            // Buscar próxima versão
+            const q = query(
+              collection(db, "users", user.uid, "anamnesis"),
+              where("patientUniqueId", "==", patientId),
+              orderBy("evaluationVersion", "desc"),
+              limit(1)
+            );
+            const querySnapshot = await getDocs(q);
+            const nextVersion = querySnapshot.empty ? 1 : (querySnapshot.docs[0].data().evaluationVersion || 0) + 1;
+            
+            // Preencher com dados pessoais existentes e limpar dados específicos da avaliação
+            const newData = {
+              ...defaultValues,
+              patientUniqueId: patientId,
+              evaluationVersion: nextVersion,
+              evaluationId: uuidv4(),
+              // Dados pessoais (mantidos)
+              nome_cliente: existingData.nome_cliente,
+              data_nascimento: existingData.data_nascimento,
+              telefone: existingData.telefone,
+              email: existingData.email,
+              profissao: existingData.profissao,
+              estado_civil: existingData.estado_civil,
+              // Dados sociais (mantidos)
+              nivel_atividade: existingData.nivel_atividade,
+              suporte_social: existingData.suporte_social,
+              compreensao_adesao: existingData.compreensao_adesao,
+              fumante: existingData.fumante,
+              ingestao_alcool: existingData.ingestao_alcool,
+              frequencia_alcool: existingData.frequencia_alcool,
+              pratica_atividade_fisica: existingData.pratica_atividade_fisica,
+              qual_atividade: existingData.qual_atividade,
+              frequencia_atividade: existingData.frequencia_atividade,
+              estado_nutricional: existingData.estado_nutricional,
+              ingestao_agua_dia: existingData.ingestao_agua_dia,
+              // Histórico clínico (mantido)
+              objetivo_tratamento: existingData.objetivo_tratamento,
+              historico_cicrizacao: existingData.historico_cicrizacao,
+              possui_alergia: existingData.possui_alergia,
+              qual_alergia: existingData.qual_alergia,
+              realizou_cirurgias: existingData.realizou_cirurgias,
+              quais_cirurgias: existingData.quais_cirurgias,
+              claudicacao_intermitente: existingData.claudicacao_intermitente,
+              dor_repouso: existingData.dor_repouso,
+              pulsos_perifericos: existingData.pulsos_perifericos,
+              // Comorbidades (mantidas)
+              dmi: existingData.dmi,
+              dmii: existingData.dmii,
+              has: existingData.has,
+              neoplasia: existingData.neoplasia,
+              hiv_aids: existingData.hiv_aids,
+              obesidade: existingData.obesidade,
+              cardiopatia: existingData.cardiopatia,
+              dpoc: existingData.dpoc,
+              doenca_hematologica: existingData.doenca_hematologica,
+              doenca_vascular: existingData.doenca_vascular,
+              demencia_senil: existingData.demencia_senil,
+              insuficiencia_renal: existingData.insuficiencia_renal,
+              hanseniase: existingData.hanseniase,
+              insuficiencia_hepatica: existingData.insuficiencia_hepatica,
+              doenca_autoimune: existingData.doenca_autoimune,
+              outros_hpp: existingData.outros_hpp,
+              // Medicamentos (mantidos)
+              anti_hipertensivo: existingData.anti_hipertensivo,
+              anti_hipertensivo_nome: existingData.anti_hipertensivo_nome,
+              anti_hipertensivo_dose: existingData.anti_hipertensivo_dose,
+              corticoides: existingData.corticoides,
+              corticoides_nome: existingData.corticoides_nome,
+              corticoides_dose: existingData.corticoides_dose,
+              hipoglicemiantes_orais: existingData.hipoglicemiantes_orais,
+              hipoglicemiantes_orais_nome: existingData.hipoglicemiantes_orais_nome,
+              hipoglicemiantes_orais_dose: existingData.hipoglicemiantes_orais_dose,
+              aines: existingData.aines,
+              aines_nome: existingData.aines_nome,
+              aines_dose: existingData.aines_dose,
+              insulina: existingData.insulina,
+              insulina_nome: existingData.insulina_nome,
+              insulina_dose: existingData.insulina_dose,
+              drogas_vasoativa: existingData.drogas_vasoativa,
+              drogas_vasoativa_nome: existingData.drogas_vasoativa_nome,
+              drogas_vasoativa_dose: existingData.drogas_vasoativa_dose,
+              suplemento: existingData.suplemento,
+              suplemento_nome: existingData.suplemento_nome,
+              suplemento_dose: existingData.suplemento_dose,
+              anticoagulante: existingData.anticoagulante,
+              anticoagulante_nome: existingData.anticoagulante_nome,
+              anticoagulante_dose: existingData.anticoagulante_dose,
+              vitaminico: existingData.vitaminico,
+              vitaminico_nome: existingData.vitaminico_nome,
+              vitaminico_dose: existingData.vitaminico_dose,
+              antirretroviral: existingData.antirretroviral,
+              antirretroviral_nome: existingData.antirretroviral_nome,
+              antirretroviral_dose: existingData.antirretroviral_dose,
+              outros_medicamento: existingData.outros_medicamento,
+              // Data e hora atuais
+              data_consulta: new Date().toISOString().split('T')[0],
+              hora_consulta: new Date().toTimeString().slice(0, 5),
+            };
+            
+            form.reset(newData);
+            toast({
+              title: "Nova Avaliação",
+              description: `Dados pessoais preenchidos automaticamente para ${existingData.nome_cliente}. Versão ${nextVersion}.`,
+            });
+          } else {
+            toast({ title: "Erro", description: "Dados do paciente não encontrados.", variant: "destructive" });
+            router.push('/dashboard/anamnesis-records');
+          }
+        } catch (error) {
+          console.error("Error fetching patient data:", error);
+          toast({ title: "Erro", description: "Não foi possível carregar os dados do paciente.", variant: "destructive" });
+        }
+      };
+      fetchPatientData();
     }
   }, [searchParams, form, router, toast, user]);
 
@@ -304,6 +433,17 @@ export function AnamnesisForm() {
     }
 
     try {
+        // Se não tem patientUniqueId, é um novo paciente
+        if (!data.patientUniqueId) {
+            data.patientUniqueId = `patient_${uuidv4()}`;
+            data.evaluationVersion = 1;
+        }
+        
+        // Gerar evaluationId único para esta avaliação
+        if (!data.evaluationId) {
+            data.evaluationId = `eval_${uuidv4()}`;
+        }
+        
         const usersRef = collection(db, "users");
         // Create a query to find a user with a matching name or email, who also has the 'patient' role.
         const q = query(usersRef, where("role", "==", "patient"), where("name", "==", data.nome_cliente), limit(1));
@@ -380,6 +520,21 @@ export function AnamnesisForm() {
                 <FormField
                     control={form.control}
                     name="patientId"
+                    render={({ field }) => <Input type="hidden" {...field} />}
+                />
+                <FormField
+                    control={form.control}
+                    name="patientUniqueId"
+                    render={({ field }) => <Input type="hidden" {...field} />}
+                />
+                <FormField
+                    control={form.control}
+                    name="evaluationVersion"
+                    render={({ field }) => <Input type="hidden" {...field} />}
+                />
+                <FormField
+                    control={form.control}
+                    name="evaluationId"
                     render={({ field }) => <Input type="hidden" {...field} />}
                 />
                 <div className="grid md:grid-cols-2 gap-4">
@@ -887,7 +1042,7 @@ export function AnamnesisForm() {
         
         <div className="flex flex-wrap gap-4">
             <Button type="submit" className="w-full sm:w-auto">
-              {isEditMode ? "Atualizar Avaliação" : "Salvar Avaliação"}
+              {isEditMode ? "Atualizar Avaliação" : `Salvar Avaliação ${watch.evaluationVersion ? `v${watch.evaluationVersion}` : ''}`}
             </Button>
             {isEditMode && (
               <Button type="button" variant="outline" onClick={handleReset} className="w-full sm:w-auto">

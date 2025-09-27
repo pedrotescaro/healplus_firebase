@@ -5,7 +5,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { MoreHorizontal, Trash2, Eye, Edit, PlusCircle, Loader2 } from "lucide-react";
+import { MoreHorizontal, Trash2, Eye, Edit, PlusCircle, Loader2, FilePlus, History } from "lucide-react";
 import { useEffect, useState } from "react";
 import type { AnamnesisFormValues } from "@/lib/anamnesis-schema";
 import { Badge } from "@/components/ui/badge";
@@ -103,6 +103,30 @@ export default function AnamnesisRecordsPage() {
     router.push(`/dashboard/anamnesis?edit=${id}`);
   };
 
+  const handleNewEvaluation = (record: StoredAnamnesis) => {
+    if (record.patientUniqueId) {
+      router.push(`/dashboard/anamnesis?newEvaluation=${record.id}&patientId=${record.patientUniqueId}`);
+    } else {
+      toast({
+        title: "Erro",
+        description: "Não é possível criar nova avaliação para este paciente.",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const handleViewHistory = (record: StoredAnamnesis) => {
+    if (record.patientUniqueId) {
+      router.push(`/dashboard/patient-history?patientId=${record.patientUniqueId}`);
+    } else {
+      toast({
+        title: "Erro",
+        description: "Não é possível visualizar o histórico deste paciente.",
+        variant: "destructive",
+      });
+    }
+  };
+
   return (
     <div className="space-y-6">
         <div>
@@ -130,6 +154,7 @@ export default function AnamnesisRecordsPage() {
                           <TableHead>Paciente</TableHead>
                           <TableHead className="hidden sm:table-cell">Localização da Ferida</TableHead>
                           <TableHead className="hidden md:table-cell">Data da Consulta</TableHead>
+                          <TableHead className="hidden lg:table-cell">Versão</TableHead>
                           <TableHead className="text-right">Ações</TableHead>
                           </TableRow>
                       </TableHeader>
@@ -142,6 +167,9 @@ export default function AnamnesisRecordsPage() {
                               </TableCell>
                               <TableCell className="hidden md:table-cell">
                                 {new Date(record.data_consulta).toLocaleDateString('pt-BR', { timeZone: 'UTC' })}
+                              </TableCell>
+                              <TableCell className="hidden lg:table-cell">
+                                <Badge variant="secondary">v{record.evaluationVersion || 1}</Badge>
                               </TableCell>
                               <TableCell className="text-right">
                                 <DropdownMenu>
@@ -160,6 +188,13 @@ export default function AnamnesisRecordsPage() {
                                     <DropdownMenuItem onSelect={() => handleEdit(record.id)}>
                                         <Edit className="mr-2 h-4 w-4" /> Editar
                                     </DropdownMenuItem>
+                                    <DropdownMenuItem onSelect={() => handleNewEvaluation(record)}>
+                                        <FilePlus className="mr-2 h-4 w-4" /> Nova Avaliação
+                                    </DropdownMenuItem>
+                                    <DropdownMenuItem onSelect={() => handleViewHistory(record)}>
+                                        <History className="mr-2 h-4 w-4" /> Ver Histórico
+                                    </DropdownMenuItem>
+                                    <DropdownMenuSeparator />
                                     <DropdownMenuItem onSelect={() => setRecordToDelete(record.id)} className="text-destructive focus:text-destructive">
                                         <Trash2 className="mr-2 h-4 w-4" /> Excluir
                                     </DropdownMenuItem>
