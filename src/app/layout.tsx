@@ -31,14 +31,12 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className={cn("font-body antialiased", inter.variable)} suppressHydrationWarning>
-        <AppProvider children={
-          <AuthProvider children={
-            <>
-              {children}
-              <Toaster />
-            </>
-          } />
-        } /> 
+        <AppProvider>
+          <AuthProvider>
+            {children}
+            <Toaster />
+          </AuthProvider>
+        </AppProvider> 
       </body>
     </html>
   );
