@@ -195,10 +195,11 @@ export default function Home() {
               <div className="aspect-video">
                 <iframe
                   className="w-full h-full rounded-md"
-                  src="https://www.youtube.com/embed/VT_0G2gB6_I"
+                  src="https://www.youtube-nocookie.com/embed/T2X_ZV_T-u0?si=jQFSKyR-SKVVaDQe"
                   title="YouTube video player"
                   frameBorder="0"
-                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                  referrerPolicy="strict-origin-when-cross-origin"
                   allowFullScreen
                 ></iframe>
               </div>
