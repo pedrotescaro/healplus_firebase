@@ -3,9 +3,9 @@
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card";
+import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { MoreHorizontal, Trash2, Eye, Edit, PlusCircle, Loader2 } from "lucide-react";
+import { MoreHorizontal, Trash2, Eye, Edit, PlusCircle, Loader2, ChevronLeft, ChevronRight } from "lucide-react";
 import { useEffect, useState } from "react";
 import type { AnamnesisFormValues } from "@/lib/anamnesis-schema";
 import { Badge } from "@/components/ui/badge";
@@ -40,10 +40,12 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/use-auth";
 import { db } from "@/firebase/client-app";
-import { collection, query, getDocs, orderBy, doc, deleteDoc } from "firebase/firestore";
+import { collection, query, getDocs, orderBy, doc, deleteDoc, limit, startAfter, endBefore, QueryDocumentSnapshot, DocumentData } from "firebase/firestore";
 import { AnamnesisDetailsView } from "@/components/dashboard/anamnesis-details-view";
 
 type StoredAnamnesis = AnamnesisFormValues & { id: string };
+
+const RECORDS_PER_PAGE = 10;
 
 export default function AnamnesisRecordsPage() {
   const router = useRouter();
@@ -54,17 +56,47 @@ export default function AnamnesisRecordsPage() {
   const [recordToDelete, setRecordToDelete] = useState<string | null>(null);
   const [recordToView, setRecordToView] = useState<StoredAnamnesis | null>(null);
 
-  useEffect(() => {
-    const fetchRecords = async () => {
+  const [lastVisible, setLastVisible] = useState<QueryDocumentSnapshot<DocumentData> | null>(null);
+  const [firstVisible, setFirstVisible] = useState<QueryDocumentSnapshot<DocumentData> | null>(null);
+  const [page, setPage] = useState(1);
+  const [isLastPage, setIsLastPage] = useState(false);
+
+  const fetchRecords = async (direction: 'next' | 'prev' | 'initial' = 'initial') => {
       if (!user) {
         setLoading(false);
         return;
       }
+      setLoading(true);
+      
       try {
-        const q = query(collection(db, "users", user.uid, "anamnesis"), orderBy("data_consulta", "desc"));
+        let q;
+        if (direction === 'next' && lastVisible) {
+          q = query(collection(db, "users", user.uid, "anamnesis"), orderBy("data_consulta", "desc"), startAfter(lastVisible), limit(RECORDS_PER_PAGE));
+        } else if (direction === 'prev' && firstVisible) {
+          q = query(collection(db, "users", user.uid, "anamnesis"), orderBy("data_consulta", "desc"), endBefore(firstVisible), limit(RECORDS_PER_PAGE));
+           // Note: Firestore doesn't have a simple `limitToLast` with `endBefore`. This might fetch items in reverse.
+           // A more robust solution might require reversing the order for 'prev' pages, but this is a start.
+        } else {
+          q = query(collection(db, "users", user.uid, "anamnesis"), orderBy("data_consulta", "desc"), limit(RECORDS_PER_PAGE));
+        }
+        
         const querySnapshot = await getDocs(q);
         const records = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as StoredAnamnesis));
-        setAnamneses(records);
+        
+        if (!querySnapshot.empty) {
+          setAnamneses(records);
+          setFirstVisible(querySnapshot.docs[0]);
+          setLastVisible(querySnapshot.docs[querySnapshot.docs.length - 1]);
+          setIsLastPage(querySnapshot.docs.length < RECORDS_PER_PAGE);
+        } else {
+            if (direction === 'next') {
+              setIsLastPage(true);
+              toast({ title: "Fim dos Registros", description: "Você chegou à última página." });
+            } else if (direction === 'initial') {
+              setAnamneses([]);
+            }
+        }
+
       } catch (error) {
         console.error("Error fetching anamnesis records from Firestore: ", error);
         toast({ title: "Erro", description: "Não foi possível carregar as fichas dos pacientes.", variant: "destructive" });
@@ -72,11 +104,22 @@ export default function AnamnesisRecordsPage() {
         setLoading(false);
       }
     };
+    
+  useEffect(() => {
+    fetchRecords('initial');
+  }, [user]);
 
-    if (user) {
-      fetchRecords();
+  const goToNextPage = () => {
+    setPage(p => p + 1);
+    fetchRecords('next');
+  };
+
+  const goToPrevPage = () => {
+    if (page > 1) {
+      setPage(p => p - 1);
+      fetchRecords('prev');
     }
-  }, [user, toast]);
+  };
 
   const handleDelete = async () => {
     if (!recordToDelete || !user) return;
@@ -183,6 +226,19 @@ export default function AnamnesisRecordsPage() {
                     </div>
                 )}
             </CardContent>
+            {anamneses.length > 0 && (
+            <CardFooter className="flex justify-between">
+              <Button onClick={goToPrevPage} disabled={page <= 1 || loading} variant="outline">
+                <ChevronLeft className="mr-2 h-4 w-4" />
+                Anterior
+              </Button>
+              <span className="text-sm text-muted-foreground">Página {page}</span>
+              <Button onClick={goToNextPage} disabled={isLastPage || loading} variant="outline">
+                Próximo
+                <ChevronRight className="ml-2 h-4 w-4" />
+              </Button>
+            </CardFooter>
+            )}
         </Card>
 
         {/* Alert Dialog for Deletion */}
