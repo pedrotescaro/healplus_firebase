@@ -1,23 +1,14 @@
+
 {
   "rules": {
-    "images": {
-      "$userId": {
-        ".read": "auth != null && auth.uid == $userId",
-        ".write": "auth != null && auth.uid == $userId",
-        "$imageId": {
-          ".read": "auth != null && auth.uid == $userId",
-          ".write": "auth != null && auth.uid == $userId"
-        }
-      }
-    },
     "conversations": {
       "$conversationId": {
-        ".read": "auth != null && (data.participants[auth.uid] == true || data.professionalId == auth.uid)",
-        ".write": "auth != null && (data.participants[auth.uid] == true || data.professionalId == auth.uid)",
+        ".read": "auth != null && (data.child('participants').child(auth.uid).val() === true || data.child('professionalId').val() === auth.uid)",
+        ".write": "auth != null && (data.child('participants').child(auth.uid).val() === true || data.child('professionalId').val() === auth.uid)",
         "messages": {
           "$messageId": {
-            ".read": "auth != null && (parent().parent().participants[auth.uid] == true || parent().parent().professionalId == auth.uid)",
-            ".write": "auth != null && (parent().parent().participants[auth.uid] == true || parent().parent().professionalId == auth.uid)"
+            ".read": "auth != null && (root.child('conversations').child($conversationId).child('participants').child(auth.uid).val() === true || root.child('conversations').child($conversationId).child('professionalId').val() === auth.uid)",
+            ".write": "auth != null && (root.child('conversations').child($conversationId).child('participants').child(auth.uid).val() === true || root.child('conversations').child($conversationId).child('professionalId').val() === auth.uid)"
           }
         }
       }

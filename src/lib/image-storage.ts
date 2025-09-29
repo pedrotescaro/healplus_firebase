@@ -1,143 +1,66 @@
-import { realtimeDb } from "@/firebase/client-app";
-import { ref, push, set, get, child } from "firebase/database";
-import { FallbackStorageService } from "./fallback-storage";
-
-export interface ImageData {
-  id: string;
-  dataUri: string;
-  metadata: {
-    fileName?: string;
-    fileSize?: number;
-    mimeType?: string;
-    uploadedAt: number;
-    uploadedBy: string;
-  };
-}
+import { getStorage, ref, uploadString, getDownloadURL, deleteObject } from "firebase/storage";
+import { v4 as uuidv4 } from "uuid";
 
 export class ImageStorageService {
-  private static basePath = 'images';
+  private static storage = getStorage();
 
   /**
-   * Save image data to Realtime Database
+   * Save image data URI to Firebase Storage
    */
   static async saveImage(
-    dataUri: string, 
-    userId: string, 
-    metadata?: Partial<ImageData['metadata']>
+    dataUri: string,
+    path: string
   ): Promise<string> {
     try {
-      const imageRef = ref(realtimeDb, `${this.basePath}/${userId}`);
-      const newImageRef = push(imageRef);
-      
-      const imageData: ImageData = {
-        id: newImageRef.key!,
-        dataUri,
-        metadata: {
-          uploadedAt: Date.now(),
-          uploadedBy: userId,
-          ...metadata
-        }
-      };
-
-      await set(newImageRef, imageData);
-      return newImageRef.key!;
-    } catch (error: any) {
-      console.error('Error saving image to Realtime Database:', error);
-      console.log('Falling back to localStorage storage...');
-      
-      // Fallback to localStorage
-      try {
-        const fallbackId = FallbackStorageService.saveImage(dataUri, userId, metadata);
-        console.log('Image saved to fallback storage with ID:', fallbackId);
-        return fallbackId;
-      } catch (fallbackError) {
-        console.error('Fallback storage also failed:', fallbackError);
-        throw new Error('Failed to save image: ' + (error.message || 'Unknown error'));
-      }
+      const storageRef = ref(this.storage, path);
+      const snapshot = await uploadString(storageRef, dataUri, 'data_url');
+      const downloadURL = await getDownloadURL(snapshot.ref);
+      return downloadURL;
+    } catch (error) {
+      console.error("Error saving image to Firebase Storage:", error);
+      throw new Error("Failed to save image.");
     }
   }
 
   /**
-   * Get image data from Realtime Database
+   * Get image download URL from Firebase Storage
    */
-  static async getImage(userId: string, imageId: string): Promise<ImageData | null> {
+  static async getImageUrl(path: string): Promise<string | null> {
     try {
-      const imageRef = ref(realtimeDb, `${this.basePath}/${userId}/${imageId}`);
-      const snapshot = await get(imageRef);
-      
-      if (snapshot.exists()) {
-        return snapshot.val() as ImageData;
-      }
+      const storageRef = ref(this.storage, path);
+      const downloadURL = await getDownloadURL(storageRef);
+      return downloadURL;
+    } catch (error) {
+      console.error("Error getting image URL from Firebase Storage:", error);
       return null;
-    } catch (error) {
-      console.error('Error getting image from Realtime Database:', error);
-      console.log('Falling back to localStorage...');
-      
-      // Fallback to localStorage
-      try {
-        const fallbackImage = FallbackStorageService.getImage(imageId);
-        if (fallbackImage) {
-          return fallbackImage as ImageData;
-        }
-        return null;
-      } catch (fallbackError) {
-        console.error('Fallback retrieval also failed:', fallbackError);
-        return null;
-      }
     }
   }
 
   /**
-   * Get all images for a user
+   * Delete image from Firebase Storage
    */
-  static async getUserImages(userId: string): Promise<ImageData[]> {
+  static async deleteImage(path: string): Promise<void> {
     try {
-      const imagesRef = ref(realtimeDb, `${this.basePath}/${userId}`);
-      const snapshot = await get(imagesRef);
-      
-      if (snapshot.exists()) {
-        const images = snapshot.val();
-        return Object.values(images) as ImageData[];
-      }
-      return [];
+      const storageRef = ref(this.storage, path);
+      await deleteObject(storageRef);
     } catch (error) {
-      console.error('Error getting user images from Realtime Database:', error);
-      throw new Error('Failed to get user images');
+      console.error("Error deleting image from Firebase Storage:", error);
+      // It's okay to fail silently if the image doesn't exist.
     }
   }
 
   /**
-   * Save image with specific path (for organized storage)
+   * Save image with a unique ID in a specific path (e.g., 'profile-pictures/userId/uniqueId.jpg')
    */
   static async saveImageWithPath(
     dataUri: string,
     userId: string,
-    path: string,
-    metadata?: Partial<ImageData['metadata']>
+    folder: string,
+    metadata?: { fileName?: string, mimeType?: string }
   ): Promise<string> {
-    try {
-      const imageRef = ref(realtimeDb, `${this.basePath}/${userId}/${path}`);
-      const newImageRef = push(imageRef);
-      
-      const imageData: ImageData = {
-        id: newImageRef.key!,
-        dataUri,
-        metadata: {
-          uploadedAt: Date.now(),
-          uploadedBy: userId,
-          ...metadata
-        }
-      };
-
-      await set(newImageRef, imageData);
-      return newImageRef.key!;
-    } catch (error: any) {
-      console.error('Error saving image with path to Realtime Database:', error);
-      if (error.code === 'PERMISSION_DENIED') {
-        throw new Error('Permissão negada. Verifique se o Realtime Database está configurado corretamente.');
-      }
-      throw new Error('Failed to save image: ' + (error.message || 'Unknown error'));
-    }
+    const fileName = metadata?.fileName || `${uuidv4()}.jpg`;
+    const path = `${folder}/${userId}/${fileName}`;
+    return this.saveImage(dataUri, path);
   }
 
   /**
@@ -156,8 +79,8 @@ export class ImageStorageService {
    * Compress image data URI to reduce size
    */
   static compressImage(
-    dataUri: string, 
-    maxWidth: number = 800, 
+    dataUri: string,
+    maxWidth: number = 800,
     quality: number = 0.8
   ): Promise<string> {
     return new Promise((resolve) => {
@@ -165,18 +88,16 @@ export class ImageStorageService {
       img.onload = () => {
         const canvas = document.createElement('canvas');
         const ctx = canvas.getContext('2d');
-        
-        // Calculate new dimensions
+
         let { width, height } = img;
         if (width > maxWidth) {
           height = (height * maxWidth) / width;
           width = maxWidth;
         }
-        
+
         canvas.width = width;
         canvas.height = height;
-        
-        // Draw and compress
+
         ctx?.drawImage(img, 0, 0, width, height);
         const compressedDataUri = canvas.toDataURL('image/jpeg', quality);
         resolve(compressedDataUri);
