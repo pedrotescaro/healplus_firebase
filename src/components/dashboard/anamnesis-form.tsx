@@ -53,6 +53,7 @@ import { useAuth } from "@/hooks/use-auth";
 import { db } from "@/firebase/client-app";
 import { collection, addDoc, getDoc, doc, updateDoc, query, where, getDocs, limit } from "firebase/firestore";
 import { v4 as uuidv4 } from 'uuid';
+import { handleAnamnesisCreated } from "@/lib/aggregation-service";
 
 export function AnamnesisForm() {
   const { toast } = useToast();
@@ -343,6 +344,10 @@ export function AnamnesisForm() {
       } else {
         // Create new record in Firestore
         await addDoc(collection(db, "users", user.uid, "anamnesis"), sanitizedData);
+        
+        // Simulate Cloud Function trigger for aggregation
+        await handleAnamnesisCreated(user.uid, data.nome_cliente);
+
         toast({
           title: "Formulário Salvo",
           description: "A ficha de anamnese foi salva com sucesso no Firestore.",
@@ -900,5 +905,3 @@ export function AnamnesisForm() {
     </Form>
   );
 }
-
-  

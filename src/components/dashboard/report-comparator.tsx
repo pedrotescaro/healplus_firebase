@@ -30,6 +30,7 @@ import autoTable from 'jspdf-autotable';
 import { useTranslation } from "@/contexts/app-provider";
 import { Progress } from "@/components/ui/progress";
 import type { AnamnesisFormValues } from "@/lib/anamnesis-schema";
+import { handleComparisonCreated } from "@/lib/aggregation-service";
 
 
 interface StoredReport {
@@ -161,6 +162,8 @@ export function ReportComparator() {
             createdAt: serverTimestamp(),
             progressMetrics: metrics,
           });
+          // Simulate Cloud Function trigger
+          await handleComparisonCreated(user.uid);
           toast({ title: t.comparisonSavedTitle, description: t.comparisonSavedDescription });
         }
       } 

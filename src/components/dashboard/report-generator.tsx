@@ -26,6 +26,7 @@ import { Alert, AlertDescription, AlertTitle } from "../ui/alert";
 import Link from "next/link";
 import { Input } from "../ui/input";
 import { getRisk, createAssessment, getAnalysis, fhirPush, fhirPull } from "@/lib/api-client";
+import { handleReportCreated } from "@/lib/aggregation-service";
 
 type StoredAnamnesis = AnamnesisFormValues & { id: string };
 
@@ -145,6 +146,8 @@ export function ReportGenerator() {
           patientId: selectedRecord.patientId || "", 
           createdAt: serverTimestamp(),
         });
+        // Simulate Cloud Function trigger
+        await handleReportCreated(user.uid);
         toast({ title: "Relatório Gerado e Salvo", description: "O relatório foi gerado com sucesso." });
       }
     } catch (error) {
@@ -261,7 +264,6 @@ export function ReportGenerator() {
                 [`Data de Emissão: ${new Date().toLocaleDateString('pt-BR')}`],
                 [`Profissional Responsável: ${selectedRecord.profissional_responsavel || user.name || 'Não informado'}`],
                 [`COREN/CRM: ${selectedRecord.coren || 'Não informado'}`],
-                [`Instituição: ${selectedRecord.instituicao || 'Não informado'}`]
             ],
             theme: 'striped',
         });
@@ -274,12 +276,10 @@ export function ReportGenerator() {
             selectedRecord.has && "HAS",
             selectedRecord.neoplasia && "Neoplasia",
             selectedRecord.fumante && "Tabagismo",
-            selectedRecord.insuficiencia_cardiaca && "Insuficiência Cardíaca",
+            selectedRecord.cardiopatia && "Cardiopatia",
             selectedRecord.insuficiencia_renal && "Insuficiência Renal",
-            selectedRecord.avc && "AVC",
-            selectedRecord.artrite && "Artrite",
-            selectedRecord.lupus && "Lúpus",
-            selectedRecord.outras_comorbidades && selectedRecord.outras_comorbidades
+            selectedRecord.doenca_vascular && "Doença Vascular",
+            selectedRecord.outros_hpp && selectedRecord.outros_hpp
         ].filter(Boolean).join(', ');
 
         autoTable(doc_, {
@@ -288,14 +288,9 @@ export function ReportGenerator() {
             body: [
                 [`Nome: ${selectedRecord.nome_cliente}`],
                 [`Data de Nascimento: ${selectedRecord.data_nascimento}`],
-                [`Idade: ${selectedRecord.idade || 'Não informada'}`],
-                [`Sexo: ${selectedRecord.sexo || 'Não informado'}`],
-                [`Peso: ${selectedRecord.peso || 'Não informado'} kg`],
-                [`Altura: ${selectedRecord.altura || 'Não informada'} cm`],
-                [`IMC: ${selectedRecord.imc || 'Não calculado'}`],
                 [`Comorbidades: ${comorbidades || 'Nenhuma informada'}`],
-                [`Alergias: ${selectedRecord.alergias || 'Nenhuma informada'}`],
-                [`Medicamentos em Uso: ${selectedRecord.medicamentos_uso || 'Nenhum informado'}`]
+                [`Alergias: ${selectedRecord.qual_alergia || 'Nenhuma informada'}`],
+                [`Medicamentos em Uso: ${selectedRecord.outros_medicamento || 'Nenhum informado'}`]
             ],
             theme: 'striped',
         });
@@ -310,10 +305,6 @@ export function ReportGenerator() {
                 [`Tipo de Lesão: ${selectedRecord.etiologia_ferida === 'Outra' ? selectedRecord.etiologia_outra : selectedRecord.etiologia_ferida}`],
                 [`Tempo de Evolução: ${selectedRecord.tempo_evolucao || 'Não informado'}`],
                 [`Data da Avaliação: ${new Date(selectedRecord.data_consulta).toLocaleDateString('pt-BR', { timeZone: 'UTC' })}`],
-                [`Histórico de Tratamentos Anteriores: ${selectedRecord.tratamentos_anteriores || 'Não informado'}`],
-                [`Fatores Causais: ${selectedRecord.fatores_causais || 'Não informados'}`],
-                [`Queixa Principal: ${selectedRecord.queixa_principal || 'Não informada'}`],
-                [`Sintomas Relatados: ${selectedRecord.sintomas || 'Não informados'}`]
             ],
             theme: 'striped',
         });
@@ -330,10 +321,6 @@ export function ReportGenerator() {
                 ['Bordas', `${selectedRecord.bordas_caracteristicas || 'Não informadas'}`],
                 ['Pele Perilesional', `${selectedRecord.pele_perilesional_umidade || 'Não informada'}`],
                 ['Dor', `Escala ${selectedRecord.dor_escala || 0}/10`],
-                ['Odor', `${selectedRecord.odor || 'Não informado'}`],
-                ['Temperatura', `${selectedRecord.temperatura_perilesional || 'Não informada'}`],
-                ['Edema', `${selectedRecord.edema || 'Não informado'}`],
-                ['Pigmentação', `${selectedRecord.pigmentacao || 'Não informada'}`]
             ],
             theme: 'grid',
         });
@@ -359,16 +346,7 @@ export function ReportGenerator() {
             startY: finalY,
             head: [['5. Conduta Terapêutica Inicial']],
             body: [
-                ['Limpeza', 'SF 0,9% em jatos'],
-                ['Aplicação', 'PHMB solução por 5 minutos'],
-                ['Desbridamento', 'Realizado desbridamento e curetagem do leito da lesão'],
-                ['Agudização', 'Agudização das bordas em epibole'],
-                ['Terapias Físicas', 'Irradiação com laser de baixa intensidade (2J, 660 nm e 808 nm - vermelho e infravermelho)'],
-                ['', 'Terapia fotodinâmica com azul de metileno a 0,1%'],
-                ['', 'ILIB (Intravascular Laser Irradiation of Blood) – Irradiação intravascular do sangue com laser'],
-                ['Curativo', 'Oclusivo com cobertura de hidrofibra absorvente com prata (Aquacel Ag Extra)'],
-                ['Frequência de Troca', 'Proposta a cada 3 dias, mas não mantido por 2 dias devido à saturação intensa'],
-                ['Cuidados Adicionais', 'Creme barreira em bordas, orientação sobre mudança de posicionamento, hidratação da pele, alimentação e ingesta de líquidos']
+                ['Plano', selectedRecord.observacoes || 'Definido pelo profissional responsável']
             ],
             theme: 'grid',
         });
@@ -379,41 +357,12 @@ export function ReportGenerator() {
             startY: finalY,
             head: [['6. Evolução e Reavaliação']],
             body: [
-                ['Próxima Avaliação', 'Agendada para 3 dias'],
-                ['Critérios de Melhora', 'Redução do tamanho da ferida, diminuição do exsudato, melhora da granulação'],
+                ['Próxima Avaliação', selectedRecord.data_retorno ? new Date(selectedRecord.data_retorno).toLocaleDateString('pt-BR') : 'A definir'],
                 ['Sinais de Alerta', 'Aumento da dor, odor fétido, aumento do exsudato purulento, deterioração das bordas'],
-                ['Observações', selectedRecord.observacoes || 'Acompanhar evolução conforme protocolo estabelecido']
             ],
             theme: 'striped',
         });
-        finalY = (doc_ as any).lastAutoTable.finalY + 5;
-
-        // Section 7: Imagens
-        if (selectedRecord.woundImageUri) {
-            autoTable(doc_, {
-                startY: finalY,
-                head: [['7. Imagens']],
-                body: [
-                    ['Imagem Inicial', 'Anexa ao relatório'],
-                    ['Imagem de Controle', 'Será realizada na próxima consulta'],
-                    ['Imagem de Evolução', 'Será realizada conforme necessidade']
-                ],
-                theme: 'striped',
-            });
-            finalY = (doc_ as any).lastAutoTable.finalY + 5;
-        }
-
-        // Section 8: Referências Bibliográficas
-        autoTable(doc_, {
-            startY: finalY,
-            head: [['8. Referências Bibliográficas']],
-            body: [
-                ['Borges, Eline Lima; Souza, Perla Oliveira Soares de. Feridas: como tratar – 3 ed. Rio de Janeiro: Rubio 2024. 61-88 p.'],
-                ['Menoita,E; Seara, a.; Santos, V. Plano de Tratamento dirigido aos Sinais Clínicos da Infecção da Ferida, Journal of Aging & Inovation, 3 (2):62-73, 2014. Disponível em: https://journalofagingandinnovation.org/wp-content/uploads/6-infeccao-feridas-update.pdf'],
-            ],
-            theme: 'grid',
-        });
-
+        
         addFooter();
         const fileName = `Relatorio_${selectedRecord.nome_cliente.replace(/\s/g, '_')}_${new Date().toLocaleDateString('pt-BR').replace(/\//g, '-')}.pdf`;
         doc_.save(fileName);

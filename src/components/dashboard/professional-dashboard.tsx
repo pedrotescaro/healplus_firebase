@@ -40,12 +40,14 @@ import {
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { useToast } from "@/hooks/use-toast";
 import { db } from "@/firebase/client-app";
-import { collection, query, getDocs, orderBy, limit, doc, deleteDoc } from "firebase/firestore";
+import { collection, query, getDocs, orderBy, limit, doc, deleteDoc, onSnapshot } from "firebase/firestore";
 import { ActivitySummaryChart } from "@/components/dashboard/activity-summary-chart";
 import { useTranslation } from "@/contexts/app-provider";
 import { AnamnesisDetailsView } from "@/components/dashboard/anamnesis-details-view";
 import { AgendaView } from "@/components/dashboard/agenda-view";
 import { NotificationsPanel } from "@/components/dashboard/notifications-panel";
+import type { DashboardStats } from "@/lib/aggregation-service";
+
 
 type StoredAnamnesis = AnamnesisFormValues & { id: string };
 
@@ -59,23 +61,16 @@ export function ProfessionalDashboard() {
   const [recordToDelete, setRecordToDelete] = useState<string | null>(null);
   const [recordToView, setRecordToView] = useState<StoredAnamnesis | null>(null);
   const [activityData, setActivityData] = useState<{ name: string; value: number }[]>([]);
-  const [dashboardStats, setDashboardStats] = useState({
-    totalPatients: 0,
-    totalEvaluations: 0,
-    totalReports: 0,
-    totalComparisons: 0,
-    pendingEvaluations: 0,
-    thisMonthEvaluations: 0
-  });
+  const [dashboardStats, setDashboardStats] = useState<DashboardStats | null>(null);
 
   useEffect(() => {
-    const fetchData = async () => {
-      if (!user) {
-        setLoading(false);
-        return;
-      }
+    if (!user) {
+      setLoading(false);
+      return;
+    }
+
+    const fetchRecentAnamneses = async () => {
       try {
-        // Fetch recent records
         const recentQuery = query(
           collection(db, "users", user.uid, "anamnesis"),
           orderBy("data_consulta", "desc"),
@@ -84,57 +79,44 @@ export function ProfessionalDashboard() {
         const recentSnapshot = await getDocs(recentQuery);
         const records = recentSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as StoredAnamnesis));
         setRecentAnamneses(records);
-
-        // Fetch activity counts
-        const [anamnesisSnapshot, reportsSnapshot, comparisonsSnapshot] = await Promise.all([
-          getDocs(collection(db, "users", user.uid, "anamnesis")),
-          getDocs(collection(db, "users", user.uid, "reports")),
-          getDocs(collection(db, "users", user.uid, "comparisons")),
-        ]);
-
-        const anamnesisCount = anamnesisSnapshot.size;
-        const reportsCount = reportsSnapshot.size;
-        const comparisonsCount = comparisonsSnapshot.size;
-
-        // Usar dados já carregados para estatísticas
-        const allAnamnesis = anamnesisSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as StoredAnamnesis));
-        
-        // Contar pacientes únicos
-        const uniquePatients = new Set(allAnamnesis.map(record => record.nome_cliente)).size;
-        
-        // Contar avaliações deste mês
-        const currentMonth = new Date().getMonth();
-        const currentYear = new Date().getFullYear();
-        const thisMonthEvaluations = allAnamnesis.filter(record => {
-          const recordDate = new Date(record.data_consulta);
-          return recordDate.getMonth() === currentMonth && recordDate.getFullYear() === currentYear;
-        }).length;
-
-        setActivityData([
-            { name: "completedForms", value: anamnesisCount },
-            { name: "generatedReports", value: reportsCount },
-            { name: "comparisons", value: comparisonsCount },
-        ]);
-
-        setDashboardStats({
-          totalPatients: uniquePatients,
-          totalEvaluations: anamnesisCount,
-          totalReports: reportsCount,
-          totalComparisons: comparisonsCount,
-          pendingEvaluations: 0, // Pode ser implementado futuramente
-          thisMonthEvaluations: thisMonthEvaluations
-        });
-
       } catch (error) {
-        console.error("Error fetching dashboard data from Firestore: ", error);
-        toast({ title: t.errorTitle, description: t.dashboardErrorLoading, variant: "destructive" });
+        console.error("Error fetching recent anamnesis: ", error);
+        toast({ title: "Erro ao buscar avaliações", description: "Não foi possível carregar as fichas recentes.", variant: "destructive" });
       } finally {
         setLoading(false);
       }
     };
-    if (user) {
-      fetchData();
-    }
+    
+    // Listen to aggregated stats in real-time
+    const statsDocRef = doc(db, "users", user.uid, "metadata", "stats");
+    const unsubscribe = onSnapshot(statsDocRef, (doc) => {
+      if (doc.exists()) {
+        const stats = doc.data() as DashboardStats;
+        setDashboardStats(stats);
+        setActivityData([
+            { name: "completedForms", value: stats.totalEvaluations },
+            { name: "generatedReports", value: stats.totalReports },
+            { name: "comparisons", value: stats.totalComparisons },
+        ]);
+      } else {
+        // Initialize if doesn't exist
+        setDashboardStats({
+          totalPatients: 0,
+          totalEvaluations: 0,
+          totalReports: 0,
+          totalComparisons: 0,
+          thisMonthEvaluations: 0,
+        });
+      }
+    }, (error) => {
+       console.error("Error listening to stats: ", error);
+       toast({ title: "Erro de Sincronização", description: "Não foi possível carregar as estatísticas em tempo real.", variant: "destructive" });
+    });
+
+    fetchRecentAnamneses();
+
+    return () => unsubscribe(); // Cleanup listener on unmount
+    
   }, [user, toast, t]);
 
   const handleDelete = async () => {
@@ -162,6 +144,11 @@ export function ProfessionalDashboard() {
     router.push(`/dashboard/anamnesis?edit=${id}`);
   };
 
+  const stats = dashboardStats || { totalPatients: 0, totalEvaluations: 0, totalReports: 0, totalComparisons: 0, thisMonthEvaluations: 0 };
+  const reportRate = stats.totalEvaluations > 0 ? Math.round((stats.totalReports / stats.totalEvaluations) * 100) : 0;
+  const evalsPerPatient = stats.totalPatients > 0 ? Math.round(stats.totalEvaluations / stats.totalPatients) : 0;
+  const monthRate = stats.totalEvaluations > 0 ? Math.round((stats.thisMonthEvaluations / stats.totalEvaluations) * 100) : 0;
+
   return (
     <div className="space-y-6">
       <div className="container mx-auto px-4 sm:px-6 lg:px-8 flex justify-between items-center">
@@ -178,7 +165,7 @@ export function ProfessionalDashboard() {
           <CardContent className="pt-6">
             <div className="flex flex-col items-center space-y-2">
               <Users className="h-8 w-8 text-primary" />
-              <div className="text-2xl font-bold">{dashboardStats.totalPatients}</div>
+              <div className="text-2xl font-bold">{stats.totalPatients}</div>
               <p className="text-xs text-muted-foreground">Pacientes Atendidos</p>
             </div>
           </CardContent>
@@ -188,7 +175,7 @@ export function ProfessionalDashboard() {
           <CardContent className="pt-6">
             <div className="flex flex-col items-center space-y-2">
               <ClipboardList className="h-8 w-8 text-primary" />
-              <div className="text-2xl font-bold">{dashboardStats.totalEvaluations}</div>
+              <div className="text-2xl font-bold">{stats.totalEvaluations}</div>
               <p className="text-xs text-muted-foreground">Avaliações Realizadas</p>
             </div>
           </CardContent>
@@ -198,7 +185,7 @@ export function ProfessionalDashboard() {
           <CardContent className="pt-6">
             <div className="flex flex-col items-center space-y-2">
               <FileText className="h-8 w-8 text-primary" />
-              <div className="text-2xl font-bold">{dashboardStats.totalReports}</div>
+              <div className="text-2xl font-bold">{stats.totalReports}</div>
               <p className="text-xs text-muted-foreground">Relatórios Gerados</p>
             </div>
           </CardContent>
@@ -208,7 +195,7 @@ export function ProfessionalDashboard() {
           <CardContent className="pt-6">
             <div className="flex flex-col items-center space-y-2">
               <CopyCheck className="h-8 w-8 text-primary" />
-              <div className="text-2xl font-bold">{dashboardStats.totalComparisons}</div>
+              <div className="text-2xl font-bold">{stats.totalComparisons}</div>
               <p className="text-xs text-muted-foreground">Comparações Realizadas</p>
             </div>
           </CardContent>
@@ -218,7 +205,7 @@ export function ProfessionalDashboard() {
           <CardContent className="pt-6">
             <div className="flex flex-col items-center space-y-2">
               <TrendingUp className="h-8 w-8 text-primary" />
-              <div className="text-2xl font-bold">{dashboardStats.thisMonthEvaluations}</div>
+              <div className="text-2xl font-bold">{stats.thisMonthEvaluations}</div>
               <p className="text-xs text-muted-foreground">Este Mês</p>
             </div>
           </CardContent>
@@ -229,7 +216,7 @@ export function ProfessionalDashboard() {
             <div className="flex flex-col items-center space-y-2">
               <BarChart3 className="h-8 w-8 text-primary" />
               <div className="text-2xl font-bold">
-                {dashboardStats.totalEvaluations > 0 ? Math.round((dashboardStats.totalReports / dashboardStats.totalEvaluations) * 100) : 0}%
+                {reportRate}%
               </div>
               <p className="text-xs text-muted-foreground">Taxa de Relatórios</p>
             </div>
@@ -405,7 +392,7 @@ export function ProfessionalDashboard() {
                             <p className="text-sm text-muted-foreground">Forms Completed</p>
                           </div>
                         </div>
-                        <div className="text-2xl font-bold text-primary">{dashboardStats.totalEvaluations}</div>
+                        <div className="text-2xl font-bold text-primary">{stats.totalEvaluations}</div>
                       </div>
                       
                       <div className="flex items-center justify-between p-3 bg-gradient-to-r from-blue-500/5 to-blue-500/10 rounded-lg border border-blue-500/20">
@@ -416,7 +403,7 @@ export function ProfessionalDashboard() {
                             <p className="text-sm text-muted-foreground">Reports Generated</p>
                           </div>
                         </div>
-                        <div className="text-2xl font-bold text-blue-600">{dashboardStats.totalReports}</div>
+                        <div className="text-2xl font-bold text-blue-600">{stats.totalReports}</div>
                       </div>
                       
                       <div className="flex items-center justify-between p-3 bg-gradient-to-r from-green-500/5 to-green-500/10 rounded-lg border border-green-500/20">
@@ -427,7 +414,7 @@ export function ProfessionalDashboard() {
                             <p className="text-sm text-muted-foreground">Comparisons</p>
                           </div>
                         </div>
-                        <div className="text-2xl font-bold text-green-600">{dashboardStats.totalComparisons}</div>
+                        <div className="text-2xl font-bold text-green-600">{stats.totalComparisons}</div>
                       </div>
                     </div>
                     
@@ -458,14 +445,11 @@ export function ProfessionalDashboard() {
             <div className="text-center p-4 bg-gradient-to-br from-primary/5 to-primary/10 rounded-lg border border-primary/20">
               <TrendingUp className="h-8 w-8 text-primary mx-auto mb-2" />
               <div className="text-2xl font-bold text-primary">
-                {dashboardStats.thisMonthEvaluations}
+                {stats.thisMonthEvaluations}
               </div>
               <p className="text-sm text-muted-foreground">Avaliações este mês</p>
               <p className="text-xs text-muted-foreground mt-1">
-                {dashboardStats.totalEvaluations > 0 
-                  ? `${Math.round((dashboardStats.thisMonthEvaluations / dashboardStats.totalEvaluations) * 100)}% do total`
-                  : '0% do total'
-                }
+                {monthRate}% do total
               </p>
             </div>
 
@@ -473,14 +457,11 @@ export function ProfessionalDashboard() {
             <div className="text-center p-4 bg-gradient-to-br from-blue-500/5 to-blue-500/10 rounded-lg border border-blue-500/20">
               <BarChart3 className="h-8 w-8 text-blue-600 mx-auto mb-2" />
               <div className="text-2xl font-bold text-blue-600">
-                {dashboardStats.totalEvaluations > 0 
-                  ? Math.round((dashboardStats.totalReports / dashboardStats.totalEvaluations) * 100) 
-                  : 0
-                }%
+                {reportRate}%
               </div>
               <p className="text-sm text-muted-foreground">Taxa de relatórios</p>
               <p className="text-xs text-muted-foreground mt-1">
-                {dashboardStats.totalReports} de {dashboardStats.totalEvaluations} avaliações
+                {stats.totalReports} de {stats.totalEvaluations} avaliações
               </p>
             </div>
 
@@ -488,14 +469,11 @@ export function ProfessionalDashboard() {
             <div className="text-center p-4 bg-gradient-to-br from-green-500/5 to-green-500/10 rounded-lg border border-green-500/20">
               <Users className="h-8 w-8 text-green-600 mx-auto mb-2" />
               <div className="text-2xl font-bold text-green-600">
-                {dashboardStats.totalPatients}
+                {stats.totalPatients}
               </div>
               <p className="text-sm text-muted-foreground">Pacientes únicos</p>
               <p className="text-xs text-muted-foreground mt-1">
-                {dashboardStats.totalEvaluations > 0 
-                  ? `${Math.round(dashboardStats.totalEvaluations / dashboardStats.totalPatients)} avaliações/paciente`
-                  : '0 avaliações/paciente'
-                }
+                {evalsPerPatient} avaliações/paciente
               </p>
             </div>
 
@@ -503,7 +481,7 @@ export function ProfessionalDashboard() {
             <div className="text-center p-4 bg-gradient-to-br from-purple-500/5 to-purple-500/10 rounded-lg border border-purple-500/20">
               <CopyCheck className="h-8 w-8 text-purple-600 mx-auto mb-2" />
               <div className="text-2xl font-bold text-purple-600">
-                {dashboardStats.totalComparisons}
+                {stats.totalComparisons}
               </div>
               <p className="text-sm text-muted-foreground">Comparações realizadas</p>
               <p className="text-xs text-muted-foreground mt-1">
@@ -517,14 +495,12 @@ export function ProfessionalDashboard() {
       {/* Alert Dialog for Deletion */}
       <AlertDialog open={!!recordToDelete} onOpenChange={(open) => !open && setRecordToDelete(null)}>
         <AlertDialogContent>
-          {/* @ts-ignore */}
           <AlertDialogHeader>
             <AlertDialogTitle>{t.areYouSure}</AlertDialogTitle>
             <AlertDialogDescription>
               {t.deleteConfirmation}
             </AlertDialogDescription>
           </AlertDialogHeader>
-          {/* @ts-ignore */}
           <AlertDialogFooter>
             <AlertDialogCancel>{t.cancel}</AlertDialogCancel>
             <AlertDialogAction onClick={handleDelete}>{t.delete}</AlertDialogAction>
@@ -535,7 +511,6 @@ export function ProfessionalDashboard() {
       {/* Dialog for Viewing Details */}
       <Dialog open={!!recordToView} onOpenChange={(open) => !open && setRecordToView(null)}>
         <DialogContent className="max-w-3xl">
-          {/* @ts-ignore */}
           <DialogHeader>
             <DialogTitle>{t.anamnesisDetailsTitle}</DialogTitle>
             <DialogDescription>
