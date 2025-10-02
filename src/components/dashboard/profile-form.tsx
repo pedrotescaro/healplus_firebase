@@ -227,7 +227,7 @@ export function ProfileForm() {
                 type="button"
                 variant="outline"
                 size="icon"
-                className="absolute bottom-1 right-1 rounded-full h-10 w-10 bg-white text-foreground shadow-md hover:shadow-lg hover:bg-primary hover:text-primary-foreground transition-all duration-300"
+                className="absolute bottom-1 right-1 rounded-full h-10 w-10 bg-background text-foreground shadow-md hover:shadow-lg hover:bg-primary hover:text-primary-foreground transition-all duration-300"
                 onClick={handleAvatarClick}
                 disabled={photoUploading}
               >
