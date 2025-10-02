@@ -63,6 +63,7 @@ export function SettingsForm() {
           <SelectContent>
             <SelectItem value="pt-br">Português (Brasil)</SelectItem>
             <SelectItem value="en-us">English (United States)</SelectItem>
+            <SelectItem value="es-es">Español</SelectItem>
           </SelectContent>
         </Select>
       </div>
