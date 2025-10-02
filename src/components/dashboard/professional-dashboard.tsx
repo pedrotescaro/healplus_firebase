@@ -40,7 +40,7 @@ import {
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { useToast } from "@/hooks/use-toast";
 import { db } from "@/firebase/client-app";
-import { collection, query, getDocs, orderBy, limit, doc, deleteDoc, onSnapshot } from "firebase/firestore";
+import { collection, query, getDocs, orderBy, limit, doc, deleteDoc } from "firebase/firestore";
 import { ActivitySummaryChart } from "@/components/dashboard/activity-summary-chart";
 import { useTranslation } from "@/contexts/app-provider";
 import { AnamnesisDetailsView } from "@/components/dashboard/anamnesis-details-view";
@@ -69,53 +69,56 @@ export function ProfessionalDashboard() {
       return;
     }
 
-    const fetchRecentAnamneses = async () => {
+    const fetchDashboardData = async () => {
+      setLoading(true);
       try {
-        const recentQuery = query(
-          collection(db, "users", user.uid, "anamnesis"),
-          orderBy("data_consulta", "desc"),
-          limit(5)
-        );
-        const recentSnapshot = await getDocs(recentQuery);
-        const records = recentSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as StoredAnamnesis));
-        setRecentAnamneses(records);
+        // Fetch all necessary data
+        const anamnesisQuery = query(collection(db, "users", user.uid, "anamnesis"), orderBy("data_consulta", "desc"));
+        const reportsQuery = query(collection(db, "users", user.uid, "reports"), orderBy("createdAt", "desc"));
+        const comparisonsQuery = query(collection(db, "users", user.uid, "comparisons"), orderBy("createdAt", "desc"));
+
+        const [anamnesisSnapshot, reportsSnapshot, comparisonsSnapshot] = await Promise.all([
+          getDocs(anamnesisQuery),
+          getDocs(reportsQuery),
+          getDocs(comparisonsQuery),
+        ]);
+
+        const allAnamneses = anamnesisSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as StoredAnamnesis));
+        
+        // Set recent anamneses for the table
+        setRecentAnamneses(allAnamneses.slice(0, 5));
+
+        // Calculate stats
+        const totalEvaluations = allAnamneses.length;
+        const totalReports = reportsSnapshot.size;
+        const totalComparisons = comparisonsSnapshot.size;
+        const uniquePatients = new Set(allAnamneses.map(a => a.nome_cliente)).size;
+        const thisMonthEvaluations = allAnamneses.filter(a => new Date(a.data_consulta).getMonth() === new Date().getMonth()).length;
+
+        const stats: DashboardStats = {
+          totalPatients: uniquePatients,
+          totalEvaluations,
+          totalReports,
+          totalComparisons,
+          thisMonthEvaluations,
+        };
+
+        setDashboardStats(stats);
+        setActivityData([
+            { name: "completedForms", value: totalEvaluations },
+            { name: "generatedReports", value: totalReports },
+            { name: "comparisons", value: totalComparisons },
+        ]);
+
       } catch (error) {
-        console.error("Error fetching recent anamnesis: ", error);
-        toast({ title: "Erro ao buscar avaliações", description: "Não foi possível carregar as fichas recentes.", variant: "destructive" });
+        console.error("Error fetching dashboard data: ", error);
+        toast({ title: "Erro ao carregar dados", description: "Não foi possível buscar as informações do dashboard.", variant: "destructive" });
       } finally {
         setLoading(false);
       }
     };
     
-    // Listen to aggregated stats in real-time
-    const statsDocRef = doc(db, "users", user.uid, "metadata", "stats");
-    const unsubscribe = onSnapshot(statsDocRef, (doc) => {
-      if (doc.exists()) {
-        const stats = doc.data() as DashboardStats;
-        setDashboardStats(stats);
-        setActivityData([
-            { name: "completedForms", value: stats.totalEvaluations },
-            { name: "generatedReports", value: stats.totalReports },
-            { name: "comparisons", value: stats.totalComparisons },
-        ]);
-      } else {
-        // Initialize if doesn't exist
-        setDashboardStats({
-          totalPatients: 0,
-          totalEvaluations: 0,
-          totalReports: 0,
-          totalComparisons: 0,
-          thisMonthEvaluations: 0,
-        });
-      }
-    }, (error) => {
-       console.error("Error listening to stats: ", error);
-       toast({ title: "Erro de Sincronização", description: "Não foi possível carregar as estatísticas em tempo real.", variant: "destructive" });
-    });
-
-    fetchRecentAnamneses();
-
-    return () => unsubscribe(); // Cleanup listener on unmount
+    fetchDashboardData();
     
   }, [user, toast, t]);
 
@@ -146,7 +149,7 @@ export function ProfessionalDashboard() {
 
   const stats = dashboardStats || { totalPatients: 0, totalEvaluations: 0, totalReports: 0, totalComparisons: 0, thisMonthEvaluations: 0 };
   const reportRate = stats.totalEvaluations > 0 ? Math.round((stats.totalReports / stats.totalEvaluations) * 100) : 0;
-  const evalsPerPatient = stats.totalPatients > 0 ? Math.round(stats.totalEvaluations / stats.totalPatients) : 0;
+  const evalsPerPatient = stats.totalPatients > 0 ? (stats.totalEvaluations / stats.totalPatients).toFixed(1) : 0;
   const monthRate = stats.totalEvaluations > 0 ? Math.round((stats.thisMonthEvaluations / stats.totalEvaluations) * 100) : 0;
 
   return (
