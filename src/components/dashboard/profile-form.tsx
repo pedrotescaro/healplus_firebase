@@ -25,6 +25,7 @@ import { Avatar, AvatarImage, AvatarFallback } from "../ui/avatar";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import ReactCrop, { type Crop, centerCrop, makeAspectCrop } from 'react-image-crop';
 import 'react-image-crop/dist/ReactCrop.css';
+import { useTranslation } from "@/contexts/app-provider";
 
 
 const getInitials = (name: string | null | undefined): string => {
@@ -75,6 +76,7 @@ function getCroppedImg(image: HTMLImageElement, crop: Crop): Promise<string> {
 export function ProfileForm() {
   const { user, refreshUser } = useAuth();
   const { toast } = useToast();
+  const { t } = useTranslation();
   const [loading, setLoading] = useState(false);
   const [photoUploading, setPhotoUploading] = useState(false);
   const [isCropModalOpen, setIsCropModalOpen] = useState(false);
@@ -130,7 +132,7 @@ export function ProfileForm() {
   
   const handleCropAndUpload = async () => {
     if (!completedCrop || !imgRef.current || !auth.currentUser) {
-        toast({ title: "Erro", description: "Nenhuma área de corte selecionada.", variant: "destructive" });
+        toast({ title: t.errorTitle, description: t.cropError, variant: "destructive" });
         return;
     }
 
@@ -140,7 +142,6 @@ export function ProfileForm() {
     try {
         const croppedImageDataUrl = await getCroppedImg(imgRef.current, completedCrop);
         
-        // Save image to Realtime Database
         const imageId = await ImageStorageService.saveImageWithPath(
           croppedImageDataUrl,
           auth.currentUser.uid,
@@ -151,22 +152,21 @@ export function ProfileForm() {
           }
         );
 
-        // Get the image data to use as photoURL
         const imageData = await ImageStorageService.getImageUrl(imageId);
 
         if (imageData) {
           await updateProfile(auth.currentUser, { photoURL: imageData });
-          await refreshUser(); // Refresh user state in context
+          await refreshUser();
 
           toast({
-              title: "Foto de Perfil Atualizada",
-              description: "Sua nova foto de perfil foi salva no banco de dados.",
+              title: t.photoUpdatedTitle,
+              description: t.photoUpdatedDescription,
           });
         }
     } catch (error: any) {
         toast({
-            title: "Erro no Upload",
-            description: error.message || "Não foi possível salvar a nova foto.",
+            title: t.uploadErrorTitle,
+            description: error.message || t.uploadErrorDescription,
             variant: "destructive",
         });
     } finally {
@@ -186,16 +186,16 @@ export function ProfileForm() {
     if (auth.currentUser) {
       try {
         await updateProfile(auth.currentUser, { displayName: values.name });
-        await refreshUser(); // Refresh user state
+        await refreshUser();
         
         toast({
-          title: "Perfil Atualizado",
-          description: "Suas informações foram salvas com sucesso.",
+          title: t.profileUpdatedTitle,
+          description: t.profileUpdatedDescription,
         });
       } catch (error: any) {
         toast({
-          title: "Erro ao Atualizar",
-          description: error.message || "Não foi possível salvar as alterações.",
+          title: t.updateErrorTitle,
+          description: error.message || t.updateErrorDescription,
           variant: "destructive",
         });
       } finally {
@@ -203,8 +203,8 @@ export function ProfileForm() {
       }
     } else {
        toast({
-          title: "Erro",
-          description: "Nenhum usuário autenticado encontrado.",
+          title: t.errorTitle,
+          description: t.noUserError,
           variant: "destructive",
         });
        setLoading(false);
@@ -232,7 +232,7 @@ export function ProfileForm() {
                 disabled={photoUploading}
               >
                 {photoUploading ? <Loader2 className="animate-spin" /> : <Camera />}
-                <span className="sr-only">Mudar foto de perfil</span>
+                <span className="sr-only">{t.changeProfilePhoto}</span>
               </Button>
               <Input
                 type="file"
@@ -249,7 +249,7 @@ export function ProfileForm() {
             name="name"
             render={({ field }) => (
               <FormItem>
-                <FormLabel className="text-sm font-medium">Nome Completo</FormLabel>
+                <FormLabel className="text-sm font-medium">{t.fullName}</FormLabel>
                 <FormControl>
                   <Input 
                     placeholder="Dra. Joana da Silva" 
@@ -279,10 +279,10 @@ export function ProfileForm() {
                 name="specialty"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel className="text-sm font-medium">Especialidade</FormLabel>
+                    <FormLabel className="text-sm font-medium">{t.specialty}</FormLabel>
                     <FormControl>
                       <Input 
-                        placeholder="ex: Dermatologia, Enfermagem" 
+                        placeholder={t.specialtyPlaceholder}
                         className="transition-all duration-300 focus:ring-2 focus:ring-primary/20"
                         {...field} 
                       />
@@ -296,7 +296,7 @@ export function ProfileForm() {
                 name="crm_coren"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel className="text-sm font-medium">CRM/COREN</FormLabel>
+                    <FormLabel className="text-sm font-medium">{t.crmCoren}</FormLabel>
                     <FormControl>
                       <Input
                         placeholder="ex: 123456-SP"
@@ -316,7 +316,7 @@ export function ProfileForm() {
             className="w-full bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary/70 shadow-md"
           >
             {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-            Salvar Alterações
+            {t.saveChanges}
           </Button>
         </form>
       </Form>
@@ -325,7 +325,7 @@ export function ProfileForm() {
         <DialogContent>
           {/* @ts-ignore */}
           <DialogHeader>
-            <DialogTitle>Ajuste sua Foto de Perfil</DialogTitle>
+            <DialogTitle>{t.adjustProfilePhotoTitle}</DialogTitle>
           </DialogHeader>
           <div className="flex justify-center">
             {imageSrc && (
@@ -350,8 +350,8 @@ export function ProfileForm() {
           </div>
           {/* @ts-ignore */}
           <DialogFooter>
-            <Button variant="outline" onClick={() => setIsCropModalOpen(false)}>Cancelar</Button>
-            <Button onClick={handleCropAndUpload} disabled={!completedCrop}>Salvar Foto</Button>
+            <Button variant="outline" onClick={() => setIsCropModalOpen(false)}>{t.cancel}</Button>
+            <Button onClick={handleCropAndUpload} disabled={!completedCrop}>{t.savePhoto}</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>

@@ -41,16 +41,15 @@ export default function ProfilePage() {
     try {
       await deleteAccount();
       toast({
-        title: "Conta Excluída",
-        description: "Sua conta foi excluída com sucesso.",
+        title: t.accountDeletedTitle,
+        description: t.accountDeletedDescription,
       });
       router.push("/login");
     } catch (error: any) {
       toast({
-        title: "Erro ao Excluir Conta",
+        title: t.deleteAccountErrorTitle,
         description:
-          error.message ||
-          "Não foi possível excluir sua conta. Tente fazer login novamente e repita o processo.",
+          error.message || t.deleteAccountErrorDescription,
         variant: "destructive",
       });
     } finally {
@@ -78,7 +77,7 @@ export default function ProfilePage() {
                 <div className="p-3 bg-primary rounded-full">
                   <User className="h-6 w-6 text-primary-foreground" />
                 </div>
-                <div className="text-xs text-muted-foreground mt-2">Perfil</div>
+                <div className="text-xs text-muted-foreground mt-2">{t.profile}</div>
               </div>
             </div>
           </div>
@@ -124,10 +123,10 @@ export default function ProfilePage() {
             <div className="p-2 bg-red-500 rounded-lg">
               <AlertTriangle className="h-5 w-5 text-white" />
             </div>
-            Zona de Perigo
+            {t.dangerZoneTitle}
           </CardTitle>
           <CardDescription className="text-red-700">
-            A ação a seguir é permanente e não pode ser desfeita.
+            {t.dangerZoneDescription}
           </CardDescription>
         </CardHeader>
         <CardContent className="p-6">
@@ -135,8 +134,8 @@ export default function ProfilePage() {
             <div className="flex items-center gap-3">
               <Shield className="h-6 w-6 text-red-600" />
               <div>
-                <p className="font-medium text-red-800">Excluir Conta</p>
-                <p className="text-sm text-red-600">Remover permanentemente todos os dados</p>
+                <p className="font-medium text-red-800">{t.deleteAccountTitle}</p>
+                <p className="text-sm text-red-600">{t.deleteAccountDescription}</p>
               </div>
             </div>
             <AlertDialog>
@@ -145,23 +144,21 @@ export default function ProfilePage() {
                   variant="destructive" 
                   className="bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 shadow-md"
                 >
-                  Excluir Minha Conta
+                  {t.deleteMyAccountBtn}
                 </Button>
               </AlertDialogTrigger>
               <AlertDialogContent>
                 <AlertDialogHeader>
                   <AlertDialogTitle className="flex items-center gap-2">
                     <AlertTriangle className="h-5 w-5 text-red-600" />
-                    Você tem certeza absoluta?
+                    {t.areYouSure}
                   </AlertDialogTitle>
                   <AlertDialogDescription>
-                    Esta ação não pode ser desfeita. Isso excluirá
-                    permanentemente sua conta e removerá seus dados de nossos
-                    servidores.
+                    {t.deleteAccountConfirmation}
                   </AlertDialogDescription>
                 </AlertDialogHeader>
                 <AlertDialogFooter>
-                  <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                  <AlertDialogCancel>{t.cancel}</AlertDialogCancel>
                   <AlertDialogAction
                     onClick={handleDeleteAccount}
                     disabled={isDeleting}
@@ -170,7 +167,7 @@ export default function ProfilePage() {
                     {isDeleting && (
                       <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                     )}
-                    Sim, excluir conta
+                    {t.yesDeleteAccount}
                   </AlertDialogAction>
                 </AlertDialogFooter>
               </AlertDialogContent>

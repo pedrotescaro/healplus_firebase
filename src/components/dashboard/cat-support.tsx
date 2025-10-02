@@ -16,99 +16,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "../ui/avatar";
 import { AnimatePresence, motion } from "framer-motion";
 import { useTranslation } from "@/contexts/app-provider";
 
-const chatTopics = {
-  anamnesis: {
-    question: "Como crio uma ficha de anamnese?",
-    icon: ClipboardList,
-    badge: "Novo",
-    color: "bg-blue-500",
-    answer: "Para criar uma nova ficha, vá para a página 'Nova Avaliação'. Preencha o máximo de informações que puder. Quanto mais detalhada a ficha, mais precisa será a análise da IA para o relatório da ferida!",
-    tips: [
-      "Use o framework TIMERS para avaliação estruturada",
-      "Inclua histórico médico completo do paciente",
-      "Documente medicamentos em uso e alergias"
-    ]
-  },
-  report: {
-    question: "Como gero um relatório com IA?",
-    icon: FileText,
-    badge: "AI",
-    color: "bg-purple-500",
-    answer: "Na página 'Gerar Relatório', escolha uma ficha salva, insira o email do paciente, envie uma foto nítida da ferida e deixe que eu analise! Vou te dar uma avaliação completa e sugestões de tratamento.",
-    tips: [
-      "Certifique-se de que a imagem está bem iluminada",
-      "Inclua uma escala de referência na foto",
-      "O relatório inclui protocolo terapêutico baseado em evidências"
-    ]
-  },
-  compare: {
-    question: "Para que serve a comparação de relatórios?",
-    icon: GitCompareArrows,
-    badge: "Pro",
-    color: "bg-orange-500",
-    answer: "Use a página 'Comparar Relatórios' para selecionar dois relatórios do mesmo paciente. Vou analisar a evolução do caso, combinando os dados dos relatórios e das imagens.",
-    tips: [
-      "Compare relatórios com intervalo mínimo de 7 dias",
-      "A análise inclui histogramas de cores das imagens",
-      "Identifica progressão ou regressão da ferida"
-    ]
-  },
-  agenda: {
-    question: "Como funciona a Agenda?",
-    icon: CalendarDays,
-    badge: "Em Breve",
-    color: "bg-green-500",
-    answer: "A Agenda mostra automaticamente os retornos marcados nas fichas de avaliação. É uma forma fácil de ver seus próximos compromissos e nunca perder uma reavaliação importante.",
-    tips: [
-      "Retornos são agendados automaticamente",
-      "Receba lembretes por email",
-      "Visualize histórico de consultas"
-    ]
-  },
-  analytics: {
-    question: "Como uso o Dashboard Analytics?",
-    icon: Brain,
-    badge: "Pro",
-    color: "bg-indigo-500",
-    answer: "O Dashboard Analytics oferece métricas detalhadas sobre sua produtividade, evolução de pacientes e uso das funcionalidades. Acesse insights valiosos para otimizar seu trabalho.",
-    tips: [
-      "Visualize métricas de produtividade",
-      "Acompanhe evolução dos pacientes",
-      "Analise tendências de uso"
-    ]
-  },
-  support: {
-    question: "Preciso de ajuda técnica",
-    icon: Heart,
-    badge: "Suporte",
-    color: "bg-red-500",
-    answer: "Estou aqui para ajudar! Para suporte técnico, entre em contato através do email: healgrupo@gmail.com ou use este chat para dúvidas sobre funcionalidades.",
-    tips: [
-      "Suporte disponível 24/7",
-      "Resposta em até 24 horas",
-      "Documentação completa disponível"
-    ]
-  },
-};
-
 type ChatStep = 'intro' | 'anamnesis' | 'report' | 'compare' | 'agenda' | 'analytics' | 'support';
-
-const greetings = [
-  "Olá! Sou o Zelo, seu assistente Heal+ 🐱",
-  "Miau! Precisando de uma pata? Estou aqui para ajudar! ✨",
-  "Olá de novo! O que vamos fazer hoje? 🚀",
-  "Estou por aqui se precisar de ajuda! 💫",
-  "Pronto para revolucionar o cuidado com feridas! 🏥",
-  "Vamos fazer a diferença juntos! 🌟",
-];
-
-const motivationalMessages = [
-  "Você está fazendo um trabalho incrível! 👏",
-  "Cada ferida curada é uma vida melhorada! 💚",
-  "Sua dedicação salva vidas! 🦸‍♀️",
-  "Continue assim, você é inspirador! 🌟",
-  "Obrigado por cuidar com tanto carinho! ❤️",
-];
 
 export function CatSupport({ currentPage }: { currentPage: string }) {
   const [step, setStep] = useState<ChatStep>('intro');
@@ -116,6 +24,98 @@ export function CatSupport({ currentPage }: { currentPage: string }) {
   const [showMotivation, setShowMotivation] = useState(false);
   const { t } = useTranslation();
   
+  const greetings = [
+    t.zeloGreeting1,
+    t.zeloGreeting2,
+    t.zeloGreeting3,
+    t.zeloGreeting4,
+    t.zeloGreeting5,
+    t.zeloGreeting6,
+  ];
+
+  const motivationalMessages = [
+    t.zeloMotivation1,
+    t.zeloMotivation2,
+    t.zeloMotivation3,
+    t.zeloMotivation4,
+    t.zeloMotivation5,
+  ];
+
+  const chatTopics = {
+    anamnesis: {
+      question: t.zeloAnamnesisQuestion,
+      icon: ClipboardList,
+      badge: "Novo",
+      color: "bg-blue-500",
+      answer: t.zeloAnamnesisAnswer,
+      tips: [
+        t.zeloAnamnesisTip1,
+        t.zeloAnamnesisTip2,
+        t.zeloAnamnesisTip3
+      ]
+    },
+    report: {
+      question: t.zeloReportQuestion,
+      icon: FileText,
+      badge: "AI",
+      color: "bg-purple-500",
+      answer: t.zeloReportAnswer,
+      tips: [
+        t.zeloReportTip1,
+        t.zeloReportTip2,
+        t.zeloReportTip3
+      ]
+    },
+    compare: {
+      question: t.zeloCompareQuestion,
+      icon: GitCompareArrows,
+      badge: "Pro",
+      color: "bg-orange-500",
+      answer: t.zeloCompareAnswer,
+      tips: [
+        t.zeloCompareTip1,
+        t.zeloCompareTip2,
+        t.zeloCompareTip3
+      ]
+    },
+    agenda: {
+      question: t.zeloAgendaQuestion,
+      icon: CalendarDays,
+      badge: "Em Breve",
+      color: "bg-green-500",
+      answer: t.zeloAgendaAnswer,
+      tips: [
+        t.zeloAgendaTip1,
+        t.zeloAgendaTip2,
+        t.zeloAgendaTip3
+      ]
+    },
+    analytics: {
+      question: t.zeloAnalyticsQuestion,
+      icon: Brain,
+      badge: "Pro",
+      color: "bg-indigo-500",
+      answer: t.zeloAnalyticsAnswer,
+      tips: [
+        t.zeloAnalyticsTip1,
+        t.zeloAnalyticsTip2,
+        t.zeloAnalyticsTip3
+      ]
+    },
+    support: {
+      question: t.zeloSupportQuestion,
+      icon: Heart,
+      badge: "Suporte",
+      color: "bg-red-500",
+      answer: t.zeloSupportAnswer,
+      tips: [
+        t.zeloSupportTip1,
+        t.zeloSupportTip2,
+        t.zeloSupportTip3
+      ]
+    },
+  };
+
   const randomGreeting = greetings[Math.floor(Math.random() * greetings.length)];
   const randomMotivation = motivationalMessages[Math.floor(Math.random() * motivationalMessages.length)];
 
@@ -257,7 +257,7 @@ export function CatSupport({ currentPage }: { currentPage: string }) {
                           AI
                         </span>
                       </div>
-                      <p className="text-sm text-muted-foreground font-medium">Seu assistente Heal+</p>
+                      <p className="text-sm text-muted-foreground font-medium">{t.zeloSubtitle}</p>
                       <div className="flex items-center gap-1 mt-1">
                         <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse"></div>
                         <span className="text-xs text-green-600 font-medium">Online</span>
@@ -283,7 +283,7 @@ export function CatSupport({ currentPage }: { currentPage: string }) {
             {step === 'intro' && (
               <>
                   <ChatBlock icon={Bot} text={randomGreeting} />
-                  <ChatBlock icon={Bot} text="Como posso te ajudar hoje? ✨" />
+                  <ChatBlock icon={Bot} text={t.zeloHelp} />
                   
                   {showMotivation && (
                     <div className="w-full animate-fade-in-up">
@@ -326,7 +326,7 @@ export function CatSupport({ currentPage }: { currentPage: string }) {
                     <div className="w-full space-y-2 mt-4 animate-fade-in-up">
                       <div className="flex items-center gap-2 mb-3">
                         <Sparkles className="h-4 w-4 text-primary" />
-                        <span className="text-sm font-semibold text-foreground">Dicas Importantes:</span>
+                        <span className="text-sm font-semibold text-foreground">{t.zeloImportantTips}</span>
                       </div>
                       {chatTopics[step].tips.map((tip, index) => (
                         <TipBlock tip={tip} index={index} />
@@ -342,7 +342,7 @@ export function CatSupport({ currentPage }: { currentPage: string }) {
                       className="flex-1 hover:bg-primary/10 transition-colors"
                     >
                       <ChevronLeft className="h-4 w-4 mr-2" />
-                      Voltar
+                      {t.back}
                     </Button>
                     <Button 
                       variant="ghost" 
