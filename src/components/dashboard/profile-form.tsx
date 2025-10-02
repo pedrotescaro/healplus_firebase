@@ -152,11 +152,10 @@ export function ProfileForm() {
         );
 
         // Get the image data to use as photoURL
-        const imageData = await ImageStorageService.getImage(auth.currentUser.uid, imageId);
-        const photoURL = imageData?.dataUri;
+        const imageData = await ImageStorageService.getImageUrl(imageId);
 
-        if (photoURL) {
-          await updateProfile(auth.currentUser, { photoURL });
+        if (imageData) {
+          await updateProfile(auth.currentUser, { photoURL: imageData });
           await refreshUser(); // Refresh user state in context
 
           toast({
@@ -228,7 +227,7 @@ export function ProfileForm() {
                 type="button"
                 variant="outline"
                 size="icon"
-                className="absolute bottom-1 right-1 rounded-full h-10 w-10 bg-white shadow-md hover:shadow-lg hover:bg-primary hover:text-white transition-all duration-300"
+                className="absolute bottom-1 right-1 rounded-full h-10 w-10 bg-white text-foreground shadow-md hover:shadow-lg hover:bg-primary hover:text-primary-foreground transition-all duration-300"
                 onClick={handleAvatarClick}
                 disabled={photoUploading}
               >
