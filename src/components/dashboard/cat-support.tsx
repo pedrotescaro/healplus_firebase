@@ -329,7 +329,7 @@ export function CatSupport({ currentPage }: { currentPage: string }) {
                         <span className="text-sm font-semibold text-foreground">{t.zeloImportantTips}</span>
                       </div>
                       {chatTopics[step].tips.map((tip, index) => (
-                        <TipBlock tip={tip} index={index} />
+                        <TipBlock key={index} tip={tip} index={index} />
                       ))}
                     </div>
                   )}
