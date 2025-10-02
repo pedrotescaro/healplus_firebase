@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useState, useRef } from "react";
@@ -9,10 +10,12 @@ import { cn } from "@/lib/utils";
 import { useAuth } from "@/hooks/use-auth";
 import { ImageStorageService } from "@/lib/image-storage";
 import { useToast } from "@/hooks/use-toast";
+import { useTranslation } from "@/contexts/app-provider";
 
 export default function WoundCapturePage() {
   const { user } = useAuth();
   const { toast } = useToast();
+  const { t } = useTranslation();
   const [currentStep, setCurrentStep] = useState(1);
   const [capturedImage, setCapturedImage] = useState<string | null>(null);
   const [isCapturing, setIsCapturing] = useState(false);
@@ -20,10 +23,10 @@ export default function WoundCapturePage() {
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const steps = [
-    { id: 1, title: "Preparação", description: "Prepare o ambiente e a ferida" },
-    { id: 2, title: "Captura", description: "Capture a foto da ferida" },
-    { id: 3, title: "Análise IA", description: "Análise automática com IA" },
-    { id: 4, title: "Resultados", description: "Visualize os resultados" }
+    { id: 1, title: t.step1Title, description: t.step1Description },
+    { id: 2, title: t.step2Title, description: t.step2Description },
+    { id: 3, title: t.step3Title, description: t.step3Description },
+    { id: 4, title: t.step4Title, description: t.step4Description }
   ];
 
   const handleCapture = async () => {
@@ -73,8 +76,8 @@ export default function WoundCapturePage() {
         setCurrentStep(2);
       } catch (error) {
         toast({
-          title: "Erro no Upload",
-          description: "Não foi possível processar a imagem.",
+          title: t.uploadError,
+          description: t.uploadErrorDescription,
           variant: "destructive"
         });
       }
@@ -96,8 +99,8 @@ export default function WoundCapturePage() {
         setCurrentStep(2);
       } catch (error) {
         toast({
-          title: "Erro no Upload",
-          description: "Não foi possível processar a imagem.",
+          title: t.uploadError,
+          description: t.uploadErrorDescription,
           variant: "destructive"
         });
       }
@@ -123,8 +126,8 @@ export default function WoundCapturePage() {
       );
       
       toast({
-        title: "Imagem Salva",
-        description: "A imagem foi salva no banco de dados com sucesso.",
+        title: t.saveImageSuccess,
+        description: t.saveImageSuccessDescription,
       });
       
       // Simulate AI analysis
@@ -135,8 +138,8 @@ export default function WoundCapturePage() {
       
     } catch (error) {
       toast({
-        title: "Erro ao Salvar",
-        description: "Não foi possível salvar a imagem.",
+        title: t.saveImageError,
+        description: t.saveImageErrorDescription,
         variant: "destructive"
       });
       setIsSaving(false);
@@ -148,9 +151,9 @@ export default function WoundCapturePage() {
       <div className="container-responsive">
         {/* Header */}
         <div className="mb-6 sm:mb-8">
-          <h1 className="text-responsive-2xl sm:text-responsive-3xl lg:text-responsive-4xl font-bold mb-2">Captura Inteligente de Feridas</h1>
+          <h1 className="text-responsive-2xl sm:text-responsive-3xl lg:text-responsive-4xl font-bold mb-2">{t.woundCaptureTitle}</h1>
           <p className="text-responsive-sm sm:text-responsive-base lg:text-responsive-lg text-muted-foreground">
-            Registre fotos da sua ferida para análise automática com IA e acompanhamento médico.
+            {t.woundCaptureDescription}
           </p>
         </div>
 
@@ -192,11 +195,11 @@ export default function WoundCapturePage() {
           {/* Left Card - Wound Capture */}
           <Card className="bg-card border-border">
             <CardHeader className="pb-4">
-              <CardTitle className="text-card-foreground text-lg sm:text-xl">Captura da Ferida</CardTitle>
+              <CardTitle className="text-card-foreground text-lg sm:text-xl">{t.captureAreaTitle}</CardTitle>
             </CardHeader>
             <CardContent className="pt-0">
               <p className="text-muted-foreground mb-4 sm:mb-6 text-sm sm:text-base">
-                Posicione a câmera sobre a ferida para captura automática.
+                {t.captureAreaDescription}
               </p>
               
               {/* Image Capture Area */}
@@ -216,15 +219,15 @@ export default function WoundCapturePage() {
                       alt="Captured wound"
                       className="max-w-full h-48 sm:h-56 lg:h-64 object-contain rounded-lg mx-auto"
                     />
-                    <p className="text-green-400 text-sm sm:text-base">✓ Imagem capturada com sucesso!</p>
+                    <p className="text-green-400 text-sm sm:text-base">{t.imageCapturedSuccess}</p>
                   </div>
                 ) : (
                   <div className="space-y-3 sm:space-y-4">
                     <div className="w-12 h-12 sm:w-16 sm:h-16 bg-primary rounded-full flex items-center justify-center mx-auto">
                       <Camera className="w-6 h-6 sm:w-8 sm:h-8 text-primary-foreground" />
                     </div>
-                    <p className="text-foreground font-medium text-sm sm:text-base">Clique para capturar</p>
-                    <p className="text-muted-foreground text-xs sm:text-sm">ou arraste uma imagem aqui</p>
+                    <p className="text-foreground font-medium text-sm sm:text-base">{t.clickToCapture}</p>
+                    <p className="text-muted-foreground text-xs sm:text-sm">{t.dragImageHere}</p>
                   </div>
                 )}
               </div>
@@ -238,8 +241,8 @@ export default function WoundCapturePage() {
                   size="sm"
                 >
                   <Camera className="w-4 h-4 mr-2" />
-                  <span className="hidden sm:inline">{isCapturing ? "Capturando..." : "Capturar Foto"}</span>
-                  <span className="sm:hidden">{isCapturing ? "Capturando..." : "Capturar"}</span>
+                  <span className="hidden sm:inline">{isCapturing ? t.capturingButton : t.captureButton}</span>
+                  <span className="sm:hidden">{isCapturing ? t.capturingButton : t.captureButton}</span>
                 </Button>
                 <Button
                   variant="outline"
@@ -248,7 +251,7 @@ export default function WoundCapturePage() {
                   size="sm"
                 >
                   <Upload className="w-4 h-4 mr-2" />
-                  Upload
+                  {t.uploadButton}
                 </Button>
               </div>
 
@@ -266,7 +269,7 @@ export default function WoundCapturePage() {
                   className="w-full mt-4"
                   size="sm"
                 >
-                  Iniciar Análise IA
+                  {t.startAIAnalysis}
                 </Button>
               )}
             </CardContent>
@@ -275,30 +278,30 @@ export default function WoundCapturePage() {
           {/* Right Card - Capture Instructions */}
           <Card className="bg-card border-border">
             <CardHeader className="pb-4">
-              <CardTitle className="text-card-foreground text-lg sm:text-xl">Instruções de Captura</CardTitle>
+              <CardTitle className="text-card-foreground text-lg sm:text-xl">{t.captureInstructionsTitle}</CardTitle>
             </CardHeader>
             <CardContent className="pt-0">
               <p className="text-muted-foreground mb-4 sm:mb-6 text-sm sm:text-base">
-                Siga estas diretrizes para obter a melhor análise.
+                {t.captureInstructionsDescription}
               </p>
 
               <div className="space-y-3 sm:space-y-4">
                 {[
                   {
-                    title: "Iluminação Adequada",
-                    description: "Use luz natural ou artificial clara, evite sombras."
+                    title: t.instruction1Title,
+                    description: t.instruction1Description
                   },
                   {
-                    title: "Distância Correta",
-                    description: "Mantenha 15-20cm de distância da ferida."
+                    title: t.instruction2Title,
+                    description: t.instruction2Description
                   },
                   {
-                    title: "Ângulo Perpendicular",
-                    description: "Capture diretamente de cima, sem inclinação."
+                    title: t.instruction3Title,
+                    description: t.instruction3Description
                   },
                   {
-                    title: "Foco na Ferida",
-                    description: "Centralize a ferida na imagem, com margem ao redor."
+                    title: t.instruction4Title,
+                    description: t.instruction4Description
                   }
                 ].map((instruction, index) => (
                   <div key={index} className="flex items-start space-x-2 sm:space-x-3">
@@ -318,9 +321,9 @@ export default function WoundCapturePage() {
                 <div className="flex items-start space-x-2 sm:space-x-3">
                   <CheckCircle className="w-4 h-4 sm:w-5 sm:h-5 text-accent-foreground flex-shrink-0 mt-0.5" />
                   <div className="min-w-0 flex-1">
-                    <h4 className="font-medium text-accent-foreground text-sm sm:text-base">Dica Pro</h4>
+                    <h4 className="font-medium text-accent-foreground text-sm sm:text-base">{t.proTipTitle}</h4>
                     <p className="text-xs sm:text-sm text-muted-foreground">
-                      Use uma régua ou moeda como referência de escala para medições mais precisas.
+                      {t.proTipDescription}
                     </p>
                   </div>
                 </div>
@@ -334,8 +337,8 @@ export default function WoundCapturePage() {
           <Card className="mt-6 sm:mt-8 bg-card border-border">
             <CardContent className="p-4 sm:p-6 lg:p-8 text-center">
               <div className="animate-spin w-10 h-10 sm:w-12 sm:h-12 border-4 border-primary border-t-transparent rounded-full mx-auto mb-3 sm:mb-4"></div>
-              <h3 className="text-lg sm:text-xl font-semibold mb-2 text-foreground">Analisando com IA...</h3>
-              <p className="text-muted-foreground text-sm sm:text-base">Processando a imagem da ferida para análise detalhada.</p>
+              <h3 className="text-lg sm:text-xl font-semibold mb-2 text-foreground">{t.analyzingAI}</h3>
+              <p className="text-muted-foreground text-sm sm:text-base">{t.analyzingAIDescription}</p>
             </CardContent>
           </Card>
         )}
@@ -343,9 +346,9 @@ export default function WoundCapturePage() {
         {currentStep === 4 && (
           <Card className="mt-6 sm:mt-8 bg-card border-border">
             <CardContent className="p-4 sm:p-6 lg:p-8">
-              <h3 className="text-lg sm:text-xl font-semibold mb-3 sm:mb-4 text-green-600 dark:text-green-400">✓ Análise Concluída!</h3>
+              <h3 className="text-lg sm:text-xl font-semibold mb-3 sm:mb-4 text-green-600 dark:text-green-400">{t.analysisComplete}</h3>
               <p className="text-muted-foreground mb-4 text-sm sm:text-base">
-                A análise da ferida foi concluída com sucesso. Os resultados foram salvos e estão disponíveis no seu painel.
+                {t.analysisCompleteDescription}
               </p>
               <Button
                 onClick={() => {
@@ -355,7 +358,7 @@ export default function WoundCapturePage() {
                 size="sm"
                 className="w-full sm:w-auto"
               >
-                Nova Captura
+                {t.newCapture}
               </Button>
             </CardContent>
           </Card>
@@ -372,3 +375,5 @@ export default function WoundCapturePage() {
     </div>
   );
 }
+
+    

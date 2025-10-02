@@ -45,7 +45,7 @@ export function CatSupport({ currentPage }: { currentPage: string }) {
     anamnesis: {
       question: t.zeloAnamnesisQuestion,
       icon: ClipboardList,
-      badge: "Novo",
+      badge: t.new,
       color: "bg-blue-500",
       answer: t.zeloAnamnesisAnswer,
       tips: [
@@ -81,7 +81,7 @@ export function CatSupport({ currentPage }: { currentPage: string }) {
     agenda: {
       question: t.zeloAgendaQuestion,
       icon: CalendarDays,
-      badge: "Em Breve",
+      badge: t.comingSoon,
       color: "bg-green-500",
       answer: t.zeloAgendaAnswer,
       tips: [
@@ -105,7 +105,7 @@ export function CatSupport({ currentPage }: { currentPage: string }) {
     support: {
       question: t.zeloSupportQuestion,
       icon: Heart,
-      badge: "Suporte",
+      badge: t.support,
       color: "bg-red-500",
       answer: t.zeloSupportAnswer,
       tips: [
@@ -314,21 +314,21 @@ export function CatSupport({ currentPage }: { currentPage: string }) {
               <>
                   <ChatBlock 
                       icon={User}
-                      text={chatTopics[step].question} 
+                      text={(chatTopics[step] as any).question} 
                       isUser 
                   />
                   <ChatBlock 
                       icon={Bot}
-                      text={chatTopics[step].answer} 
+                      text={(chatTopics[step] as any).answer} 
                   />
                   
-                  {chatTopics[step].tips && (
+                  {(chatTopics[step] as any).tips && (
                     <div className="w-full space-y-2 mt-4 animate-fade-in-up">
                       <div className="flex items-center gap-2 mb-3">
                         <Sparkles className="h-4 w-4 text-primary" />
                         <span className="text-sm font-semibold text-foreground">{t.zeloImportantTips}</span>
                       </div>
-                      {chatTopics[step].tips.map((tip, index) => (
+                      {(chatTopics[step] as any).tips.map((tip: string, index: number) => (
                         <TipBlock key={index} tip={tip} index={index} />
                       ))}
                     </div>
@@ -362,3 +362,5 @@ export function CatSupport({ currentPage }: { currentPage: string }) {
     </Popover>
   );
 }
+
+    
