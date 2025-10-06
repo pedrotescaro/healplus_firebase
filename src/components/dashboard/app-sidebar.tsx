@@ -1,3 +1,4 @@
+
 "use client";
 
 import Link from "next/link";
@@ -63,7 +64,6 @@ export default function AppSidebar({ className, onLinkClick }: AppSidebarProps) 
     { href: "/dashboard/anamnesis", icon: ClipboardList, label: t.newAnamnesis, badge: "Novo" },
     { href: "/dashboard/anamnesis-records", icon: Users, label: t.myPatients },
     { href: "/dashboard/agenda", icon: Calendar, label: t.agenda },
-    { href: "/dashboard/wound-capture", icon: Camera, label: "Captura de Feridas", badge: "AI" },
     { href: "/dashboard/report", icon: FileText, label: t.generateReport },
     { href: "/dashboard/reports", icon: Archive, label: t.myReports },
     { href: "/dashboard/compare-reports", icon: CopyCheck, label: t.compareReports, badge: "Pro" },
@@ -73,6 +73,7 @@ export default function AppSidebar({ className, onLinkClick }: AppSidebarProps) 
 
   const patientNavItems: NavItem[] = [
     { href: "/dashboard", icon: LayoutDashboard, label: t.dashboard },
+    { href: "/dashboard/wound-capture", icon: Camera, label: "Captura de Feridas", badge: "AI" },
     { href: "/dashboard/reports", icon: Archive, label: t.myReports },
     { href: "/dashboard/profile", icon: User, label: t.profile },
   ];
