@@ -27,6 +27,15 @@ const nextConfig: NextConfig = {
   env: {
     NEXT_PUBLIC_GEMINI_API_KEY: process.env.GEMINI_API_KEY,
   },
+  webpack: (config, { isServer }) => {
+    if (!isServer) {
+      config.resolve.fallback = {
+        ...config.resolve.fallback,
+        async_hooks: false,
+      };
+    }
+    return config;
+  },
 };
 
 export default nextConfig;
