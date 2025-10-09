@@ -677,7 +677,6 @@ export const translations = {
     new: "New",
     comingSoon: "Coming Soon",
     support: "Help",
-
   },
   "es-es": {
     locale: "es-ES",
