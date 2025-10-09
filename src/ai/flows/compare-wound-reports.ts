@@ -294,66 +294,66 @@ Análise do Dia 1:
 - Área da Ferida: 10.5 cm²
 - Composição do Tecido:
     - Tecido de Granulação: 60%
-    - Esfacelo: 30%
-    - Necrose: 10%
-- Exsudato: Moderado, serossanguinolento.
-- Pele Perilesional: Levemente eritematosa.
-Análise do Dia 7:
-- Área da Ferida: 8.2 cm²
-- Composição do Tecido:
-    - Tecido de Granulação: 85%
-    - Esfacelo: 15%
-    - Necrose: 0%
-- Exsudato: Leve, seroso.
-- Pele Perilesional: Sem sinais de eritema.
-Progressão:
-- Redução da Área da Ferida: 21.8% (de 10.5 cm² para 8.2 cm²).
-- Melhoria na Composição do Tecido: Aumento significativo do tecido de granulação (de 60% para 85%) e eliminação completa do tecido necrótico. Redução do esfacelo.
-- Redução do Exsudato e Melhoria da Pele Perilesional.
-Conclusão: A ferida apresenta progressão positiva na cicatrização entre o Dia 1 e o Dia 7, com redução de tamanho, aumento de tecido de granulação e melhora da condição da pele perilesional.
-Este exemplo demonstra como a API Gemini pode sintetizar informações visuais e contextuais em um relatório claro e acionável, facilitando o monitoramento e a tomada de decisões clínicas.
+        - Esfacelo: 30%
+            - Necrose: 10%
+            - Exsudato: Moderado, serossanguinolento.
+            - Pele Perilesional: Levemente eritematosa.
+            Análise do Dia 7:
+            - Área da Ferida: 8.2 cm²
+            - Composição do Tecido:
+                - Tecido de Granulação: 85%
+                    - Esfacelo: 15%
+                        - Necrose: 0%
+                        - Exsudato: Leve, seroso.
+                        - Pele Perilesional: Sem sinais de eritema.
+                        Progressão:
+                        - Redução da Área da Ferida: 21.8% (de 10.5 cm² para 8.2 cm²).
+                        - Melhoria na Composição do Tecido: Aumento significativo do tecido de granulação (de 60% para 85%) e eliminação completa do tecido necrótico. Redução do esfacelo.
+                        - Redução do Exsudato e Melhoria da Pele Perilesional.
+                        Conclusão: A ferida apresenta progressão positiva na cicatrização entre o Dia 1 e o Dia 7, com redução de tamanho, aumento de tecido de granulação e melhora da condição da pele perilesional.
+                        Este exemplo demonstra como a API Gemini pode sintetizar informações visuais e contextuais em um relatório claro e acionável, facilitando o monitoramento e a tomada de decisões clínicas.
 
 
-Dados para Análise:
+                        Dados para Análise:
 
-Conjunto 1 (Data: {{report1Date}}):
----
-Relatório 1: {{{report1Content}}}
----
-Imagem 1: {{media url=image1DataUri}}
----
+                        Conjunto 1 (Data: {{report1Date}}):
+                        ---
+                        Relatório 1: {{{report1Content}}}
+                        ---
+                        Imagem 1: {{media url=image1DataUri}}
+                        ---
 
-Conjunto 2 (Data: {{report2Date}}):
----
-Relatório 2: {{{report2Content}}}
----
-Imagem 2: {{media url=image2DataUri}}
----
+                        Conjunto 2 (Data: {{report2Date}}):
+                        ---
+                        Relatório 2: {{{report2Content}}}
+                        ---
+                        Imagem 2: {{media url=image2DataUri}}
+                        ---
 
-INSTRUÇÕES ESPECÍFICAS PARA ANÁLISE MULTIMODAL:
+                        INSTRUÇÕES ESPECÍFICAS PARA ANÁLISE MULTIMODAL:
 
-1. ANÁLISE INTEGRADA: Combine as informações do relatório textual com os dados visuais extraídos das imagens. Por exemplo:
-   - Se o relatório menciona "área de 5cm²" e a imagem mostra uma ferida, use ambos os dados para validar e complementar a análise
-   - Se o relatório descreve "tecido de granulação vermelho" e a imagem confirma essa cor, integre essas informações
-   - Se há discrepâncias entre texto e imagem, documente-as no relatório
+                        1. ANÁLISE INTEGRADA: Combine as informações do relatório textual com os dados visuais extraídos das imagens. Por exemplo:
+                           - Se o relatório menciona "área de 5cm²" e a imagem mostra uma ferida, use ambos os dados para validar e complementar a análise
+                              - Se o relatório descreve "tecido de granulação vermelho" e a imagem confirma essa cor, integre essas informações
+                                 - Se há discrepâncias entre texto e imagem, documente-as no relatório
 
-2. VALIDAÇÃO CRUZADA: Use o relatório textual para contextualizar e validar as observações visuais:
-   - Confirme medições mencionadas no texto com as medições visuais
-   - Compare descrições de cor e textura do texto com a análise visual
-   - Use informações clínicas do texto para interpretar achados visuais
+                                 2. VALIDAÇÃO CRUZADA: Use o relatório textual para contextualizar e validar as observações visuais:
+                                    - Confirme medições mencionadas no texto com as medições visuais
+                                       - Compare descrições de cor e textura do texto com a análise visual
+                                          - Use informações clínicas do texto para interpretar achados visuais
 
-3. ANÁLISE COMPARATIVA: Para cada parâmetro (área, cor, textura, etc.):
-   - Extraia dados quantitativos das imagens
-   - Compare com informações textuais dos relatórios
-   - Calcule mudanças baseadas em ambos os conjuntos de dados
-   - Gere conclusões que integrem evidências visuais e textuais
+                                          3. ANÁLISE COMPARATIVA: Para cada parâmetro (área, cor, textura, etc.):
+                                             - Extraia dados quantitativos das imagens
+                                                - Compare com informações textuais dos relatórios
+                                                   - Calcule mudanças baseadas em ambos os conjuntos de dados
+                                                      - Gere conclusões que integrem evidências visuais e textuais
 
-4. RELATÓRIO FINAL: O relatório comparativo deve:
-   - Mencionar especificamente dados extraídos das imagens
-   - Referenciar informações dos relatórios textuais
-   - Mostrar como os dois tipos de dados se complementam
-   - Indicar quando há concordância ou discordância entre texto e imagem
-`,
+                                                      4. RELATÓRIO FINAL: O relatório comparativo deve:
+                                                         - Mencionar especificamente dados extraídos das imagens
+                                                            - Referenciar informações dos relatórios textuais
+                                                               - Mostrar como os dois tipos de dados se complementam
+                                                                  - Indicar quando há concordância ou discordância entre texto e imagem
+                                                                  `,
 });
 
 const compareWoundReportsFlow = ai.defineFlow(
