@@ -54,6 +54,7 @@ import { db } from "@/firebase/client-app";
 import { collection, addDoc, getDoc, doc, updateDoc, query, where, getDocs, limit } from "firebase/firestore";
 import { v4 as uuidv4 } from 'uuid';
 import { handleAnamnesisCreated } from "@/lib/aggregation-service";
+import { useTranslation } from "@/contexts/app-provider";
 
 export function AnamnesisForm() {
   const { toast } = useToast();
@@ -62,6 +63,7 @@ export function AnamnesisForm() {
   const searchParams = useSearchParams();
   const [isEditMode, setIsEditMode] = useState(false);
   const [recordId, setRecordId] = useState<string | null>(null);
+  const { t } = useTranslation();
 
   const defaultValues: Partial<AnamnesisFormValues> = {
     patientId: "",

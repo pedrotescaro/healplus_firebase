@@ -1,9 +1,8 @@
 
 "use client";
 
-// @ts-ignore
 import React, { useEffect, useRef, useState, ReactNode } from "react";
-import { Camera, Loader2, CheckCircle, XCircle } from "lucide-react";
+import { Camera, CheckCircle, XCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -16,6 +15,7 @@ import {
 } from "@/components/ui/dialog";
 import { useToast } from "@/hooks/use-toast";
 import { Alert, AlertTitle, AlertDescription } from "@/components/ui/alert";
+import { cn } from "@/lib/utils";
 
 interface ImageCaptureProps {
   onCapture: (fileOrUrl: File | string) => void;
@@ -31,8 +31,8 @@ export function ImageCapture({ onCapture, children }: ImageCaptureProps) {
   const { toast } = useToast();
 
   useEffect(() => {
-    // Only request permission when the dialog is opened
     if (isDialogOpen) {
+      setCapturedImage(null);
       const getCameraPermission = async () => {
         try {
           const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "environment" } });
@@ -46,19 +46,17 @@ export function ImageCapture({ onCapture, children }: ImageCaptureProps) {
           toast({
             variant: "destructive",
             title: "Acesso à Câmera Negado",
-            description: "Por favor, habilite a permissão da câmera nas configurações do seu navegador para usar esta função.",
+            description: "Por favor, habilite a permissão da câmera nas configurações do seu navegador.",
           });
         }
       };
       getCameraPermission();
     } else {
-      // Cleanup: stop camera stream when dialog is closed
       if (videoRef.current && videoRef.current.srcObject) {
         const stream = videoRef.current.srcObject as MediaStream;
         stream.getTracks().forEach((track) => track.stop());
         videoRef.current.srcObject = null;
       }
-       setCapturedImage(null); // Reset captured image
     }
   }, [isDialogOpen, toast]);
 
@@ -79,75 +77,75 @@ export function ImageCapture({ onCapture, children }: ImageCaptureProps) {
 
   const handleConfirm = async () => {
     if (capturedImage) {
-      try {
-        // Prefer upload direto via Storage quando disponível no consumidor
-        onCapture(capturedImage);
-        setIsDialogOpen(false);
-      } catch (e) {
-        // fallback para File
-        const res = await fetch(capturedImage);
-        const blob = await res.blob();
-        const file = new File([blob], `capture-${new Date().toISOString()}.png`, { type: 'image/png' });
-        onCapture(file);
-        setIsDialogOpen(false);
-      }
+      onCapture(capturedImage);
+      setIsDialogOpen(false);
     }
   };
 
   return (
     <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
       <DialogTrigger asChild>{children}</DialogTrigger>
-      <DialogContent className="max-w-xl">
+      <DialogContent className="max-w-3xl">
         <DialogHeader>
           <DialogTitle>Capturar Imagem da Ferida</DialogTitle>
         </DialogHeader>
-        <div className="relative aspect-video w-full overflow-hidden rounded-md border bg-muted">
+        <div className="relative w-full overflow-hidden rounded-md border bg-muted aspect-video">
           {hasCameraPermission === false ? (
-             <div className="flex h-full items-center justify-center p-4">
-                <Alert variant="destructive">
-                    <AlertTitle>Acesso à Câmera Necessário</AlertTitle>
-                    <AlertDescription>
-                        Por favor, permita o acesso à câmera para usar esta funcionalidade.
-                    </AlertDescription>
-                </Alert>
+            <div className="flex h-full items-center justify-center p-4">
+              <Alert variant="destructive">
+                <AlertTitle>Acesso à Câmera Necessário</AlertTitle>
+                <AlertDescription>
+                  Permita o acesso à câmera para usar esta funcionalidade.
+                </AlertDescription>
+              </Alert>
             </div>
           ) : (
-            <>
+            <div className="relative h-full w-full">
               <video
                 ref={videoRef}
-                className="h-full w-full object-cover"
+                className={cn("h-full w-full object-cover", capturedImage && "hidden")}
                 autoPlay
                 playsInline
                 muted
-                style={{ display: capturedImage ? 'none' : 'block' }}
               />
-               <canvas ref={canvasRef} style={{ display: 'none' }} />
+              <canvas ref={canvasRef} className="hidden" />
               {capturedImage && (
                 <img src={capturedImage} alt="Captured" className="h-full w-full object-cover" />
               )}
-            </>
+              {/* Overlay com guia visual */}
+              {!capturedImage && (
+                <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+                  <div className="w-11/12 h-5/6 border-4 border-dashed border-white/50 rounded-xl flex items-center justify-center">
+                    <div className="bg-black/40 p-2 rounded-lg text-center">
+                      <p className="text-white font-semibold">Mantenha a ferida dentro deste quadro</p>
+                      <p className="text-white/80 text-sm">Distância ideal: ~15cm</p>
+                    </div>
+                  </div>
+                </div>
+              )}
+            </div>
           )}
         </div>
         <DialogFooter className="flex-col gap-2 sm:flex-row">
-            {capturedImage ? (
-                <>
-                    <Button variant="outline" onClick={() => setCapturedImage(null)} className="w-full sm:w-auto">
-                        <Loader2 className="mr-2" /> Tentar Novamente
-                    </Button>
-                    <Button onClick={handleConfirm} className="w-full sm:w-auto">
-                        <CheckCircle className="mr-2" /> Usar esta Foto
-                    </Button>
-                </>
-            ) : (
-                 <Button onClick={handleCapture} disabled={!hasCameraPermission} className="w-full">
-                    <Camera className="mr-2" /> Tirar Foto
-                </Button>
-            )}
-            <DialogClose asChild>
-                 <Button variant="secondary" className="w-full sm:w-auto mt-2 sm:mt-0">
-                    <XCircle className="mr-2" /> Cancelar
-                </Button>
-            </DialogClose>
+          {capturedImage ? (
+            <>
+              <Button variant="outline" onClick={() => setCapturedImage(null)} className="w-full sm:w-auto">
+                Tentar Novamente
+              </Button>
+              <Button onClick={handleConfirm} className="w-full sm:w-auto">
+                <CheckCircle className="mr-2" /> Usar esta Foto
+              </Button>
+            </>
+          ) : (
+            <Button onClick={handleCapture} disabled={!hasCameraPermission} className="w-full">
+              <Camera className="mr-2" /> Tirar Foto
+            </Button>
+          )}
+          <DialogClose asChild>
+            <Button variant="secondary" className="w-full sm:w-auto mt-2 sm:mt-0">
+              <XCircle className="mr-2" /> Cancelar
+            </Button>
+          </DialogClose>
         </DialogFooter>
       </DialogContent>
     </Dialog>
