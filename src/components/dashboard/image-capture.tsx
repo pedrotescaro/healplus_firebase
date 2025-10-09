@@ -35,7 +35,13 @@ export function ImageCapture({ onCapture, children }: ImageCaptureProps) {
       setCapturedImage(null);
       const getCameraPermission = async () => {
         try {
-          const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "environment" } });
+          const stream = await navigator.mediaDevices.getUserMedia({ 
+            video: { 
+              facingMode: "environment",
+              width: { ideal: 1920 },
+              height: { ideal: 1080 }
+            } 
+          });
           setHasCameraPermission(true);
           if (videoRef.current) {
             videoRef.current.srcObject = stream;
