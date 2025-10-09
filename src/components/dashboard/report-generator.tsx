@@ -27,11 +27,39 @@ import Link from "next/link";
 import { Input } from "../ui/input";
 import { getRisk, createAssessment, getAnalysis, fhirPush, fhirPull } from "@/lib/api-client";
 import { handleReportCreated } from "@/lib/aggregation-service";
+import { ai } from "@/ai/genkit";
+import { z } from "zod";
 
 type StoredAnamnesis = AnamnesisFormValues & { id: string };
 
+// Schema para a resposta da IA de medição
+const MeasurementSchema = z.object({
+  width: z.number().describe("A largura da ferida em cm."),
+  length: z.number().describe("O comprimento da ferida em cm."),
+  unit: z.string().describe("A unidade de medida (ex: 'cm')."),
+  rulerFound: z.boolean().describe("Indica se uma régua foi encontrada na imagem."),
+  notes: z.string().optional().describe("Observações adicionais da IA, como alertas de qualidade.")
+});
+
+// Prompt para a IA medir a ferida
+const measurementPrompt = ai.definePrompt({
+    name: 'measureWoundPrompt',
+    input: { schema: z.object({ imageData: z.string() }) },
+    output: { schema: MeasurementSchema },
+    prompt: `Você é um assistente de visão computacional treinado para analisar imagens de feridas. Sua tarefa é medir as dimensões de uma ferida usando uma régua como referência na imagem.
+
+    1.  **Encontre a régua:** Localize uma régua posicionada ao lado da ferida.
+    2.  **Calibre a escala:** Use as marcações da régua (em cm) para determinar a escala de pixels por centímetro.
+    3.  **Meça a ferida:** Identifique os pontos de maior comprimento e maior largura da ferida e meça-os usando a escala calibrada.
+    4.  **Retorne os resultados:** Forneça a largura e o comprimento em centímetros.
+    5.  **Validação:** Se nenhuma régua for encontrada, defina 'rulerFound' como falso e retorne as medidas como 0. Adicione uma nota explicando que a medição não pôde ser realizada.
+
+    Analise a seguinte imagem: {{media url=imageData}}`,
+});
+
+
 // Helper function to create a static report from anamnesis data
-const createStaticReport = (record: StoredAnamnesis): string => {
+const createStaticReport = (record: StoredAnamnesis, measurements?: z.infer<typeof MeasurementSchema>): string => {
   let report = `## Relatório de Avaliação de Ferida\n\n`;
   report += `**Paciente:** ${record.nome_cliente}\n`;
   report += `**Data da Avaliação:** ${new Date(record.data_consulta).toLocaleDateString('pt-BR', { timeZone: 'UTC' })}\n\n`;
@@ -40,7 +68,16 @@ const createStaticReport = (record: StoredAnamnesis): string => {
   report += `- **Localização:** ${record.localizacao_ferida}\n`;
   report += `- **Tempo de Evolução:** ${record.tempo_evolucao}\n`;
   report += `- **Etiologia:** ${record.etiologia_ferida === 'Outra' ? record.etiologia_outra : record.etiologia_ferida}\n`;
-  report += `- **Dimensões:** ${record.ferida_comprimento || 0}cm (C) x ${record.ferida_largura || 0}cm (L) x ${record.ferida_profundidade || 0}cm (P)\n`;
+  
+  if (measurements && measurements.rulerFound) {
+      report += `- **Dimensões (Análise por IA):** ${measurements.length.toFixed(2)}cm (C) x ${measurements.width.toFixed(2)}cm (L)\n`;
+  } else {
+      report += `- **Dimensões (Manual):** ${record.ferida_comprimento || 0}cm (C) x ${record.ferida_largura || 0}cm (L) x ${record.ferida_profundidade || 0}cm (P)\n`;
+      if (measurements && measurements.notes) {
+          report += `  - *Nota da IA:* ${measurements.notes}\n`;
+      }
+  }
+  
   report += `- **Leito da Ferida:**\n`;
   if (record.percentual_granulacao_leito) report += `  - Tecido de Granulação: ${record.percentual_granulacao_leito}%\n`;
   if (record.percentual_epitelizacao_leito) report += `  - Tecido de Epitelização: ${record.percentual_epitelizacao_leito}%\n`;
@@ -132,7 +169,18 @@ export function ReportGenerator() {
     setReport(null);
     
     try {
-      const staticReportContent = createStaticReport(selectedRecord);
+      // Run AI measurement
+      const measurementResult = await measurementPrompt({ imageData: selectedRecord.woundImageUri });
+      if (!measurementResult.rulerFound) {
+        toast({
+            title: "Aviso da IA",
+            description: measurementResult.notes || "Não foi possível encontrar uma régua na imagem. As medidas manuais serão usadas.",
+            variant: "default",
+            duration: 6000
+        });
+      }
+
+      const staticReportContent = createStaticReport(selectedRecord, measurementResult);
       const result = { report: staticReportContent };
       setReport(result);
       
@@ -145,16 +193,17 @@ export function ReportGenerator() {
           professionalId: user.uid,
           patientId: selectedRecord.patientId || "", 
           createdAt: serverTimestamp(),
+          measurementsAI: measurementResult,
         });
         // Simulate Cloud Function trigger
         await handleReportCreated(user.uid);
-        toast({ title: "Relatório Gerado e Salvo", description: "O relatório foi gerado com sucesso." });
+        toast({ title: "Relatório Gerado e Salvo", description: "O relatório foi gerado com sucesso, utilizando medições da IA." });
       }
     } catch (error) {
       console.error("Error generating report:", error);
       toast({
-        title: "Erro ao Salvar",
-        description: "Não foi possível salvar o relatório no banco de dados.",
+        title: "Erro ao Gerar Relatório",
+        description: "Ocorreu um erro durante a análise da IA ou ao salvar o relatório.",
         variant: "destructive",
       });
     } finally {
@@ -433,7 +482,7 @@ export function ReportGenerator() {
         <div className="flex gap-2 flex-wrap">
         <Button type="submit" disabled={loading || !selectedRecord?.woundImageUri} className="w-full md:w-auto">
           {loading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <FileText className="mr-2 h-4 w-4" />}
-          Gerar Relatório
+          Gerar Relatório com IA
         </Button>
         <Button type="button" variant="secondary" onClick={handleVisionMock} disabled={loading || !selectedRecord?.woundImageUri} className="w-full md:w-auto">
           Analisar Imagem (mock)
