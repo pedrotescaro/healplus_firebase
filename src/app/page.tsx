@@ -179,35 +179,6 @@ export default function Home() {
         </div>
       </section>
 
-      {/* Video Section */}
-      <section className="py-20 sm:py-32 px-4 sm:px-6 lg:px-8 bg-gradient-to-br from-background via-muted/10 to-background">
-        <div className="container mx-auto">
-          <div className="text-center mb-12 sm:mb-16">
-            <h2 className="text-4xl sm:text-5xl lg:text-6xl font-bold text-foreground mb-4">
-              Veja o <span className="text-primary">Heal+</span> em Ação
-            </h2>
-            <p className="text-lg sm:text-2xl text-muted-foreground max-w-3xl mx-auto">
-              Descubra como nossa plataforma simplifica a avaliação de feridas em menos de 3 minutos.
-            </p>
-          </div>
-          <Card className="max-w-4xl mx-auto shadow-2xl border-border/50 overflow-hidden">
-            <CardContent className="p-2 bg-gradient-to-br from-primary/5 to-transparent">
-              <div className="aspect-video">
-                <iframe
-                  className="w-full h-full rounded-md"
-                  src="https://www.youtube-nocookie.com/embed/T2X_ZV_T-u0?si=jQFSKyR-SKVVaDQe"
-                  title="YouTube video player"
-                  frameBorder="0"
-                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
-                  referrerPolicy="strict-origin-when-cross-origin"
-                  allowFullScreen
-                ></iframe>
-              </div>
-            </CardContent>
-          </Card>
-        </div>
-      </section>
-
       {/* Features Section */}
       <section className="py-12 sm:py-16 md:py-20 lg:py-24 xl:py-32 px-3 sm:px-4 md:px-6 lg:px-8 bg-gradient-to-br from-muted/10 via-background to-muted/20 relative overflow-hidden">
         {/* Background decoration */}
