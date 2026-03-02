@@ -27,15 +27,40 @@ const nextConfig: NextConfig = {
   env: {
     NEXT_PUBLIC_GEMINI_API_KEY: process.env.GEMINI_API_KEY,
   },
-  serverExternalPackages: ['genkit', '@genkit-ai/googleai', '@genkit-ai/next'],
-  webpack: (config) => {
+  // Treats these packages as external on the server to prevent bundling issues
+  serverExternalPackages: [
+    'genkit', 
+    '@genkit-ai/googleai', 
+    '@genkit-ai/next', 
+    'wav',
+    'firebase'
+  ],
+  webpack: (config, { isServer }) => {
+    // Correctly resolve node_modules path
     config.resolve.modules = [
       path.resolve(__dirname, 'node_modules'),
       'node_modules',
     ];
+
+    // Fallbacks for client-side bundling of Node.js modules used by dependencies like Genkit/OpenTelemetry
+    if (!isServer) {
+      config.resolve.fallback = {
+        ...config.resolve.fallback,
+        fs: false,
+        net: false,
+        tls: false,
+        child_process: false,
+        perf_hooks: false,
+        async_hooks: false,
+        dgram: false,
+        dns: false,
+        http2: false,
+        os: false,
+      };
+    }
+
     return config;
   },
 };
 
 export default nextConfig;
-
