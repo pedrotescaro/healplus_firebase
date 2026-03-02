@@ -41,7 +41,6 @@ export default function Home() {
   const router = useRouter();
 
   useEffect(() => {
-    // Only redirect once the loading state is resolved.
     if (!loading) {
       if (user) {
         router.replace("/dashboard");
@@ -77,7 +76,6 @@ export default function Home() {
       },
     },
   };
-
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-background via-background to-muted/20 relative overflow-hidden">
@@ -119,7 +117,6 @@ export default function Home() {
 
       {/* Hero Section */}
       <section className="relative py-12 sm:py-16 md:py-20 lg:py-24 xl:py-32 px-3 sm:px-4 md:px-6 lg:px-8 overflow-hidden">
-        {/* Background decoration */}
         <div className="absolute inset-0 -z-10">
           <div className="absolute top-1/4 left-1/4 w-48 sm:w-72 lg:w-96 h-48 sm:h-72 lg:h-96 bg-gradient-to-r from-primary/20 to-primary/10 rounded-full blur-3xl animate-pulse"></div>
           <div className="absolute bottom-1/4 right-1/4 w-64 sm:w-96 lg:w-[32rem] h-64 sm:h-96 lg:h-[32rem] bg-gradient-to-r from-primary/10 to-primary/5 rounded-full blur-3xl animate-pulse delay-1000"></div>
@@ -128,7 +125,6 @@ export default function Home() {
         
         <div className="container mx-auto text-center">
           <div className="max-w-6xl mx-auto space-y-8 sm:space-y-12 lg:space-y-16">
-            {/* Badge */}
             <div className="inline-flex items-center px-4 sm:px-6 py-3 rounded-full bg-gradient-to-r from-primary/10 to-primary/5 text-primary text-sm sm:text-base font-semibold border border-primary/20 shadow-lg backdrop-blur-sm animate-fade-in-up">
               <Star className="w-4 h-4 sm:w-5 sm:h-5 mr-2 animate-pulse" />
               <span className="hidden sm:inline">Sistema Inteligente de Avaliação de Feridas</span>
@@ -160,7 +156,6 @@ export default function Home() {
               </Button>
             </div>
             
-            {/* Stats */}
             <div className="grid grid-cols-3 gap-4 sm:gap-6 md:gap-8 lg:gap-12 pt-8 sm:pt-12 md:pt-16 lg:pt-20 max-w-3xl mx-auto animate-fade-in-up delay-800">
               <div className="text-center group">
                 <div className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold text-primary group-hover:scale-110 transition-transform duration-300">IA</div>
@@ -181,7 +176,6 @@ export default function Home() {
 
       {/* Features Section */}
       <section className="py-12 sm:py-16 md:py-20 lg:py-24 xl:py-32 px-3 sm:px-4 md:px-6 lg:px-8 bg-gradient-to-br from-muted/10 via-background to-muted/20 relative overflow-hidden">
-        {/* Background decoration */}
         <div className="absolute inset-0 -z-10">
           <div className="absolute top-0 left-0 w-full h-full bg-gradient-to-br from-primary/5 via-transparent to-primary/10"></div>
           <div className="absolute top-1/3 right-1/4 w-64 sm:w-96 h-64 sm:h-80 lg:h-96 bg-gradient-to-r from-primary/10 to-transparent rounded-full blur-3xl animate-pulse delay-700"></div>
@@ -284,11 +278,10 @@ export default function Home() {
             </motion.div>
           </motion.div>
         </div>
-      </motion.section>
+      </section>
 
       {/* Benefits Section */}
       <section className="py-20 sm:py-32 px-4 sm:px-6 lg:px-8 bg-gradient-to-br from-primary/5 via-background to-primary/10 relative overflow-hidden">
-        {/* Background decoration */}
         <div className="absolute inset-0 -z-10">
           <div className="absolute top-0 left-0 w-full h-full bg-gradient-to-br from-primary/5 via-transparent to-primary/10"></div>
           <div className="absolute top-1/4 right-1/3 w-80 sm:w-96 lg:w-[28rem] h-80 sm:h-96 lg:h-[28rem] bg-gradient-to-r from-primary/15 to-primary/5 rounded-full blur-3xl animate-pulse delay-1000"></div>
@@ -402,7 +395,6 @@ export default function Home() {
 
       {/* FAQ Section */}
       <section id="faq" className="py-20 sm:py-32 px-4 sm:px-6 lg:px-8 bg-gradient-to-br from-muted/10 via-background to-muted/20 relative overflow-hidden">
-        {/* Background decoration */}
         <div className="absolute inset-0 -z-10">
           <div className="absolute top-0 left-0 w-full h-full bg-gradient-to-br from-primary/5 via-transparent to-primary/10"></div>
           <div className="absolute top-1/3 right-1/4 w-64 sm:w-80 lg:w-96 h-64 sm:h-80 lg:h-96 bg-gradient-to-r from-primary/10 to-transparent rounded-full blur-3xl animate-pulse delay-2000"></div>
@@ -451,7 +443,6 @@ export default function Home() {
 
       {/* Footer */}
       <footer className="bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 text-white relative overflow-hidden">
-        {/* Background decoration */}
         <div className="absolute inset-0 -z-10">
           <div className="absolute top-0 left-0 w-full h-full bg-gradient-to-br from-slate-900/95 via-slate-800/90 to-slate-900/95"></div>
           <div className="absolute top-1/4 right-1/4 w-64 sm:w-80 lg:w-96 h-64 sm:h-80 lg:h-96 bg-primary/10 rounded-full blur-3xl animate-pulse delay-3000"></div>
@@ -460,7 +451,6 @@ export default function Home() {
 
         <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-12 sm:py-16 relative z-10">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8 sm:gap-12">
-            {/* Contato */}
             <div className="space-y-4 sm:space-y-6">
               <h3 className="text-lg sm:text-xl font-bold text-primary flex items-center gap-2">
                 <Mail className="w-5 h-5" />
@@ -474,7 +464,6 @@ export default function Home() {
               </div>
             </div>
             
-            {/* Navegação */}
             <div className="space-y-4 sm:space-y-6">
               <h3 className="text-lg sm:text-xl font-bold text-primary">Navegação</h3>
               <ul className="space-y-3">
@@ -483,7 +472,6 @@ export default function Home() {
               </ul>
             </div>
             
-            {/* Conecte-se */}
             <div className="space-y-4 sm:space-y-6">
               <h3 className="text-lg sm:text-xl font-bold text-primary">Conecte-se</h3>
               <div className="flex items-center space-x-4 sm:space-x-6">
@@ -504,7 +492,6 @@ export default function Home() {
             </div>
           </div>
           
-          {/* Linha divisória */}
           <div className="border-t border-slate-700/50 mt-8 sm:mt-12 pt-8 sm:pt-12">
             <div className="flex flex-col md:flex-row justify-between items-center space-y-4 md:space-y-0">
               <p className="text-sm text-gray-300 text-center md:text-left">
