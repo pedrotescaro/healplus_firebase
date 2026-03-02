@@ -184,8 +184,8 @@ export default function Home() {
         {/* Background decoration */}
         <div className="absolute inset-0 -z-10">
           <div className="absolute top-0 left-0 w-full h-full bg-gradient-to-br from-primary/5 via-transparent to-primary/10"></div>
-          <div className="absolute top-1/3 right-1/4 w-64 sm:w-96 h-64 sm:h-96 bg-gradient-to-r from-primary/10 to-transparent rounded-full blur-3xl animate-pulse delay-700"></div>
-          <div className="absolute bottom-1/3 left-1/4 w-48 sm:w-72 h-48 sm:h-72 bg-gradient-to-r from-primary/5 to-primary/10 rounded-full blur-2xl animate-pulse delay-1200"></div>
+          <div className="absolute top-1/3 right-1/4 w-64 sm:w-96 h-64 sm:h-80 lg:h-96 bg-gradient-to-r from-primary/10 to-transparent rounded-full blur-3xl animate-pulse delay-700"></div>
+          <div className="absolute bottom-1/3 left-1/4 w-48 sm:w-64 lg:w-80 h-48 sm:h-64 lg:h-80 bg-gradient-to-r from-primary/5 to-primary/10 rounded-full blur-2xl animate-pulse delay-1200"></div>
         </div>
 
         <div className="container mx-auto">
@@ -284,7 +284,7 @@ export default function Home() {
             </motion.div>
           </motion.div>
         </div>
-      </section>
+      </motion.section>
 
       {/* Benefits Section */}
       <section className="py-20 sm:py-32 px-4 sm:px-6 lg:px-8 bg-gradient-to-br from-primary/5 via-background to-primary/10 relative overflow-hidden">
@@ -399,56 +399,6 @@ export default function Home() {
           </div>
         </div>
       </section>
-      
-      {/* CTA Section */}
-      <section className="py-20 sm:py-32 px-4 sm:px-6 lg:px-8 relative overflow-hidden bg-gradient-to-br from-primary/90 via-primary to-primary/90">
-          <div className="absolute inset-0 -z-10">
-              <div className="absolute top-0 left-0 w-full h-full bg-gradient-to-br from-primary/95 via-primary/90 to-primary/95"></div>
-              <div className="absolute top-1/4 right-1/4 w-64 sm:w-80 lg:w-96 h-64 sm:h-80 lg:h-96 bg-white/10 rounded-full blur-3xl animate-pulse"></div>
-              <div className="absolute bottom-1/4 left-1/4 w-48 sm:w-64 lg:w-80 h-48 sm:h-64 lg:h-80 bg-white/5 rounded-full blur-2xl animate-pulse delay-500"></div>
-          </div>
-          <div className="container mx-auto text-center relative z-10">
-              <div className="max-w-4xl mx-auto p-8 sm:p-12 lg:p-16 rounded-2xl bg-black/5 border border-white/10 backdrop-blur-xl shadow-2xl shadow-primary/10">
-                  <div className="space-y-8 sm:space-y-10">
-                      <div className="inline-flex items-center px-4 sm:px-6 py-3 rounded-full bg-white/10 text-white text-sm sm:text-base font-semibold border border-white/20 shadow-lg">
-                          <Sparkles className="w-4 h-4 sm:w-5 sm:h-5 mr-2 text-blue-300 animate-pulse" />
-                          Junte-se à revolução da saúde
-                      </div>
-                      <h2 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold text-white leading-tight">
-                          Pronto para <span className="bg-gradient-to-r from-blue-300 to-blue-200 bg-clip-text text-transparent">transformar</span> sua prática médica?
-                      </h2>
-                      <p className="text-base sm:text-lg md:text-xl lg:text-2xl text-blue-100 max-w-3xl mx-auto leading-relaxed">
-                          Sistema desenvolvido para auxiliar profissionais de saúde na avaliação e documentação de feridas com IA.
-                      </p>
-                      <div className="flex flex-col sm:flex-row gap-4 sm:gap-6 justify-center pt-4 sm:pt-6">
-                          <Button size="lg" asChild className="h-12 sm:h-14 md:h-16 px-6 sm:px-8 md:px-10 text-base sm:text-lg md:text-xl bg-white text-primary hover:bg-blue-100 shadow-xl hover:shadow-2xl transition-all duration-500 transform hover:scale-105 hover:-translate-y-1">
-                              <Link href="/signup">
-                                  Começar Agora - É Grátis
-                                  <ArrowRight className="ml-2 h-5 w-5 sm:h-6 sm:w-6" />
-                              </Link>
-                          </Button>
-                          <Button size="lg" variant="ghost" asChild className="h-12 sm:h-14 md:h-16 px-6 sm:px-8 md:px-10 text-base sm:text-lg md:text-xl text-white hover:bg-white/10 hover:text-white transition-all duration-300 transform hover:scale-105">
-                              <Link href="/login">Já tenho conta</Link>
-                          </Button>
-                      </div>
-                      <div className="flex flex-wrap items-center justify-center gap-x-6 sm:gap-x-8 gap-y-3 pt-6 sm:pt-8 text-sm text-blue-100">
-                          <div className="flex items-center gap-2 cta-feature-badge px-3 py-1 rounded-full border-blue-300/30 bg-blue-400/10">
-                              <CheckCircle className="w-4 h-4 text-blue-200" />
-                              Sem compromisso
-                          </div>
-                          <div className="flex items-center gap-2 cta-feature-badge px-3 py-1 rounded-full border-blue-300/30 bg-blue-400/10">
-                              <CheckCircle className="w-4 h-4 text-blue-200" />
-                              Configuração em 5 minutos
-                          </div>
-                          <div className="flex items-center gap-2 cta-feature-badge px-3 py-1 rounded-full border-blue-300/30 bg-blue-400/10">
-                              <CheckCircle className="w-4 h-4 text-blue-200" />
-                              Suporte 24/7
-                          </div>
-                      </div>
-                  </div>
-              </div>
-          </div>
-      </section>
 
       {/* FAQ Section */}
       <section id="faq" className="py-20 sm:py-32 px-4 sm:px-6 lg:px-8 bg-gradient-to-br from-muted/10 via-background to-muted/20 relative overflow-hidden">
@@ -468,7 +418,7 @@ export default function Home() {
               </span>
             </h2>
             <p className="text-lg sm:text-2xl text-muted-foreground max-w-3xl mx-auto leading-relaxed">
-              Tire suas dúvidas sobre o Heal+ e descubra como nosso sistema pode auxiliar sua prática médica
+              Tire suas dúvidas sobre o Heal+ e descubra como nosso sistema pode auxiliar sua prático médica
             </p>
           </div>
           
