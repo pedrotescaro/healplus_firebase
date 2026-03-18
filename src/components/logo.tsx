@@ -5,7 +5,7 @@ export function Logo({ className }: { className?: string }) {
   return (
     <div className={cn("flex items-center", className)}>
       <Image
-        src="https://i.imgur.com/HJ8HDJs.png"
+        src="/new logo.png"
         alt="Heal+ Logo"
         width={100}
         height={100}
